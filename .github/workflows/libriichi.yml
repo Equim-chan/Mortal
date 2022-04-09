@@ -1,0 +1,63 @@
+name: build libriichi
+
+on:
+  push:
+    paths:
+      - 'Cargo*'
+      - 'libriichi/**'
+  pull_request:
+    paths:
+      - 'Cargo*'
+      - 'libriichi/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Environment preparation
+        id: prep
+        run: |
+          set -x
+
+          rustup toolchain update --no-self-update stable
+          rustup default stable
+          rustup component add clippy rustfmt
+          rustup show
+
+          rustc --version | awk '{print $2}' | tee RUSTC_VER
+          echo "::set-output name=rustc_ver::$(cat RUSTC_VER)"
+
+      - name: Cache for Rust
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|
+
+      - name: Run rustfmt
+        run: cargo fmt --all --check
+
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets --all-features -- -Dwarnings
+
+      - name: Run tests
+        run: cargo test --no-default-features --lib --features flate2/zlib -- --nocapture
+
+      - name: Run build
+        run: |
+          cargo build --lib
+          cargo build --no-default-features --bins
+
+      - name: Check artifact
+        run: |
+          cd target/debug
+          ldd libriichi.so stat validate_logs
+          python -c 'import libriichi'

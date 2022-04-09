@@ -1,0 +1,68 @@
+name: deploy docs
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+
+env:
+  CARGO_TARGET_DIR: ~/cargo-install
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Environment preparation
+        id: prep
+        run: |
+          set -x
+
+          rustup toolchain update --no-self-update stable
+          rustup default stable
+          rustup component add clippy rustfmt
+          rustup show
+
+          rustc --version | awk '{print $2}' | tee RUSTC_VER
+          echo "::set-output name=rustc_ver::$(cat RUSTC_VER)"
+
+      - name: Cache for Rust
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ${{ env.CARGO_TARGET_DIR }}
+          key: ${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}
+
+      - name: Install mdbook with plugins
+        run: |
+          cargo install mdbook mdbook-admonish
+
+      - name: Deploy GitHub Pages
+        run: |
+          cd docs
+          mdbook build
+
+          if ! git rev-parse --verify gh-pages; then
+            git branch gh-pages
+          fi
+
+          git worktree add gh-pages gh-pages
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+
+          cd gh-pages
+          git update-ref -d refs/heads/gh-pages
+
+          rm -rf *
+          mv ../book/* .
+
+          git add .
+          git commit -m "Deploy $GITHUB_SHA to gh-pages"
+          git push -f -u origin gh-pages

@@ -1,0 +1,94 @@
+/* These sizes should be even numbers to get good rendering when they are rotated. */
+/* Original size: 33x59 */
+/* Original size: 44x49 */
+
+body {
+  transform: scale(2.3);
+  transform-origin: left;
+  overflow-x: hidden;
+}
+
+.repeated {
+  display: none; }
+
+.pai {
+  width: 22px;
+  height: 40px; }
+
+.laid-pai {
+  width: 30px;
+  height: 32px; }
+
+.board {
+  background-color: grey;
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 550px;
+  height: 550px; }
+
+.player {
+  /* border: 1px black solid; */
+  width: 550px;
+  position: absolute; }
+
+.player-0 {
+  left: 0px;
+  top: 350px;
+  -webkit-transform: rotate(0deg);
+  transform: rotate(0deg); }
+
+.player-1 {
+  left: 175px;
+  top: 175px;
+  -webkit-transform: rotate(270deg);
+  transform: rotate(270deg); }
+
+.player-2 {
+  left: 0px;
+  top: 0px;
+  -webkit-transform: rotate(180deg);
+  transform: rotate(180deg); }
+
+.player-3 {
+  left: -175px;
+  top: 175px;
+  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg); }
+
+.wanpais-container {
+  position: absolute;
+  left: 209px;
+  top: 255px; }
+
+.ho {
+  margin-left: 209px;
+  margin-bottom: 40px; }
+
+.furo-container {
+  float: right; }
+
+.tehai-container {
+  margin-left: 121px;
+  float: left; }
+
+.tsumo-pai {
+  margin-left: 5.5px; }
+
+.player-footer {
+  clear: both; }
+
+.pai-row {
+  height: 40px; }
+
+.controller-container {
+  position: absolute;
+  left: 550px;
+  top: 0px;
+  padding: 8px; }
+
+.log-label {
+  font-family: monospace;
+  white-space: pre; }
+
+/*# sourceMappingURL=style.css.map */

@@ -1,0 +1,142 @@
+[control]
+state_file = '/path/to/mortal.pth'
+tensorboard_dir = '/path/to/dir'
+
+device = 'cuda:0'
+enable_cudnn_benchmark = true
+enable_amp = false
+
+batch_size = 512
+opt_step_every = 1
+
+save_every = 400
+test_every = 20000
+
+online = false
+
+# using env `TRAIN_PLAY_PROFILE`
+[train_play.default]
+games = 800
+log_dir = '/path/to/train_play'
+boltzmann_epsilon = 0.005
+boltzmann_temp = 0.05
+repeats = 2
+
+[test_play]
+games = 2000
+log_dir = '/path/to/test_play'
+
+[dataset]
+globs = ['/path/to/dataset/**/*.json.gz']
+file_index = '/path/to/file_index.pth'
+file_batch_size = 15
+num_workers = 1
+quality_threshold = 0
+
+[env]
+gamma = 1
+pts = [3.0, 1.5, 0.0, -4.5]
+
+[resnet]
+conv_channels = 192
+num_blocks = 40
+enable_bn = true
+bn_momentum = 0.99
+
+[cql]
+min_q_weight = 5
+
+[vlog]
+beta_init = 1e-4
+kld_target = 50
+
+[freeze_bn]
+mortal = true
+oracle = true
+
+[optim]
+mortal_lr = 1e-4
+oracle_lr = 1e-4
+dqn_lr = 1e-4
+beta_lr = 5e-4
+
+[baseline]
+device = 'cuda:0'
+model = '/path/to/baseline.pth'
+
+[online.remote]
+host = '127.0.0.1'
+port = 5000
+
+[online.server]
+buffer_dir = '/path/to/buffer'
+drain_dir = '/path/to/drain'
+sample_reuse_rate = 0
+sample_reuse_threshold = 0
+capacity = 1600
+
+[test]
+stochastic_latent = false
+
+[1v3]
+games_per_iter = 2000
+iters = 500
+log_dir = '/path/to/1v3'
+
+[1v3.challenger]
+device = 'cuda:0'
+name = 'mortal'
+model = '/path/to/challenger.pth'
+stochastic_latent = false
+enable_amp = true
+
+[1v3.champion]
+device = 'cuda:0'
+name = 'baseline'
+model = '/path/to/baseline.pth'
+stochastic_latent = false
+enable_amp = true
+
+[1v3.akochan]
+enabled = false
+dir = '/path/to/akochan'
+tactics = '/path/to/tactics.json'
+
+
+[grp]
+state_file = '/path/to/grp.pth'
+
+[grp.network]
+hidden_size = 64
+num_layers = 2
+
+[grp.control]
+device = 'cuda:0'
+enable_cudnn_benchmark = false
+tensorboard_dir = 'grp_v2/log'
+
+batch_size = 512
+save_every = 2000
+val_steps = 400
+
+[grp.dataset]
+train_globs = [
+    '/path/to/dataset/2019/**/*.json.gz',
+    '/path/to/dataset/2020/**/*.json.gz',
+    '/path/to/dataset/2021/01/**/*.json.gz',
+    '/path/to/dataset/2021/02/**/*.json.gz',
+    # ...
+]
+val_globs = [
+    '/path/to/dataset/2021/10/**/*.json.gz',
+    '/path/to/dataset/2021/11/**/*.json.gz',
+    # ...
+]
+file_index = '/path/to/grp_file_index.pth'
+file_batch_size = 50
+
+train_num_workers = 1
+val_num_workers = 1
+
+[grp.optim]
+lr = 1e-5

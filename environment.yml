@@ -1,0 +1,9 @@
+name: mortal
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip:
+    - tqdm
+    - toml
+    - tensorboard

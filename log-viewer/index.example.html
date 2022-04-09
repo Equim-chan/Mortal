@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html><head>
+  <meta charset="utf-8">
+  <title>Mahjong Archive Player</title>
+  <link rel="stylesheet" type="text/css" href="files/css/style.css">
+  <script src="files/js/jquery-1.7.2.min.js"></script>
+  <script src="files/js/dytem.js"></script>
+  <script>
+    allActions = `
+{"type":"start_game","names":["baseline","mortal","baseline","baseline"],"seed":["10015","2000"]}
+{"type":"start_kyoku","bakaze":"S","dora_marker":"5mr","kyoku":1,"honba":1,"kyotaku":1,"oya":0,"scores":[20400,26800,24400,27400],"tehais":[["5s","E","P","6p","6m","F","F","3s","6s","3p","C","9p","3m"],["7p","6s","7s","4s","F","8m","1s","9s","E","4s","1m","3m","4m"],["8m","3s","5pr","E","2p","3m","P","8s","4p","9s","2m","P","1p"],["S","W","4p","9p","5m","6m","5s","W","N","7p","4m","2s","9m"]]}
+{"type":"tsumo","actor":0,"pai":"2s"}
+{"type":"dahai","actor":0,"pai":"9p","tsumogiri":false,"meta":{"prob_path":[0.99492574]}}
+{"type":"tsumo","actor":1,"pai":"4s"}
+{"type":"dahai","actor":1,"pai":"E","tsumogiri":false,"meta":{"prob_path":[0.5986678]}}
+{"type":"tsumo","actor":2,"pai":"2p"}
+{"type":"dahai","actor":2,"pai":"E","tsumogiri":false,"meta":{"prob_path":[0.9214192]}}
+{"type":"tsumo","actor":3,"pai":"N"}
+{"type":"dahai","actor":3,"pai":"9m","tsumogiri":false,"meta":{"q_value":-0.06271094,"is_greedy":true}}
+{"type":"tsumo","actor":0,"pai":"8s"}
+{"type":"dahai","actor":0,"pai":"E","tsumogiri":false,"meta":{"prob_path":[0.9803956]}}
+{"type":"tsumo","actor":1,"pai":"6p"}
+{"type":"dahai","actor":1,"pai":"1s","tsumogiri":false,"meta":{"prob_path":[0.6383972]}}
+{"type":"tsumo","actor":2,"pai":"9m"}
+{"type":"dahai","actor":2,"pai":"1p","tsumogiri":false,"meta":{"prob_path":[0.62649125]}}
+{"type":"tsumo","actor":3,"pai":"1p"}
+{"type":"dahai","actor":3,"pai":"1p","tsumogiri":true,"meta":{"q_value":-0.16191153,"is_greedy":true}}
+{"type":"tsumo","actor":0,"pai":"4s"}
+{"type":"dahai","actor":0,"pai":"P","tsumogiri":false,"meta":{"prob_path":[0.49008697]}}
+{"type":"pon","actor":2,"target":0,"pai":"P","consumed":["P","P"],"meta":{"prob_path":[0.95534396]}}
+{"type":"dahai","actor":2,"pai":"3s","tsumogiri":false,"meta":{"prob_path":[0.83111364]}}
+{"type":"tsumo","actor":3,"pai":"7m"}
+{"type":"dahai","actor":3,"pai":"2s","tsumogiri":false,"meta":{"q_value":-0.07680977,"is_greedy":true}}
+{"type":"tsumo","actor":0,"pai":"9m"}
+{"type":"dahai","actor":0,"pai":"9m","tsumogiri":true,"meta":{"prob_path":[0.9843642]}}
+{"type":"tsumo","actor":1,"pai":"2s"}
+{"type":"dahai","actor":1,"pai":"1m","tsumogiri":false,"meta":{"prob_path":[0.48070946]}}
+{"type":"chi","actor":2,"target":1,"pai":"1m","consumed":["2m","3m"],"meta":{"prob_path":[0.7629197]}}
+{"type":"dahai","actor":2,"pai":"8s","tsumogiri":false,"meta":{"prob_path":[0.6639003]}}
+{"type":"tsumo","actor":3,"pai":"8m"}
+{"type":"dahai","actor":3,"pai":"S","tsumogiri":false,"meta":{"q_value":0.052880347,"is_greedy":true}}
+{"type":"tsumo","actor":0,"pai":"E"}
+{"type":"dahai","actor":0,"pai":"E","tsumogiri":true,"meta":{"prob_path":[0.90582234]}}
+{"type":"tsumo","actor":1,"pai":"7s"}
+{"type":"dahai","actor":1,"pai":"F","tsumogiri":false,"meta":{"prob_path":[0.5757471]}}
+{"type":"pon","actor":0,"target":1,"pai":"F","consumed":["F","F"],"meta":{"prob_path":[0.8591593]}}
+{"type":"dahai","actor":0,"pai":"C","tsumogiri":false,"meta":{"prob_path":[0.73275584]}}
+{"type":"tsumo","actor":1,"pai":"C"}
+{"type":"dahai","actor":1,"pai":"C","tsumogiri":true,"meta":{"prob_path":[0.73547727]}}
+{"type":"tsumo","actor":2,"pai":"P"}
+{"type":"dahai","actor":2,"pai":"9s","tsumogiri":false,"meta":{"prob_path":[0.77168167,0.9969927]}}
+{"type":"tsumo","actor":3,"pai":"3p"}
+{"type":"dahai","actor":3,"pai":"5s","tsumogiri":false,"meta":{"q_value":-0.1434766,"is_greedy":true}}
+{"type":"tsumo","actor":0,"pai":"1p"}
+{"type":"dahai","actor":0,"pai":"3m","tsumogiri":false,"meta":{"prob_path":[0.6550646]}}
+{"type":"tsumo","actor":1,"pai":"C"}
+{"type":"dahai","actor":1,"pai":"C","tsumogiri":true,"meta":{"prob_path":[0.7356782]}}
+{"type":"tsumo","actor":2,"pai":"W"}
+{"type":"dahai","actor":2,"pai":"W","tsumogiri":true,"meta":{"prob_path":[0.8090428,0.90139705]}}
+{"type":"tsumo","actor":3,"pai":"8p"}
+{"type":"end_kyoku"}
+{"type":"end_game"}
+    `.trim().split('\n').map(s => JSON.parse(s))
+    resourceDir = "files";
+  </script>
+  <script src="files/js/archive_player.js"></script>
+</head><body>
+  <div class="board">
+    <div id="players" class="repeated player">
+      <div class="ho">
+        <div id="players.hoRows" class="repeated pai-row">
+          <img id="players.hoRows.pais" class="repeated">
+        </div>
+      </div>
+      <div class="tehai-container pai-row">
+        <img id="players.tehais" class="repeated">
+        <img id="players.tsumoPai" class="tsumo-pai">
+      </div>
+      <div class="furo-container pai-row">
+        <span id="players.furos" class="repeated">
+          <img id="players.furos.pais" class="repeated">
+        </span>
+      </div>
+      <div class="player-footer"></div>
+    </div>
+    <div class="wanpais-container">
+      <img id="wanpais" class="repeated">
+    </div>
+  </div>
+
+  <div class="controller-container">
+    <div>
+      <select id="kyokuSelector"></select>
+    </div>
+    <div>
+      <button id="prev-button">Prev</button>
+      <button id="next-button">Next</button>
+      <input id="action-id-label" type="text" size="3" value="0">
+      <button id="go-button">Go</button>
+      <button id="last-button" style="margin-left: 1em;">Last</button>
+    </div>
+    <table border="0">
+      <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Score</th>
+        <th><button id="viewpoint-button">Viewpoint</button></th>
+      </tr>
+      <tr id="playerInfos" class="repeated">
+        <td id="playerInfos.index"></td>
+        <td id="playerInfos.name"></td>
+        <td id="playerInfos.score"></td>
+        <td id="playerInfos.viewpoint"></td>
+      </tr>
+    </table>
+    <div><pre id="action-label"></pre></div>
+    <div id="log-label" class="log-label"></div>
+  </div>
+
+</body></html>
