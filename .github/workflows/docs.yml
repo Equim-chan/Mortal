@@ -9,7 +9,6 @@ on:
       - docs/**
 
 env:
-  CARGO_TARGET_DIR: ~/cargo-install
   MDBOOK_VER: '0.4.17'
   MDBOOK_ADMONISH_VER: '1.4.0'
 
@@ -35,21 +34,24 @@ jobs:
           echo "::set-output name=rustc_ver::$(cat RUSTC_VER)"
 
       - name: Cache for Rust
+        id: cache-cargo-install
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            ${{ env.CARGO_TARGET_DIR }}
-          key: ${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|${{ env.MDBOOK_VER }}|${{ env.MDBOOK_ADMONISH_VER }}
+            ~/.cargo/bin
+          key: ${{ runner.os }}|cargo|1|${{ steps.prep.outputs.rustc_ver }}|${{ env.MDBOOK_VER }}|${{ env.MDBOOK_ADMONISH_VER }}
 
       - name: Install mdbook with plugins
+        if: steps.cache-cargo-install.outputs.cache-hit != 'true'
         run: |
           cargo install mdbook --version $MDBOOK_VER
           cargo install mdbook-admonish --version $MDBOOK_ADMONISH_VER
 
       - name: Deploy GitHub Pages
         run: |
+          set -x
+          export PATH="$HOME/.cargo/bin:$PATH"
+
           cd docs
           mdbook build
 
