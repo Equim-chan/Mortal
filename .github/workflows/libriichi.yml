@@ -1,14 +1,16 @@
-name: build libriichi
+name: build-libriichi
 
 on:
   push:
     paths:
-      - 'Cargo*'
-      - 'libriichi/**'
+      - .github/workflows/libriichi.yml
+      - Cargo*
+      - libriichi/**
   pull_request:
     paths:
-      - 'Cargo*'
-      - 'libriichi/**'
+      - .github/workflows/libriichi.yml
+      - Cargo*
+      - libriichi/**
 
 jobs:
   build:

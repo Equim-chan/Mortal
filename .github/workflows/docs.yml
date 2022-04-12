@@ -1,14 +1,17 @@
-name: deploy docs
+name: deploy-docs
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'docs/**'
+      - .github/workflows/docs.yml
+      - docs/**
 
 env:
   CARGO_TARGET_DIR: ~/cargo-install
+  MDBOOK_VER: '0.4.17'
+  MDBOOK_ADMONISH_VER: '1.4.0'
 
 jobs:
   build:
@@ -38,11 +41,12 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             ${{ env.CARGO_TARGET_DIR }}
-          key: ${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}
+          key: ${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|${{ env.MDBOOK_VER }}|${{ env.MDBOOK_ADMONISH_VER }}
 
       - name: Install mdbook with plugins
         run: |
-          cargo install mdbook mdbook-admonish
+          cargo install mdbook --version $MDBOOK_VER
+          cargo install mdbook-admonish --version $MDBOOK_ADMONISH_VER
 
       - name: Deploy GitHub Pages
         run: |
@@ -60,7 +64,9 @@ jobs:
           cd gh-pages
           git update-ref -d refs/heads/gh-pages
 
-          rm -rf *
+          mv .git ../dotgit
+          find . -name . -o -prune -exec rm -rf -- {} +
+          mv ../dotgit .git
           mv ../book/* .
 
           git add .

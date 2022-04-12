@@ -4,8 +4,8 @@
 
 # Mortal
 
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Equim-chan/Mortal/docs?label=docs)](https://mortal.ekyu.moe)
-[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Equim-chan/Mortal/libriichi?label=libriichi)](https://github.com/Equim-chan/Mortal/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Equim-chan/Mortal/build-libriichi?label=libriichi)](https://github.com/Equim-chan/Mortal/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Equim-chan/Mortal/deploy-docs?label=docs)](https://mortal.ekyu.moe)
 [![](https://img.shields.io/github/license/Equim-chan/Mortal)](https://github.com/Equim-chan/Mortal/blob/main/LICENSE)
 
 ![GitHub top language](https://img.shields.io/github/languages/top/Equim-chan/Mortal)
