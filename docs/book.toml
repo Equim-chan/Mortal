@@ -9,7 +9,8 @@ description = "Mortal - a free and open source AI for Japanese mahjong"
 [preprocessor.admonish]
 
 [output.html]
-default-theme = "rust"
+default-theme = "ayu"
+preferred-dark-theme = "ayu"
 mathjax-support = true
 site-url = "/"
 cname = "mortal.ekyu.moe"
