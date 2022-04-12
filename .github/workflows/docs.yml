@@ -45,7 +45,7 @@ jobs:
         with:
           path: |
             ~/.cargo/bin
-          key: ${{ runner.os }}|cargo|2|${{ steps.prep.outputs.rustc_ver }}|${{ steps.get-version.outputs.mdbook_ver }}|${{ steps.get-version.outputs.mdbook_admonish_ver }}
+          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|${{ steps.get-version.outputs.mdbook_ver }}|${{ steps.get-version.outputs.mdbook_admonish_ver }}
 
       - name: Install mdbook with plugins
         if: steps.cache-cargo-install.outputs.cache-hit != 'true'

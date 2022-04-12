@@ -37,12 +37,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: |
-            ~/.cargo/registry
-            ~/.cargo/git
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+            ~/.cargo/git/db
             target
-          key: ${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
-            ${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|
+            ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|
 
       - name: Run rustfmt
         run: cargo fmt --all --check
