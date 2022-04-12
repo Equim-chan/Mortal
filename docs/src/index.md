@@ -14,7 +14,7 @@
 
 Mortal ([凡夫](https://www.mdbg.net/chinese/dictionary?wdqb=%E5%87%A1%E5%A4%AB)) is a free and open source AI for Japanese mahjong, powered by deep reinforcement learning.
 
-Mortal is hosted on GitHub at <https://github.com/Equim-chan/Mortal>.
+The development of Mortal is hosted on GitHub at <https://github.com/Equim-chan/Mortal>.
 
 ## Features
 * [x] A strong mahjong AI that is compatible with Tenhou's standard ranked rule for four-player mahjong.
