@@ -4,7 +4,17 @@
 
 # Mortal
 
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Equim-chan/Mortal/build-libriichi?label=libriichi)](https://github.com/Equim-chan/Mortal/actions)
+[![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Equim-chan/Mortal/deploy-docs?label=docs)](https://mortal.ekyu.moe)
+[![](https://img.shields.io/github/license/Equim-chan/Mortal)](https://github.com/Equim-chan/Mortal/blob/main/LICENSE)
+
+![GitHub top language](https://img.shields.io/github/languages/top/Equim-chan/Mortal)
+![Lines of code](https://img.shields.io/tokei/lines/github/Equim-chan/Mortal)
+![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Equim-chan/Mortal)
+
 Mortal ([凡夫](https://www.mdbg.net/chinese/dictionary?wdqb=%E5%87%A1%E5%A4%AB)) is a free and open source AI for Japanese mahjong, powered by deep reinforcement learning.
+
+Mortal is hosted on GitHub at <https://github.com/Equim-chan/Mortal>.
 
 ## Features
 * [x] A strong mahjong AI that is compatible with Tenhou's standard ranked rule for four-player mahjong.
