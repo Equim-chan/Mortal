@@ -11,7 +11,7 @@ use once_cell::sync::Lazy;
 use std::io::prelude::*;
 
 pub static TOP300_2K_GAMES: Lazy<BoomHashMap<String, ()>> = Lazy::new(|| {
-    let mut gz = GzDecoder::new(&include_bytes!("top300_2k_games.txt.gz")[..]);
+    let mut gz = GzDecoder::new(&include_bytes!("data/top300_2k_games.txt.gz")[..]);
     let mut raw = String::new();
     gz.read_to_string(&mut raw).unwrap();
 

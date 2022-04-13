@@ -11,12 +11,20 @@ use once_cell::sync::Lazy;
 const JIHAI_TABLE_SIZE: usize = 78_032;
 const SUHAI_TABLE_SIZE: usize = 1_940_777;
 
-static JIHAI_TABLE: Lazy<Vec<[u8; 10]>> =
-    Lazy::new(|| import(include_bytes!("shanten_jihai.bin.gz"), JIHAI_TABLE_SIZE));
-static SUHAI_TABLE: Lazy<Vec<[u8; 10]>> =
-    Lazy::new(|| import(include_bytes!("shanten_suhai.bin.gz"), SUHAI_TABLE_SIZE));
+static JIHAI_TABLE: Lazy<Vec<[u8; 10]>> = Lazy::new(|| {
+    read_table(
+        include_bytes!("data/shanten_jihai.bin.gz"),
+        JIHAI_TABLE_SIZE,
+    )
+});
+static SUHAI_TABLE: Lazy<Vec<[u8; 10]>> = Lazy::new(|| {
+    read_table(
+        include_bytes!("data/shanten_suhai.bin.gz"),
+        SUHAI_TABLE_SIZE,
+    )
+});
 
-fn import(gzipped: &[u8], length: usize) -> Vec<[u8; 10]> {
+fn read_table(gzipped: &[u8], length: usize) -> Vec<[u8; 10]> {
     let mut gz = GzDecoder::new(gzipped);
     let mut raw = vec![];
     gz.read_to_end(&mut raw).unwrap();

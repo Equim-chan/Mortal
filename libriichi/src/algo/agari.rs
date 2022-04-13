@@ -22,7 +22,7 @@ use once_cell::sync::Lazy;
 const AGARI_TABLE_SIZE: usize = 9_362;
 
 static AGARI_TABLE: Lazy<BoomHashMap<u32, Vec<Div>>> = Lazy::new(|| {
-    let mut raw = GzDecoder::new(&include_bytes!("agari.bin.gz")[..]);
+    let mut raw = GzDecoder::new(&include_bytes!("data/agari.bin.gz")[..]);
 
     let (keys, values) = (0..AGARI_TABLE_SIZE)
         .map(|_| {
