@@ -53,10 +53,6 @@ jobs:
           cargo install mdbook --version ${{ steps.get-version.outputs.mdbook_ver }}
           cargo install mdbook-admonish --version ${{ steps.get-version.outputs.mdbook_admonish_ver }}
 
-      - name: Install minifiers
-        run: |
-          npm i -g @josee9988/minifyall terser
-
       - name: Deploy GitHub Pages
         run: |
           set -x
@@ -64,10 +60,6 @@ jobs:
 
           cd docs
           mdbook build
-
-          minifyall -d book
-          find book -type f -name '*.js' -print0 | \
-            xargs -0 -n1 bash -c 'terser "$1" -m -o tmp.js; mv tmp.js "$1"' @
 
           if ! git rev-parse --verify gh-pages; then
             git branch gh-pages
