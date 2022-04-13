@@ -62,7 +62,7 @@ beta_lr = 5e-4
 
 [baseline]
 device = 'cuda:0'
-model = '/path/to/baseline.pth'
+state_file = '/path/to/baseline.pth'
 
 [online.remote]
 host = '127.0.0.1'
@@ -86,14 +86,14 @@ log_dir = '/path/to/1v3'
 [1v3.challenger]
 device = 'cuda:0'
 name = 'mortal'
-model = '/path/to/challenger.pth'
+state_file = '/path/to/challenger.pth'
 stochastic_latent = false
 enable_amp = true
 
 [1v3.champion]
 device = 'cuda:0'
 name = 'baseline'
-model = '/path/to/baseline.pth'
+state_file = '/path/to/baseline.pth'
 stochastic_latent = false
 enable_amp = true
 

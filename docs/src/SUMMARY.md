@@ -15,7 +15,7 @@
 # User Guide
 * [Docker Quick Start](user/docker.md)
 * [Build](user/build.md)
-* [Reinforcement Learning Training]()
+* [Training]()
     * [Pre-Trained Model]()
     * [Configurations]()
     * [Offline Phase]()

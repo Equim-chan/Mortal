@@ -1,10 +1,12 @@
 .vscode
 __pycache__
+
 /target
 *.pyd
 *.dll
 *.exe
 *.so
+*.pth
 
 # TODO: this is temporary
-_draft
+/_draft

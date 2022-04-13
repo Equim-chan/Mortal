@@ -16,7 +16,7 @@ class TestPlayer:
 
         stable_mortal = Brain(False, **config['resnet']).eval()
         stable_dqn = DQN().eval()
-        state = torch.load(config['baseline']['model'], map_location=torch.device('cpu'))
+        state = torch.load(config['baseline']['state_file'], map_location=torch.device('cpu'))
         stable_mortal.load_state_dict(state['mortal'])
         stable_dqn.load_state_dict(state['current_dqn'])
         self.baseline_engine = MortalEngine(
@@ -64,7 +64,7 @@ class TrainPlayer:
 
         stable_mortal = Brain(False, **config['resnet']).eval()
         stable_dqn = DQN().eval()
-        state = torch.load(config['baseline']['model'], map_location=torch.device('cpu'))
+        state = torch.load(config['baseline']['state_file'], map_location=torch.device('cpu'))
         stable_mortal.load_state_dict(state['mortal'])
         stable_dqn.load_state_dict(state['current_dqn'])
         self.baseline_engine = MortalEngine(

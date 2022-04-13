@@ -16,8 +16,8 @@ $ cd Mortal
 From now on, the root directory of Mortal will be demostrated as `$MORTAL_ROOT`.
 
 ### Create and activate a conda env
+Working directory: `$MORTAL_ROOT`
 ```shell
-$ # Working directory: $MORTAL_ROOT
 $ conda env create -f environment.yml
 $ conda activate mortal
 ```
@@ -32,15 +32,24 @@ Only `torch` is needed. You can skip the installation of `torchvision` and `torc
 ```
 
 ### Build and install libriichi
+Working directory: `$MORTAL_ROOT`
 ```shell
-$ # Working directory: $MORTAL_ROOT
 $ cargo build --lib --release
-$ cp target/release/libriichi.so mortal
+```
+
+For Linux
+```shell
+$ cp target/release/libriichi.so mortal/libriichi.so
+```
+
+For Windows (MSYS2)
+```shell
+$ cp target/release/riichi.dll mortal/libriichi.pyd
 ```
 
 ### Test the environment
+Working directory: `$MORTAL_ROOT/mortal`
 ```shell
-$ # Working directory: $MORTAL_ROOT/mortal
 $ python
 Python 3.9.7 | packaged by conda-forge | (default, Sep 29 2021, 19:23:11)
 [GCC 9.4.0] on linux
@@ -50,8 +59,8 @@ Type "help", "copyright", "credits" or "license" for more information.
 ```
 
 ## Build documentation (optional)
+Working directory: `$MORTAL_ROOT/docs`
 ```shell
-$ # Working directory: $MORTAL_ROOT/docs
 $ cargo install mdbook mdbook-admonish
 $ mdbook build
 ```

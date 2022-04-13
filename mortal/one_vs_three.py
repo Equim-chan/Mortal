@@ -25,7 +25,7 @@ def main():
     else:
         mortal = Brain(False, **config['resnet']).eval()
         dqn = DQN().eval()
-        state = torch.load(cfg['champion']['model'], map_location=torch.device('cpu'))
+        state = torch.load(cfg['champion']['state_file'], map_location=torch.device('cpu'))
         mortal.load_state_dict(state['mortal'])
         dqn.load_state_dict(state['current_dqn'])
         engine_cham = MortalEngine(
@@ -40,7 +40,7 @@ def main():
 
     mortal = Brain(False, **config['resnet']).eval()
     dqn = DQN().eval()
-    state = torch.load(cfg['challenger']['model'], map_location=torch.device('cpu'))
+    state = torch.load(cfg['challenger']['state_file'], map_location=torch.device('cpu'))
     mortal.load_state_dict(state['mortal'])
     dqn.load_state_dict(state['current_dqn'])
     engine_chal = MortalEngine(
@@ -48,7 +48,7 @@ def main():
         dqn,
         is_oracle = False,
         stochastic_latent = cfg['challenger']['stochastic_latent'],
-        device = torch.device(cfg['challenger']['device'])
+        device = torch.device(cfg['challenger']['device']),
         enable_amp = cfg['challenger']['enable_amp'],
         name = cfg['challenger']['name'],
     )
