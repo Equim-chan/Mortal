@@ -53,6 +53,10 @@ jobs:
           cargo install mdbook --version ${{ steps.get-version.outputs.mdbook_ver }}
           cargo install mdbook-admonish --version ${{ steps.get-version.outputs.mdbook_admonish_ver }}
 
+      - name: Install minifyall
+        run: |
+          npm i -g @josee9988/minifyall
+
       - name: Deploy GitHub Pages
         run: |
           set -x
@@ -60,6 +64,7 @@ jobs:
 
           cd docs
           mdbook build
+          minifyall -d book
 
           if ! git rev-parse --verify gh-pages; then
             git branch gh-pages

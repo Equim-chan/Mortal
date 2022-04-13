@@ -1,2 +1,5 @@
 log-viewer/* linguist-vendored
-docs/mdbook-admonish.css linguist-vendored
+docs/js/sidebar.js linguist-vendored
+docs/theme/index.hbs linguist-vendored
+docs/css/mdbook-admonish.css linguist-vendored
+docs/css/sidebar.css linguist-vendored
