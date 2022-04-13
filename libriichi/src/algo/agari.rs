@@ -11,6 +11,7 @@ use super::shanten;
 use crate::tile::Tile;
 use crate::{matches_tu8, tu8};
 use std::cmp::Ordering;
+use std::io::prelude::*;
 use std::iter;
 
 use boomphf::hashmap::BoomHashMap;
@@ -34,6 +35,12 @@ static AGARI_TABLE: Lazy<BoomHashMap<u32, Vec<Div>>> = Lazy::new(|| {
             (key, value)
         })
         .unzip();
+
+    // Ensure there is no data left to read.
+    let mut dummy = vec![0];
+    let size = raw.read(&mut dummy).unwrap();
+    assert_eq!(size, 0);
+
     BoomHashMap::new(keys, values)
 });
 
@@ -162,8 +169,14 @@ pub struct AgariCalculator<'a> {
 }
 
 impl AgariCalculator<'_> {
+    #[inline]
     pub fn has_yaku(&self) -> bool {
-        self.search_yaku(true).is_some()
+        self.search_yakus_impl(true).is_some()
+    }
+
+    #[inline]
+    pub fn search_yakus(&self) -> Option<Agari> {
+        self.search_yakus_impl(false)
     }
 
     /// `additional_yakus` includes 門前清自摸和, (両)立直, 槍槓, 嶺上開花, 海底
@@ -176,7 +189,7 @@ impl AgariCalculator<'_> {
     /// This function is designed to be called by only callers who have the
     /// knowledge of the ura doras.
     pub fn agari(&self, additional_yakus: u8, doras: u8) -> Option<Agari> {
-        if let Some(agari) = self.search_yaku(false) {
+        if let Some(agari) = self.search_yakus() {
             Some(match agari {
                 Agari::Normal { fu, han } => Agari::Normal {
                     fu,
@@ -207,7 +220,7 @@ impl AgariCalculator<'_> {
         }
     }
 
-    pub fn search_yaku(&self, return_if_any: bool) -> Option<Agari> {
+    fn search_yakus_impl(&self, return_if_any: bool) -> Option<Agari> {
         // Special case, because kokushi is a special shape and also cannot be combined
         // with other div-han.
         if self.is_menzen && shanten::calc_kokushi(self.tehai) == -1 {
@@ -222,11 +235,11 @@ impl AgariCalculator<'_> {
             // Benchmark result indicates it is too trivial to use rayon here.
             divs.iter()
                 .map(|div| DivWorker::new(self, &tile14, div))
-                .find_map(|w| w.search_yaku(true))
+                .find_map(|w| w.search_yakus(true))
         } else {
             divs.iter()
                 .map(|div| DivWorker::new(self, &tile14, div))
-                .filter_map(|w| w.search_yaku(false))
+                .filter_map(|w| w.search_yakus(false))
                 .max()
         }
     }
@@ -407,7 +420,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
         ((fu - 1) / 10 + 1) * 10
     }
 
-    fn search_yaku(&self, return_if_any: bool) -> Option<Agari> {
+    fn search_yakus(&self, return_if_any: bool) -> Option<Agari> {
         let mut han = 0;
         let mut yakuman = 0;
 
@@ -932,7 +945,7 @@ mod test {
             winning_tile: tu8!(3m),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         assert_eq!(yaku, Agari::Normal { fu: 40, han: 4 });
 
         let tehai = hand("12334m 345p 22s 777z 2m").unwrap();
@@ -972,7 +985,7 @@ mod test {
             winning_tile: tu8!(5p),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         assert_eq!(yaku, Agari::Normal { fu: 25, han: 3 });
         assert_eq!(yaku.into_point(false).ron, 3200);
 
@@ -989,7 +1002,7 @@ mod test {
             winning_tile: tu8!(4m),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         assert_eq!(yaku, Agari::Normal { fu: 30, han: 1 });
 
         let tehai = hand("223344p 667788s 3m 3m").unwrap();
@@ -1005,7 +1018,7 @@ mod test {
             winning_tile: tu8!(3m),
             is_ron: false,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         assert_eq!(yaku, Agari::Normal { fu: 30, han: 4 });
 
         let tehai = hand("234678m 1123488p 8p").unwrap();
@@ -1021,7 +1034,7 @@ mod test {
             winning_tile: tu8!(8p),
             is_ron: true,
         };
-        assert_eq!(calc.search_yaku(false), None);
+        assert_eq!(calc.search_yakus(), None);
 
         let tehai = hand("223344999m 1188p 8p").unwrap();
         let calc = AgariCalculator {
@@ -1036,7 +1049,7 @@ mod test {
             winning_tile: tu8!(8p),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 一盃口 (without ankan)
         assert_eq!(yaku, Agari::Normal { fu: 40, han: 1 });
 
@@ -1053,7 +1066,7 @@ mod test {
             winning_tile: tu8!(8p),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 一盃口 (with ankan)
         assert_eq!(yaku, Agari::Normal { fu: 70, han: 1 });
 
@@ -1070,11 +1083,11 @@ mod test {
             winning_tile: tu8!(8m),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 平和, 二盃口
         assert_eq!(yaku, Agari::Normal { fu: 30, han: 4 });
         calc.winning_tile = tu8!(7m);
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 二盃口
         assert_eq!(yaku, Agari::Normal { fu: 40, han: 3 });
 
@@ -1091,7 +1104,7 @@ mod test {
             winning_tile: tu8!(9m),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 一気通貫
         assert_eq!(yaku, Agari::Normal { fu: 70, han: 2 });
 
@@ -1108,7 +1121,7 @@ mod test {
             winning_tile: tu8!(8p),
             is_ron: false,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 門前清自摸和 is not accounted.
         assert_eq!(yaku, Agari::Normal { fu: 40, han: 2 });
 
@@ -1125,7 +1138,7 @@ mod test {
             winning_tile: tu8!(C),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         assert_eq!(yaku, Agari::Yakuman(3));
 
         let tehai = hand("1m 789p 789s 1m").unwrap();
@@ -1141,7 +1154,7 @@ mod test {
             winning_tile: tu8!(1m),
             is_ron: false,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 純全, 三色
         assert_eq!(yaku, Agari::Normal { fu: 30, han: 3 });
 
@@ -1158,7 +1171,7 @@ mod test {
             winning_tile: tu8!(5s),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 三暗刻 (5s is ankou)
         // 20 + menzenron(10) + kanchan(2) + bakaze(2) + jikaze(2) + 1m(8) + 4m(4)
         // + 5s(4) + = 52
@@ -1177,7 +1190,7 @@ mod test {
             winning_tile: tu8!(E),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 混全帯幺九, 役牌*1
         // 20 + tanki(2) + 9s(8) + 7z(8) + 4z(4) = 42
         assert_eq!(yaku, Agari::Normal { fu: 50, han: 2 });
@@ -1195,7 +1208,7 @@ mod test {
             winning_tile: tu8!(9m),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 混一色, 混老頭, 役牌*3, 対々和
         assert!(matches!(yaku, Agari::Normal { han: 9, .. }));
         let (tile14, key) = get_tile14_and_key(&tehai);
@@ -1223,7 +1236,7 @@ mod test {
             winning_tile: tu8!(9m),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 清一色, 一気通貫
         assert!(matches!(yaku, Agari::Normal { han: 8, .. }));
 
@@ -1241,7 +1254,7 @@ mod test {
             winning_tile: tu8!(5p),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 清一色, 断么九
         assert!(matches!(yaku, Agari::Normal { han: 7, .. }));
 
@@ -1259,7 +1272,7 @@ mod test {
             winning_tile: tu8!(1s),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 清一色, 一気通貫
         assert!(matches!(yaku, Agari::Normal { han: 6, .. }));
 
@@ -1277,7 +1290,7 @@ mod test {
             winning_tile: tu8!(1m),
             is_ron: true,
         };
-        let yaku = calc.search_yaku(false).unwrap();
+        let yaku = calc.search_yakus().unwrap();
         // 清一色, 一気通貫
         assert_eq!(yaku, Agari::Normal { fu: 60, han: 2 });
     }

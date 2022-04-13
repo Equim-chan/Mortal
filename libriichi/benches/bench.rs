@@ -25,7 +25,7 @@ fn criterion_benchmark(c: &mut Criterion) {
                 winning_tile: tu8!(9m),
                 is_ron: true,
             };
-            calc.search_yaku(false).unwrap();
+            calc.search_yakus().unwrap();
         })
     });
 
