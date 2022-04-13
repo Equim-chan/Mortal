@@ -4,14 +4,17 @@
 
 ---
 
+# Online Services
+* [Play with Mortal on Tenhou]()
+* [Online Log Reviewer]()
+
 # Performance
 * [Comparison against Other AIs]()
 * [Benchmarks]()
 
 # User Guide
 * [Docker Quick Start](user/docker.md)
-* [Environment]()
-* [Build]()
+* [Build](user/build.md)
 * [Reinforcement Learning Training]()
     * [Pre-Trained Model]()
     * [Configurations]()

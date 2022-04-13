@@ -25,7 +25,9 @@ First things first, we need to identify the POV's player ID. A player ID is an i
 
 In this case, the POV's player ID is 2, because his seat is West at E1.
 
-From his perspective, the equivalant masked mjai events he has perceived so far are:
+Mortal speaks mjai <!-- TODO: link to doc -->, a simple and easy-to-read stream format for mahjong records.
+
+From the perspective of player 2, the equivalant masked mjai events he has perceived so far are:
 
 ```js
 {"type":"start_game"}
@@ -194,7 +196,7 @@ This will output a series of new-line-separated JSONs, each of which represents 
 }
 ```
 
-mjai is an easy-to-read format for mahjong records. From the JSON output we can clearly read that Mortal would like to discard 9p in this scene.
+From the JSON output we can clearly read that Mortal would like to discard 9p in this scene.
 
 ```admonish tip
 The field `meta` is not defined in mjai and is completely optional. In Mortal, this field is used to record metadata such as its network's raw outputs and evaluation time.
@@ -218,7 +220,7 @@ The mjai events the player perceived since _Figure 1_ are:
 {"type":"tsumo","actor":2,"pai":"3p"}
 ```
 
-Paste them into the running process (or just append these to `log.json` and re-run the command), and we will get Mortal's reaction.
+Paste them into the running process's input (or just append these to `log.json` and re-run the command), and we will get Mortal's reactions to them.
 
 First, there will be a `none` type action, which means Mortal would pass the 1m pon:
 
