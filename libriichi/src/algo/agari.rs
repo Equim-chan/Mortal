@@ -179,30 +179,29 @@ impl AgariCalculator<'_> {
         self.search_yakus_impl(false)
     }
 
-    /// `additional_yakus` includes 門前清自摸和, (両)立直, 槍槓, 嶺上開花, 海底
-    /// 摸月, 河底撈魚. 天和 and 地和 are supposed to be checked somewhere else
-    /// other than here.
+    /// `additional_hans` consists of 門前清自摸和, (両)立直, 槍槓, 嶺上開花, 海
+    /// 底摸月 and 河底撈魚. 天和 and 地和 are supposed to be checked somewhere
+    /// else other than here.
     ///
-    /// `None` is returned iff `!self.has_yaku() && additional_yakus == 0`
-    /// holds.
+    /// `None` is returned iff `!self.has_yaku() && additional_hans == 0` holds.
     ///
     /// This function is designed to be called by only callers who have the
     /// knowledge of the ura doras.
-    pub fn agari(&self, additional_yakus: u8, doras: u8) -> Option<Agari> {
+    pub fn agari(&self, additional_hans: u8, doras: u8) -> Option<Agari> {
         if let Some(agari) = self.search_yakus() {
             Some(match agari {
                 Agari::Normal { fu, han } => Agari::Normal {
                     fu,
-                    han: han + additional_yakus + doras,
+                    han: han + additional_hans + doras,
                 },
                 _ => agari,
             })
-        } else if additional_yakus == 0 {
+        } else if additional_hans == 0 {
             None
-        } else if additional_yakus + doras >= 5 {
+        } else if additional_hans + doras >= 5 {
             Some(Agari::Normal {
                 fu: 0,
-                han: additional_yakus + doras,
+                han: additional_hans + doras,
             })
         } else {
             let (tile14, key) = get_tile14_and_key(self.tehai);
@@ -215,7 +214,7 @@ impl AgariCalculator<'_> {
                 .max()?;
             Some(Agari::Normal {
                 fu,
-                han: additional_yakus + doras,
+                han: additional_hans + doras,
             })
         }
     }

@@ -374,7 +374,7 @@ impl PlayerState {
         }
         .context("cannot find the winning tile")?;
 
-        let additional_yakus = if is_ron {
+        let additional_hans = if is_ron {
             [
                 self.riichi_accepted[0], // 立直
                 self.is_w_riichi,        // 両立直
@@ -436,7 +436,7 @@ impl PlayerState {
             is_ron,
         };
         let agari = agari_calc
-            .agari(additional_yakus, final_doras_owned)
+            .agari(additional_hans, final_doras_owned)
             .context("not a hora hand")?;
 
         Ok(agari.into_point(self.oya == 0))
