@@ -66,10 +66,7 @@ jobs:
           cd docs
           mdbook build
 
-          if ! git rev-parse --verify gh-pages; then
-            git branch gh-pages
-          fi
-
+          git branch gh-pages
           git worktree add gh-pages gh-pages
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
