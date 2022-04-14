@@ -51,10 +51,12 @@ jobs:
 
       - name: Install mdbook with plugins
         if: steps.cache-cargo-install.outputs.cache-hit != 'true'
+        env:
+          CARGO_TARGET_DIR: ~/cargo-target-dir
         run: |
           cargo install mdbook --version ${{ steps.get-version.outputs.mdbook_ver }}
           cargo install mdbook-admonish --version ${{ steps.get-version.outputs.mdbook_admonish_ver }}
-          cargo install mdbook-pagetoc --version ${{ steps.get-version.outputs.mdbook_admonish_ver }}
+          cargo install mdbook-pagetoc --version ${{ steps.get-version.outputs.mdbook_pagetoc_ver }}
 
       - name: Deploy GitHub Pages
         run: |
