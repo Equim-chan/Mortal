@@ -36,8 +36,10 @@ jobs:
 
           curl -SsL https://crates.io/api/v1/crates/mdbook | jq -r .crate.max_stable_version | tee MDBOOK_VER
           curl -SsL https://crates.io/api/v1/crates/mdbook-admonish | jq -r .crate.max_stable_version | tee MDBOOK_ADMONISH_VER
+          curl -SsL https://crates.io/api/v1/crates/mdbook-pagetoc | jq -r .crate.max_stable_version | tee MDBOOK_PAGETOC_VER
           echo "::set-output name=mdbook_ver::$(cat MDBOOK_VER)"
           echo "::set-output name=mdbook_admonish_ver::$(cat MDBOOK_ADMONISH_VER)"
+          echo "::set-output name=mdbook_pagetoc_ver::$(cat MDBOOK_PAGETOC_VER)"
 
       - name: Cache for Rust
         id: cache-cargo-install
@@ -45,13 +47,14 @@ jobs:
         with:
           path: |
             ~/.cargo/bin
-          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|${{ steps.get-version.outputs.mdbook_ver }}|${{ steps.get-version.outputs.mdbook_admonish_ver }}
+          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|${{ steps.get-version.outputs.mdbook_ver }}|${{ steps.get-version.outputs.mdbook_admonish_ver }}|${{ steps.get-version.outputs.mdbook_pagetoc_ver }}
 
       - name: Install mdbook with plugins
         if: steps.cache-cargo-install.outputs.cache-hit != 'true'
         run: |
           cargo install mdbook --version ${{ steps.get-version.outputs.mdbook_ver }}
           cargo install mdbook-admonish --version ${{ steps.get-version.outputs.mdbook_admonish_ver }}
+          cargo install mdbook-pagetoc --version ${{ steps.get-version.outputs.mdbook_admonish_ver }}
 
       - name: Deploy GitHub Pages
         run: |

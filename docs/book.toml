@@ -7,6 +7,7 @@ title = "🀄️Mortal Documentation"
 description = "Mortal - a free and open source AI for Japanese mahjong"
 
 [preprocessor.admonish]
+[preprocessor.pagetoc]
 
 [output.html]
 default-theme = "ayu"
@@ -15,5 +16,5 @@ mathjax-support = true
 site-url = "/"
 cname = "mortal.ekyu.moe"
 git-repository-url = "https://github.com/Equim-chan/Mortal"
-additional-js = ["js/sidebar.js"]
-additional-css = ["css/mdbook-admonish.css", "css/sidebar.css", "css/extra.css"]
+additional-js = ["theme/pagetoc.js"]
+additional-css = ["theme/pagetoc.css", "css/mdbook-admonish.css", "css/extra.css"]
