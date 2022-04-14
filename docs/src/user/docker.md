@@ -25,9 +25,7 @@ First things first, we need to identify the POV's player ID. A player ID is an i
 
 In this case, the POV's player ID is 2, because his seat is West at E1.
 
-Mortal speaks mjai <!-- TODO: link to doc -->, a simple and easy-to-read stream format for mahjong records.
-
-From the perspective of player 2, the equivalant masked mjai events he has perceived so far are:
+Mortal speaks mjai <!-- TODO: link to doc -->, a simple and easy-to-read stream format for mahjong records. From the perspective of player 2, the equivalant masked mjai events he has perceived so far are:
 
 ```js
 {"type":"start_game"}
@@ -282,7 +280,7 @@ First, there will be a `none` type action, which means Mortal would pass the 1m 
 }
 ```
 
-Then a `dahai` event follows, which corresponds to the scene in _Figure 2_:
+Then a `dahai` event will follow, which corresponds to the scene in _Figure 2_:
 
 ```json
 {
@@ -345,4 +343,4 @@ Then a `dahai` event follows, which corresponds to the scene in _Figure 2_:
 }
 ```
 
-We can tell Mortal would choose to discard 1m at this point.
+We can tell that Mortal would choose to discard 1m at this point.
