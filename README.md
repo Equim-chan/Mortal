@@ -19,6 +19,8 @@ Read the [**Documentation**](https://mortal.ekyu.moe) for everything about this 
 ## Okay cool now give me the weights!
 Read [this post](https://gist.github.com/Equim-chan/cf3f01735d5d98f1e7be02e94b288c56) for details regarding this topic.
 
+As planned, the trained model will be released after I add Mortal support to [akochan-reviewer](https://github.com/Equim-chan/akochan-reviewer), which will then be renamed to mjai-reviewer.
+
 ## License
 ### Code
 [![AGPL-3.0-or-later](https://github.com/Equim-chan/Mortal/raw/main/docs/src/assets/agpl.png)](https://github.com/Equim-chan/Mortal/blob/main/LICENSE)

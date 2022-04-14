@@ -67,6 +67,6 @@ $ cargo build --bins --no-default-features --release
 ## Build documentation
 > Working directory: `$MORTAL_ROOT/docs`
 ```shell
-$ cargo install mdbook mdbook-admonish
+$ cargo install mdbook mdbook-admonish mdbook-pagetoc
 $ mdbook build
 ```
