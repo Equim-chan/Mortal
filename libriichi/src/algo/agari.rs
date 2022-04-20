@@ -96,8 +96,11 @@ impl From<u32> for Div {
 
 #[derive(Debug, Clone, Copy)]
 pub enum Agari {
-    // `fu` can be 0 if `han` is greater than 4.
-    Normal { fu: u8, han: u8 },
+    /// `fu` may be 0 if `han` is greater than 4.
+    Normal {
+        fu: u8,
+        han: u8,
+    },
     Yakuman(u8),
 }
 
@@ -549,12 +552,18 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                 && self.sup.is_menzen
                 && self.menzen_shuntsu.len() >= 2
             {
-                let has_ipeikou = self
-                    .menzen_shuntsu
-                    .iter()
-                    .enumerate()
-                    .skip(1)
-                    .any(|(i, t)| self.menzen_shuntsu[..i].contains(t));
+                let mut shuntsu_marks = [0u8; 3];
+                let has_ipeikou = self.menzen_shuntsu.iter().any(|&t| {
+                    let kind = t as usize / 9;
+                    let num = t % 9;
+                    let mark = &mut shuntsu_marks[kind];
+                    if (*mark >> num) & 0b1 == 0b1 {
+                        true
+                    } else {
+                        *mark |= 0b1 << num;
+                        false
+                    }
+                });
                 if has_ipeikou {
                     check_early_return! { han += 1 };
                 }
@@ -1069,6 +1078,28 @@ mod test {
         // 一盃口 (with ankan)
         assert_eq!(yaku, Agari::Normal { fu: 70, han: 1 });
 
+        let tehai = hand("55566677m 11p 7m").unwrap();
+        let mut calc = AgariCalculator {
+            tehai: &tehai,
+            is_menzen: true,
+            chis: &[],
+            pons: &[],
+            minkans: &[],
+            ankans: &[tu8!(9s)],
+            bakaze: tu8!(E),
+            jikaze: tu8!(E),
+            winning_tile: tu8!(7m),
+            is_ron: false,
+        };
+        let yaku = calc.search_yakus().unwrap();
+        // 四暗刻
+        assert_eq!(yaku, Agari::Yakuman(1));
+
+        calc.is_ron = true;
+        let yaku = calc.search_yakus().unwrap();
+        // 三暗刻, 対々和
+        assert_eq!(yaku, Agari::Normal { fu: 80, han: 4 });
+
         let tehai = hand("666677778888m 99p").unwrap();
         let mut calc = AgariCalculator {
             tehai: &tehai,
@@ -1085,6 +1116,7 @@ mod test {
         let yaku = calc.search_yakus().unwrap();
         // 平和, 二盃口
         assert_eq!(yaku, Agari::Normal { fu: 30, han: 4 });
+
         calc.winning_tile = tu8!(7m);
         let yaku = calc.search_yakus().unwrap();
         // 二盃口

@@ -191,8 +191,8 @@ Winning Rate as Dealer                {:.6}
 Dealer Wins out of All Wins           {:.6}
 Deal-in to Dealer out of All Deal-ins {:.6}
 
-Yakuman (Rate)         {} ({:.9})
-Ryukyoku Mangan (Rate) {} ({:.9})"#,
+Yakuman (Rate)        {} ({:.9})
+Nagashi Mangan (Rate) {} ({:.9})"#,
             self.game,
             self.round,
             self.oya,

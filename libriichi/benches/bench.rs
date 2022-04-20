@@ -1,5 +1,4 @@
-use riichi::algo::agari;
-use riichi::algo::shanten;
+use riichi::algo::{agari, shanten};
 use riichi::hand::hand;
 use riichi::tu8;
 
@@ -10,7 +9,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     shanten::ensure_init();
 
     let tehai = hand("111m 9m 9m").unwrap();
-    c.bench_function("shanten", |b| {
+    c.bench_function("agari", |b| {
         b.iter(|| {
             let tehai = black_box(tehai);
             let calc = agari::AgariCalculator {
@@ -30,7 +29,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     });
 
     let tehai = hand("2344456m 14p 127s 2z 7p").unwrap();
-    c.bench_function("agari", |b| {
+    c.bench_function("shanten", |b| {
         b.iter(|| {
             let tehai = black_box(tehai);
             shanten::calc_all(&tehai, 4);
@@ -43,17 +42,16 @@ criterion_main!(benches);
 
 /*
 AMD Ryzen 5 3600 on Windows 10
-rustc 1.57.0 (f1edd0429 2021-11-29)
+rustc 1.60.0 (7737e0b5c 2022-04-04)
 -C target-cpu=native -C link-arg=fuse-ld=lld
 
-shanten                     time:   [202.38 ns 202.67 ns 203.00 ns]
-Found 6 outliers among 100 measurements (6.00%)
-  1 (1.00%) low mild
-  3 (3.00%) high mild
-  2 (2.00%) high severe
-
-agari                       time:   [88.025 ns 88.238 ns 88.444 ns]
-Found 4 outliers among 100 measurements (4.00%)
-  3 (3.00%) low mild
+agari                   time:   [222.55 ns 222.84 ns 223.21 ns]
+Found 9 outliers among 100 measurements (9.00%)
   1 (1.00%) high mild
+  8 (8.00%) high severe
+
+shanten                 time:   [86.848 ns 86.996 ns 87.160 ns]
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
 */
