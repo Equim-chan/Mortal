@@ -8,6 +8,9 @@ on:
       - .github/workflows/docs.yml
       - docs/**
 
+env:
+  CARGO_TARGET_DIR: ~/cargo-target-dir
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,22 +44,34 @@ jobs:
           echo "::set-output name=mdbook_admonish_ver::$(cat MDBOOK_ADMONISH_VER)"
           echo "::set-output name=mdbook_pagetoc_ver::$(cat MDBOOK_PAGETOC_VER)"
 
-      - name: Cache for Rust
-        id: cache-cargo-install
+      - name: Cache for mdbook
+        id: cache-mdbook
         uses: actions/cache@v3
         with:
-          path: |
-            ~/.cargo/bin
-          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|${{ steps.get-version.outputs.mdbook_ver }}|${{ steps.get-version.outputs.mdbook_admonish_ver }}|${{ steps.get-version.outputs.mdbook_pagetoc_ver }}
+          path: ~/.cargo/bin/mdbook
+          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|mdbook|${{ steps.get-version.outputs.mdbook_ver }}
+      - name: Cache for mdbook-admonish
+        id: cache-mdbook-admonish
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin/mdbook-admonish
+          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|mdbook-admonish|${{ steps.get-version.outputs.mdbook_admonish_ver }}
+      - name: Cache for mdbook-pagetoc
+        id: cache-mdbook-pagetoc
+        uses: actions/cache@v3
+        with:
+          path: ~/.cargo/bin/mdbook-pagetoc
+          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|mdbook-pagetoc|${{ steps.get-version.outputs.mdbook_pagetoc_ver }}
 
-      - name: Install mdbook with plugins
-        if: steps.cache-cargo-install.outputs.cache-hit != 'true'
-        env:
-          CARGO_TARGET_DIR: ~/cargo-target-dir
-        run: |
-          cargo install mdbook --version ${{ steps.get-version.outputs.mdbook_ver }}
-          cargo install mdbook-admonish --version ${{ steps.get-version.outputs.mdbook_admonish_ver }}
-          cargo install mdbook-pagetoc --version ${{ steps.get-version.outputs.mdbook_pagetoc_ver }}
+      - name: Install mdbook
+        if: steps.cache-mdbook.outputs.cache-hit != 'true'
+        run: cargo install mdbook --version ${{ steps.get-version.outputs.mdbook_ver }}
+      - name: Install mdbook-admonish
+        if: steps.cache-mdbook-admonish.outputs.cache-hit != 'true'
+        run: cargo install mdbook-admonish --version ${{ steps.get-version.outputs.mdbook_admonish_ver }}
+      - name: Install mdbook-pagetoc
+        if: steps.cache-mdbook-pagetoc.outputs.cache-hit != 'true'
+        run: cargo install mdbook-pagetoc --version ${{ steps.get-version.outputs.mdbook_pagetoc_ver }}
 
       - name: Deploy GitHub Pages
         run: |
