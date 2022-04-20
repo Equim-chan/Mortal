@@ -13,7 +13,7 @@ $ sudo env DOCKER_BUILDKIT=1 docker build -t mortal:latest .
 ```
 
 ## Prepare a trained model
-The Docker image does not contain any model file of Model, therefore it must be prepared separately under a directory, which will be demostrated as `/path/to/model/dir` below. In this example, snapshot `21040703` is used.
+The Docker image does not contain any model file of Model, therefore it must be prepared separately under a directory, which will be demostrated as `/path/to/model/dir` below. In this example, snapshot `22040703` is used.
 
 ## Example
 We are going to use Mortal to evaluate the next move for the scene shown in _Figure 1_.
