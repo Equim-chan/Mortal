@@ -1,4 +1,3 @@
-use crate::consts::ACTION_SPACE;
 use crate::tile::Tile;
 
 use serde::{Deserialize, Serialize};
@@ -106,19 +105,18 @@ pub enum Event {
 
 /// An extended version of `Event` which allows metadata recording.
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, Serialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct EventExt {
     #[serde(flatten)]
     pub event: Event,
     pub meta: Option<Metadata>,
 }
 
-#[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Clone, Default, Serialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct Metadata {
-    #[serde_as(as = "Option<[_; ACTION_SPACE]>")]
-    pub q_values: Option<[f32; ACTION_SPACE]>,
+    pub q_values: Option<Vec<f32>>,
+    pub mask_bits: Option<u64>,
     pub is_greedy: Option<bool>,
     pub eval_time_ns: Option<u64>,
     pub extra: Option<Value>,
@@ -126,7 +124,7 @@ pub struct Metadata {
 
 impl Event {
     #[inline]
-    pub fn actor(&self) -> Option<u8> {
+    pub const fn actor(&self) -> Option<u8> {
         match *self {
             Event::Tsumo { actor, .. }
             | Event::Dahai { actor, .. }
@@ -147,5 +145,11 @@ impl EventExt {
     #[inline]
     pub const fn no_meta(event: Event) -> Self {
         Self { event, meta: None }
+    }
+}
+
+impl From<Event> for EventExt {
+    fn from(ev: Event) -> Self {
+        Self::no_meta(ev)
     }
 }

@@ -22,9 +22,10 @@ pub struct MortalBatchAgent {
     invisible_states: Vec<Array2<f32>>,
     masks: Vec<Array1<bool>>,
     actions: Vec<usize>,
+
     q_values: Vec<[f32; ACTION_SPACE]>,
     is_greedy: Vec<bool>,
-    last_eval_elapsed: Duration,
+    last_eval_elapsed_ns: u64,
 
     evaluated: bool,
     action_idxs: Vec<usize>,
@@ -56,9 +57,10 @@ impl MortalBatchAgent {
             invisible_states: vec![],
             masks: vec![],
             actions: vec![],
+
             q_values: vec![],
             is_greedy: vec![],
-            last_eval_elapsed: Duration::ZERO,
+            last_eval_elapsed_ns: 0,
 
             evaluated: false,
             action_idxs: vec![0; size],
@@ -103,9 +105,12 @@ impl MortalBatchAgent {
                 .extract()
                 .context("failed to extract to Rust type")
         })?;
-        self.last_eval_elapsed = Instant::now()
+        self.last_eval_elapsed_ns = Instant::now()
             .checked_duration_since(start)
-            .unwrap_or(Duration::ZERO);
+            .unwrap_or(Duration::ZERO)
+            .as_nanos()
+            .try_into()
+            .unwrap_or(u64::MAX);
 
         Ok(())
     }
@@ -221,6 +226,18 @@ impl BatchAgent for MortalBatchAgent {
         let action = self.actions[action_idx];
         let q_values = self.q_values[action_idx];
         let is_greedy = self.is_greedy[action_idx];
+
+        let mut mask_bits = 0;
+        let q_values_compact = q_values
+            .into_iter()
+            .enumerate()
+            // take all values that is not -Inf
+            .filter(|(_, q)| !q.is_infinite() || !q.is_sign_negative())
+            .map(|(i, q)| {
+                mask_bits |= 0b1 << i;
+                q
+            })
+            .collect();
 
         let reaction = match action {
             0..=36 => {
@@ -462,19 +479,16 @@ impl BatchAgent for MortalBatchAgent {
             _ => Event::None,
         };
 
-        Ok(EventExt {
+        let ret = EventExt {
             event: reaction,
             meta: Some(Metadata {
-                q_values: Some(q_values),
+                q_values: Some(q_values_compact),
+                mask_bits: Some(mask_bits),
                 is_greedy: Some(is_greedy),
-                eval_time_ns: Some(
-                    self.last_eval_elapsed
-                        .as_nanos()
-                        .try_into()
-                        .unwrap_or(u64::MAX),
-                ),
+                eval_time_ns: Some(self.last_eval_elapsed_ns),
                 ..Default::default()
             }),
-        })
+        };
+        Ok(ret)
     }
 }

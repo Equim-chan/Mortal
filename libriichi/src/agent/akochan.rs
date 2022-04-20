@@ -115,16 +115,20 @@ impl AkochanAgent {
             self.naki_tx = Some(naki_tx);
         }
 
-        let elapsed = Instant::now()
+        let eval_time_ns = Instant::now()
             .checked_duration_since(start)
-            .unwrap_or(Duration::ZERO);
-        Ok(EventExt {
+            .unwrap_or(Duration::ZERO)
+            .as_nanos()
+            .try_into()
+            .unwrap_or(u64::MAX);
+        let ret = EventExt {
             event: ev,
             meta: Some(Metadata {
-                eval_time_ns: Some(elapsed.as_nanos().try_into().unwrap_or(u64::MAX)),
+                eval_time_ns: Some(eval_time_ns),
                 ..Default::default()
             }),
-        })
+        };
+        Ok(ret)
     }
 }
 

@@ -1,6 +1,7 @@
 use crate::py_helper::add_submodule;
 
 use pyo3::prelude::*;
+use static_assertions::const_assert;
 
 pub const OBS_SHAPE: (usize, usize) = (938, 34);
 pub const ORACLE_OBS_SHAPE: (usize, usize) = (211, 34);
@@ -15,6 +16,8 @@ pub const ACTION_SPACE: usize = 37 // discard | kan (choice)
                                    // = 46
 
 pub const GRP_SIZE: usize = 7;
+
+const_assert!(ACTION_SPACE <= u64::BITS as usize);
 
 pub(crate) fn register_module(py: Python, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
     let m = PyModule::new(py, "consts")?;
