@@ -154,7 +154,7 @@ This will output a series of new-line-separated JSONs, each of which represents 
       -1.1801766,
       -1.8054415
     ],
-    "mask": 17241923593,
+    "mask_bits": 17241923593,
     "is_greedy": true,
     "eval_time_ns": 30352000
   }
@@ -197,7 +197,7 @@ First, there will be a `none` type action, which means Mortal would pass the 1m 
       -1.2190987,
       -0.084070235
     ],
-    "mask": 37383395344384,
+    "mask_bits": 37383395344384,
     "is_greedy": true,
     "eval_time_ns": 29667100
   }
@@ -227,7 +227,7 @@ Then a `dahai` event will follow, which corresponds to the scene in _Figure 2_:
       -1.5739789,
       -1.915102
     ],
-    "mask": 17241794569,
+    "mask_bits": 17241794569,
     "is_greedy": true,
     "eval_time_ns": 29686500
   }
