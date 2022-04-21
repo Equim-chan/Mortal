@@ -29,7 +29,7 @@ impl PlayerState {
 
 impl PlayerState {
     /// Returns `(obs, mask)`
-    pub fn encode_obs(&self, at_kan_choice: bool) -> (Array2<f32>, Array1<bool>) {
+    pub fn encode_obs(&self, at_kan_select: bool) -> (Array2<f32>, Array1<bool>) {
         let mut arr = Array2::zeros(OBS_SHAPE);
         let mut mask = Array1::default(ACTION_SPACE);
         let mut idx = 0;
@@ -280,7 +280,7 @@ impl PlayerState {
         }
         idx += 1;
 
-        if at_kan_choice {
+        if at_kan_select {
             arr.slice_mut(s![idx, ..]).fill(1.);
         }
         idx += 1;
@@ -300,7 +300,7 @@ impl PlayerState {
             }
 
             // pass
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[ACTION_SPACE - 1] = true;
             } else if cans.can_daiminkan {
                 mask[tile_id] = true;
@@ -321,7 +321,7 @@ impl PlayerState {
                         _ => t,
                     };
                     arr[[idx, deaka_t]] = 1.;
-                    if !at_kan_choice {
+                    if !at_kan_select {
                         mask[t] = true;
                     }
                 });
@@ -378,7 +378,7 @@ impl PlayerState {
 
         if cans.can_riichi {
             arr.slice_mut(s![idx, ..]).fill(1.);
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[37] = true;
             }
         }
@@ -386,19 +386,19 @@ impl PlayerState {
 
         if cans.can_chi_low {
             arr.slice_mut(s![idx, ..]).fill(1.);
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[38] = true;
             }
         }
         if cans.can_chi_mid {
             arr.slice_mut(s![idx + 1, ..]).fill(1.);
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[39] = true;
             }
         }
         if cans.can_chi_high {
             arr.slice_mut(s![idx + 2, ..]).fill(1.);
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[40] = true;
             }
         }
@@ -406,7 +406,7 @@ impl PlayerState {
 
         if cans.can_pon {
             arr.slice_mut(s![idx, ..]).fill(1.);
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[41] = true;
             }
         }
@@ -414,7 +414,7 @@ impl PlayerState {
 
         if cans.can_daiminkan {
             arr.slice_mut(s![idx, ..]).fill(1.);
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[42] = true;
             }
         }
@@ -423,11 +423,11 @@ impl PlayerState {
         if cans.can_ankan {
             self.ankan_candidates.iter().for_each(|&tile_id| {
                 arr[[idx, tile_id as usize]] = 1.;
-                if at_kan_choice {
+                if at_kan_select {
                     mask[tile_id as usize] = true;
                 }
             });
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[42] = true;
             }
         }
@@ -436,11 +436,11 @@ impl PlayerState {
         if cans.can_kakan {
             self.kakan_candidates.iter().for_each(|&tile_id| {
                 arr[[idx, tile_id as usize]] = 1.;
-                if at_kan_choice {
+                if at_kan_select {
                     mask[tile_id as usize] = true;
                 }
             });
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[42] = true;
             }
         }
@@ -448,7 +448,7 @@ impl PlayerState {
 
         if cans.can_tsumo_agari || cans.can_ron_agari {
             arr.slice_mut(s![idx, ..]).fill(1.);
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[43] = true;
             }
         }
@@ -456,7 +456,7 @@ impl PlayerState {
 
         if cans.can_ryukyoku {
             arr.slice_mut(s![idx, ..]).fill(1.);
-            if !at_kan_choice {
+            if !at_kan_select {
                 mask[44] = true;
             }
         }

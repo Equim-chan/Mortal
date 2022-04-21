@@ -120,7 +120,7 @@ pub struct Metadata {
     pub is_greedy: Option<bool>,
     pub batch_size: Option<usize>,
     pub eval_time_ns: Option<u64>,
-    pub kan_choice: Option<Box<Metadata>>,
+    pub kan_select: Option<Box<Metadata>>,
     pub extra: Option<Value>,
 }
 

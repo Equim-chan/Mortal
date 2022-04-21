@@ -580,7 +580,7 @@ impl Gameplay {
             return Ok(());
         }
 
-        let mut kan_choice = None;
+        let mut kan_select = None;
         let label_opt = match *next {
             Event::Dahai { pai, .. } => Some(pai.as_usize()),
             Event::Reach { .. } => Some(37),
@@ -603,18 +603,18 @@ impl Gameplay {
             }
             Event::Pon { actor, .. } if actor == self.player_id => Some(41),
             Event::Daiminkan { actor, pai, .. } if actor == self.player_id => {
-                kan_choice = Some(pai.deaka().as_usize());
+                kan_select = Some(pai.deaka().as_usize());
                 Some(42)
             }
             Event::Kakan { pai, .. } => {
                 // if state.kakan_candidates().len() > 1 {
-                kan_choice = Some(pai.deaka().as_usize());
+                kan_select = Some(pai.deaka().as_usize());
                 // }
                 Some(42)
             }
             Event::Ankan { consumed, .. } => {
                 // if state.ankan_candidates().len() > 1 {
-                kan_choice = Some(consumed[0].deaka().as_usize());
+                kan_select = Some(consumed[0].deaka().as_usize());
                 // }
                 Some(42)
             }
@@ -681,7 +681,7 @@ impl Gameplay {
             };
 
             add_entry(false, label);
-            if let Some(kan) = kan_choice {
+            if let Some(kan) = kan_select {
                 add_entry(true, kan);
             }
         }

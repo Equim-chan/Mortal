@@ -201,7 +201,7 @@ impl BatchAgent for MortalBatchAgent {
             }
         }
 
-        let need_kan_choice = if cans.can_ankan || cans.can_kakan {
+        let need_kan_select = if cans.can_ankan || cans.can_kakan {
             let a = state.ankan_candidates();
             let k = state.kakan_candidates();
             a.len() + k.len() > 1 || !self.enable_quick_eval
@@ -209,7 +209,7 @@ impl BatchAgent for MortalBatchAgent {
             false
         };
 
-        if need_kan_choice {
+        if need_kan_select {
             let (kan_feature, kan_mask) = state.encode_obs(true);
             self.states.push(kan_feature);
             self.masks.push(kan_mask);
@@ -250,7 +250,7 @@ impl BatchAgent for MortalBatchAgent {
         let start = Instant::now();
 
         let action_idx = self.action_idxs[index];
-        let kan_choice_idx = self.kan_action_idxs[index].take();
+        let kan_select_idx = self.kan_action_idxs[index].take();
 
         let actor = self.player_ids[index];
         let akas_in_hand = state.akas_in_hand();
@@ -411,7 +411,7 @@ impl BatchAgent for MortalBatchAgent {
                 let ankan_candidates = state.ankan_candidates();
                 let kakan_candidates = state.kakan_candidates();
 
-                let tile = if let Some(kan_idx) = kan_choice_idx {
+                let tile = if let Some(kan_idx) = kan_select_idx {
                     let tid = self.actions[kan_idx] as u8;
                     ensure!(
                         ankan_candidates.contains(&tid) || kakan_candidates.contains(&tid),
@@ -508,7 +508,7 @@ impl BatchAgent for MortalBatchAgent {
 
         meta.eval_time_ns = Some(eval_time_ns);
         meta.batch_size = Some(self.last_batch_size);
-        meta.kan_choice = kan_choice_idx.map(|kan_idx| Box::new(self.gen_meta(kan_idx)));
+        meta.kan_select = kan_select_idx.map(|kan_idx| Box::new(self.gen_meta(kan_idx)));
 
         Ok(EventExt {
             event,
