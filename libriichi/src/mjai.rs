@@ -118,7 +118,9 @@ pub struct Metadata {
     pub q_values: Option<Vec<f32>>,
     pub mask_bits: Option<u64>,
     pub is_greedy: Option<bool>,
+    pub batch_size: Option<usize>,
     pub eval_time_ns: Option<u64>,
+    pub kan_choice: Option<Box<Metadata>>,
     pub extra: Option<Value>,
 }
 

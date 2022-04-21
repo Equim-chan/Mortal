@@ -24,8 +24,10 @@ pub struct MortalBatchAgent {
     actions: Vec<usize>,
 
     q_values: Vec<[f32; ACTION_SPACE]>,
+    masks_recv: Vec<[bool; ACTION_SPACE]>,
     is_greedy: Vec<bool>,
-    last_eval_elapsed_ns: u64,
+    last_eval_elapsed: Duration,
+    last_batch_size: usize,
 
     evaluated: bool,
     action_idxs: Vec<usize>,
@@ -37,7 +39,7 @@ impl MortalBatchAgent {
     pub fn new(engine: PyObject, player_ids: &[u8]) -> Result<Self> {
         let (name, is_oracle, enable_quick_eval) = Python::with_gil(|py| {
             let obj = engine.as_ref(py);
-            ensure!(obj.getattr("react_batch")?.hasattr("__call__")?);
+            ensure!(obj.getattr("react_batch")?.is_callable());
 
             let name = obj.getattr("name")?.extract()?;
             let is_oracle = obj.getattr("is_oracle")?.extract()?;
@@ -59,8 +61,10 @@ impl MortalBatchAgent {
             actions: vec![],
 
             q_values: vec![],
+            masks_recv: vec![],
             is_greedy: vec![],
-            last_eval_elapsed_ns: 0,
+            last_eval_elapsed: Duration::ZERO,
+            last_batch_size: 0,
 
             evaluated: false,
             action_idxs: vec![0; size],
@@ -79,7 +83,9 @@ impl MortalBatchAgent {
         }
 
         let start = Instant::now();
-        (self.actions, self.q_values, self.is_greedy) = Python::with_gil(|py| {
+        self.last_batch_size = self.states.len();
+
+        (self.actions, self.q_values, self.masks_recv, self.is_greedy) = Python::with_gil(|py| {
             let states: Vec<_> = self
                 .states
                 .drain(..)
@@ -100,19 +106,42 @@ impl MortalBatchAgent {
             let args = (states, masks, invisible_states);
             self.engine
                 .as_ref(py)
-                .call_method("react_batch", args, None)
-                .context("failed to execute `react_batch` on python engine")?
+                .call_method1("react_batch", args)
+                .context("failed to execute `react_batch` on Python engine")?
                 .extract()
                 .context("failed to extract to Rust type")
         })?;
-        self.last_eval_elapsed_ns = Instant::now()
+
+        self.last_eval_elapsed = Instant::now()
             .checked_duration_since(start)
-            .unwrap_or(Duration::ZERO)
-            .as_nanos()
-            .try_into()
-            .unwrap_or(u64::MAX);
+            .unwrap_or(Duration::ZERO);
 
         Ok(())
+    }
+
+    fn gen_meta(&self, action_idx: usize) -> Metadata {
+        let q_values = self.q_values[action_idx];
+        let masks = self.masks_recv[action_idx];
+        let is_greedy = self.is_greedy[action_idx];
+
+        let mut mask_bits = 0;
+        let q_values_compact = q_values
+            .into_iter()
+            .zip(masks)
+            .enumerate()
+            .filter(|(_, (_, m))| *m)
+            .map(|(i, (q, _))| {
+                mask_bits |= 0b1 << i;
+                q
+            })
+            .collect();
+
+        Metadata {
+            q_values: Some(q_values_compact),
+            mask_bits: Some(mask_bits),
+            is_greedy: Some(is_greedy),
+            ..Default::default()
+        }
     }
 }
 
@@ -139,22 +168,25 @@ impl BatchAgent for MortalBatchAgent {
 
         if self.enable_quick_eval
             && cans.can_discard
-            && !cans.can_riichi // suuankou + suukantsu
+            && !cans.can_riichi
             && !cans.can_tsumo_agari
             && !cans.can_ankan
+            && !cans.can_kakan
+            && !cans.can_ryukyoku
         {
             let candidates = state.discard_candidates_aka();
             let mut only_candidate = None;
             for (tile, &flag) in candidates.iter().enumerate() {
-                if flag {
-                    if only_candidate.is_some() {
-                        only_candidate = None;
-                        break;
-                    } else {
-                        only_candidate = Some(tile);
-                    }
+                if !flag {
+                    continue;
                 }
+                if only_candidate.is_some() {
+                    only_candidate = None;
+                    break;
+                }
+                only_candidate = Some(tile);
             }
+
             if let Some(tile_id) = only_candidate {
                 let actor = self.player_ids[index];
                 let pai = Tile(tile_id as u8);
@@ -215,6 +247,7 @@ impl BatchAgent for MortalBatchAgent {
             self.evaluate()?;
             self.evaluated = true;
         }
+        let start = Instant::now();
 
         let action_idx = self.action_idxs[index];
         let kan_choice_idx = self.kan_action_idxs[index].take();
@@ -224,22 +257,7 @@ impl BatchAgent for MortalBatchAgent {
         let cans = state.last_cans();
 
         let action = self.actions[action_idx];
-        let q_values = self.q_values[action_idx];
-        let is_greedy = self.is_greedy[action_idx];
-
-        let mut mask_bits = 0;
-        let q_values_compact = q_values
-            .into_iter()
-            .enumerate()
-            // take all values that is not -Inf
-            .filter(|(_, q)| !q.is_infinite() || !q.is_sign_negative())
-            .map(|(i, q)| {
-                mask_bits |= 0b1 << i;
-                q
-            })
-            .collect();
-
-        let reaction = match action {
+        let event = match action {
             0..=36 => {
                 ensure!(
                     cans.can_discard,
@@ -479,16 +497,22 @@ impl BatchAgent for MortalBatchAgent {
             _ => Event::None,
         };
 
-        let ret = EventExt {
-            event: reaction,
-            meta: Some(Metadata {
-                q_values: Some(q_values_compact),
-                mask_bits: Some(mask_bits),
-                is_greedy: Some(is_greedy),
-                eval_time_ns: Some(self.last_eval_elapsed_ns),
-                ..Default::default()
-            }),
-        };
-        Ok(ret)
+        let mut meta = self.gen_meta(action_idx);
+        let eval_time_ns = Instant::now()
+            .checked_duration_since(start)
+            .unwrap_or(Duration::ZERO)
+            .saturating_add(self.last_eval_elapsed)
+            .as_nanos()
+            .try_into()
+            .unwrap_or(u64::MAX);
+
+        meta.eval_time_ns = Some(eval_time_ns);
+        meta.batch_size = Some(self.last_batch_size);
+        meta.kan_choice = kan_choice_idx.map(|kan_idx| Box::new(self.gen_meta(kan_idx)));
+
+        Ok(EventExt {
+            event,
+            meta: Some(meta),
+        })
     }
 }

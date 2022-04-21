@@ -121,14 +121,13 @@ impl AkochanAgent {
             .as_nanos()
             .try_into()
             .unwrap_or(u64::MAX);
-        let ret = EventExt {
+        Ok(EventExt {
             event: ev,
             meta: Some(Metadata {
                 eval_time_ns: Some(eval_time_ns),
                 ..Default::default()
             }),
-        };
-        Ok(ret)
+        })
     }
 }
 

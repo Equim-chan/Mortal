@@ -63,8 +63,4 @@ class MortalEngine:
             is_greedy = torch.ones(batch_size, dtype=torch.bool, device=self.device)
             actions = q_out.argmax(-1)
 
-        # For metadata recording in the output mjai JSON. Note that JSON does
-        # not allow infinity values and therefore they will be encoded to `null`
-        # in JSON.
-        q_out = apply_masks(q_out, masks, fill=-torch.inf)
-        return actions.tolist(), q_out.tolist(), is_greedy.tolist()
+        return actions.tolist(), q_out.tolist(), masks.tolist(), is_greedy.tolist()
