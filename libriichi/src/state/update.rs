@@ -20,28 +20,20 @@ pub(super) enum MoveType {
 impl PlayerState {
     #[inline]
     pub fn update(&mut self, event: &Event) -> ActionCandidate {
-        self.update_with_skip(event, false)
-    }
+        self.last_cans = ActionCandidate {
+            target_actor: event.actor().unwrap_or(self.player_id),
+            ..Default::default()
+        };
 
-    pub fn update_with_skip(&mut self, event: &Event, enable_skip: bool) -> ActionCandidate {
-        if !enable_skip || !matches!(event, Event::ReachAccepted { .. } | Event::Dora { .. }) {
-            self.last_cans = ActionCandidate {
-                target_actor: event.actor().unwrap_or(self.player_id),
-                ..Default::default()
-            };
-
-            if self.to_mark_same_cycle_furiten {
-                self.at_furiten = true;
-                self.to_mark_same_cycle_furiten = false;
-            }
-            if self.chankan_chance {
-                self.at_ippatsu = false;
-                self.chankan_chance = false;
-            }
-
-            self.ankan_candidates.clear();
-            self.kakan_candidates.clear();
+        if self.to_mark_same_cycle_furiten.take().is_some() {
+            self.at_furiten = true;
         }
+        if self.chankan_chance.take().is_some() {
+            self.at_ippatsu = false;
+        }
+
+        self.ankan_candidates.clear();
+        self.kakan_candidates.clear();
 
         match *event {
             Event::StartKyoku {
@@ -78,12 +70,12 @@ impl PlayerState {
 
                 self.ankan_candidates.clear();
                 self.kakan_candidates.clear();
-                self.chankan_chance = false;
+                self.chankan_chance = None;
 
                 self.at_ippatsu = false;
                 self.at_rinshan = false;
                 self.at_furiten = false;
-                self.to_mark_same_cycle_furiten = false;
+                self.to_mark_same_cycle_furiten = None;
 
                 self.is_menzen = true;
                 self.can_w_riichi = true;
@@ -302,7 +294,7 @@ impl PlayerState {
                         // `self.at_furiten = true` immediately because that
                         // would affect a likely feature encoding call right
                         // after this Dahai event.
-                        self.to_mark_same_cycle_furiten = true;
+                        self.to_mark_same_cycle_furiten = Some(());
                     } else {
                         // The hand doesn't have yaku. This is a no-yaku
                         // furiten.
@@ -511,8 +503,8 @@ impl PlayerState {
                     // 槍槓
                     if !self.at_furiten && self.arrs.waits[pai.deaka().as_usize()] {
                         self.last_cans.can_ron_agari = true;
-                        self.to_mark_same_cycle_furiten = true;
-                        self.chankan_chance = true;
+                        self.to_mark_same_cycle_furiten = Some(());
+                        self.chankan_chance = Some(());
                     } else {
                         self.at_ippatsu = false;
                     }
@@ -606,7 +598,7 @@ impl PlayerState {
         ((actor + 4 - self.player_id) % 4) as usize
     }
 
-    // Updates `tiles_seen` and `doras_seen`.
+    /// Updates `tiles_seen` and `doras_seen`.
     pub(super) fn witness_tile(&mut self, tile: Tile) {
         let tile_id = tile.deaka().as_usize();
         self.arrs.tiles_seen[tile_id] += 1;
@@ -616,8 +608,8 @@ impl PlayerState {
         }
     }
 
-    // Updates `akas_in_hand` and `doras_owned`, but does not update
-    // `tiles_seen` or `doras_seen`.
+    /// Updates `akas_in_hand` and `doras_owned`, but does not update
+    /// `tiles_seen` or `doras_seen`.
     pub(super) fn move_tile(&mut self, tile: Tile, move_type: MoveType) {
         if tile.is_aka() {
             let aka_id = tile.as_usize() - 34;
@@ -652,9 +644,9 @@ impl PlayerState {
         }
     }
 
-    // Updates `dora_indicators`, witness the dora indicator itself and
-    // recounts doras (`doras_seen` and `doras_owned`) based on all the seen
-    // tiles.
+    /// Updates `dora_indicators`, witness the dora indicator itself and
+    /// recounts doras (`doras_seen` and `doras_owned`) based on all the seen
+    /// tiles.
     pub(super) fn add_dora_indicator(&mut self, tile: Tile) {
         self.dora_indicators.push(tile);
 
@@ -794,8 +786,8 @@ impl PlayerState {
         }
     }
 
-    // Caller must assure current tehai is 3n+1, and `self.shanten` must be up
-    // to date and correct.
+    /// Caller must assure current tehai is 3n+1, and `self.shanten` must be up
+    /// to date and correct.
     pub(super) fn update_waits_and_furiten(&mut self) {
         if self.last_cans.can_discard {
             panic!("tehai is not 3n+1");

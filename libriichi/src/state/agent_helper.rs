@@ -376,11 +376,11 @@ impl PlayerState {
 
         let additional_hans = if is_ron {
             [
-                self.riichi_accepted[0], // 立直
-                self.is_w_riichi,        // 両立直
-                self.at_ippatsu,         // 一发
-                self.tiles_left == 0,    // 河底撈魚
-                self.chankan_chance,     // 槍槓
+                self.riichi_accepted[0],       // 立直
+                self.is_w_riichi,              // 両立直
+                self.at_ippatsu,               // 一发
+                self.tiles_left == 0,          // 河底撈魚
+                self.chankan_chance.is_some(), // 槍槓
             ]
             .iter()
             .filter(|&&b| b)

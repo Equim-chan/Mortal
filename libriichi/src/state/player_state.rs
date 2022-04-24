@@ -14,19 +14,19 @@ use tinyvec::ArrayVec;
 #[derive(Debug, Clone, derivative::Derivative)]
 #[derivative(Default)]
 pub(super) struct BigArrayFields {
-    // Does not include aka.
+    /// Does not include aka.
     #[derivative(Default(value = "[0; 34]"))]
     pub(super) tehai: [u8; 34],
 
-    // Does not consider yakunashi, but does consider other kinds of
-    // furiten.
+    /// Does not consider yakunashi, but does consider other kinds of
+    /// furiten.
     #[derivative(Default(value = "[false; 34]"))]
     pub(super) waits: [bool; 34],
 
     #[derivative(Default(value = "[0; 34]"))]
     pub(super) dora_factor: [u8; 34],
 
-    // For calculating `waits` and `doras_seen`.
+    /// For calculating `waits` and `doras_seen`.
     #[derivative(Default(value = "[0; 34]"))]
     pub(super) tiles_seen: [u8; 34],
 
@@ -39,7 +39,7 @@ pub(super) struct BigArrayFields {
     #[derivative(Default(value = "[false; 34]"))]
     pub(super) forbidden_tiles: [bool; 34],
 
-    // Used for furiten check.
+    /// Used for furiten check.
     #[derivative(Default(value = "[false; 34]"))]
     pub(super) discarded_tiles: [bool; 34],
 }
@@ -70,29 +70,29 @@ pub struct PlayerState {
 
     pub(super) bakaze: Tile,
     pub(super) jikaze: Tile,
-    // Counts from 1, same as mjai.
+    /// Counts from 1, same as mjai.
     pub(super) kyoku: u8,
     pub(super) honba: u8,
     pub(super) kyotaku: u8,
-    // Rotated, `scores[0]` is the score of the player.
+    /// Rotated, `scores[0]` is the score of the player.
     pub(super) scores: [i32; 4],
     pub(super) rank: u8,
-    // Relative to `player_id`.
+    /// Relative to `player_id`.
     pub(super) oya: u8,
-    // Including 西入 sudden deatch.
+    /// Including 西入 sudden deatch.
     pub(super) is_all_last: bool,
     pub(super) dora_indicators: ArrayVec<[Tile; 5]>,
 
-    // 24 is the theoretical max size of kawa.
-    //
-    // Reference: https://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q1020002370
+    /// 24 is the theoretical max size of kawa.
+    ///
+    /// Reference: <https://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q1020002370>
     pub(super) kawa: [ArrayVec<[Option<KawaItem>; 24]>; 4],
 
-    // Using 34-D arrays here may be more efficient, but I don't want to mess up
-    // with aka doras.
+    /// Using 34-D arrays here may be more efficient, but I don't want to mess up
+    /// with aka doras.
     pub(super) kawa_overview: [ArrayVec<[Tile; 24]>; 4],
     pub(super) fuuro_overview: [ArrayVec<[ArrayVec<[Tile; 4]>; 4]>; 4],
-    // In this field all `Tile` are deaka'd.
+    /// In this field all `Tile` are deaka'd.
     pub(super) ankan_overview: [ArrayVec<[Tile; 4]>; 4],
 
     pub(super) riichi_declared: [bool; 4],
@@ -110,36 +110,36 @@ pub struct PlayerState {
 
     pub(super) ankan_candidates: ArrayVec<[u8; 3]>,
     pub(super) kakan_candidates: ArrayVec<[u8; 3]>,
-    pub(super) chankan_chance: bool,
+    pub(super) chankan_chance: Option<()>,
 
     pub(super) can_w_riichi: bool,
     pub(super) is_w_riichi: bool,
     pub(super) at_rinshan: bool,
     pub(super) at_ippatsu: bool,
     pub(super) at_furiten: bool,
-    pub(super) to_mark_same_cycle_furiten: bool,
+    pub(super) to_mark_same_cycle_furiten: Option<()>,
 
-    // Used for 4-kan check.
+    /// Used for 4-kan check.
     pub(super) kans_on_board: u8,
 
     pub(super) is_menzen: bool,
-    // For agari calc, all deaka'd.
+    /// For agari calc, all deaka'd.
     pub(super) chis: ArrayVec<[u8; 4]>,
     pub(super) pons: ArrayVec<[u8; 4]>,
     pub(super) minkans: ArrayVec<[u8; 4]>,
     pub(super) ankans: ArrayVec<[u8; 4]>,
 
-    // Including aka, originally for agari calc usage but also encoded as a
-    // feature to the obs.
+    /// Including aka, originally for agari calc usage but also encoded as a
+    /// feature to the obs.
     pub(super) doras_owned: [u8; 4],
     pub(super) doras_seen: u8,
 
     pub(super) akas_in_hand: [bool; 3],
 
-    // For shanten calc.
+    /// For shanten calc.
     pub(super) tehai_len_div3: u8,
 
-    // Used in can_riichi.
+    /// Used in can_riichi.
     pub(super) has_next_shanten_discard: bool,
 
     pub(super) arrs: BigArrayFields,
@@ -164,11 +164,11 @@ impl PlayerState {
     }
 
     /// Raises an exception if the action is not valid.
-    #[pyo3(name = "validate_action")]
+    #[pyo3(name = "validate_reaction")]
     #[pyo3(text_signature = "($self, mjai_json, /)")]
-    pub(super) fn validate_action_json(&self, mjai_json: &str) -> Result<()> {
+    pub(super) fn validate_reaction_json(&self, mjai_json: &str) -> Result<()> {
         let action = json::from_str(mjai_json)?;
-        self.validate_action(&action)
+        self.validate_reaction(&action)
     }
 
     /// For debug only.

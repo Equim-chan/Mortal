@@ -1,8 +1,8 @@
 //! Updated at 2021/12/31 03:20 JST
 //!
 //! Source:
-//! * https://tenhou.net/ranking.html
-//! * http://otokomyouri.com/Ranking/Ranking.aspx
+//! * <https://tenhou.net/ranking.html>
+//! * <http://otokomyouri.com/Ranking/Ranking.aspx>
 
 use boomphf::hashmap::BoomHashMap;
 use flate2::read::GzDecoder;

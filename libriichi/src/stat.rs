@@ -22,7 +22,6 @@ use serde_json as json;
 /// - Deal-in After Riichi counts at the moment the sengenhai is discarded.
 /// - Every other Δscore cover kyotakus.
 /// - Ankan does not count as fuuro.
-/// -
 #[pyclass]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Add, AddAssign, Sum)]
 pub struct Stat {

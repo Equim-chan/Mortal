@@ -73,7 +73,7 @@ impl ActionCandidate {
 
 impl PlayerState {
     /// Check if `action` is a valid reaction to the current state.
-    pub fn validate_action(&self, action: &Event) -> Result<()> {
+    pub fn validate_reaction(&self, action: &Event) -> Result<()> {
         let cans = self.last_cans;
 
         match action {

@@ -17,8 +17,8 @@ pub struct Bot {
 
 #[derive(Deserialize)]
 struct EventWithCanAct {
-    // Useful in reconnections where all previous missed logs will be replayed
-    // (mjsoul)
+    /// Useful in reconnections where all previous missed logs will be replayed
+    /// (mjsoul)
     can_act: Option<bool>,
 
     #[serde(flatten)]

@@ -25,30 +25,31 @@ use sha3::{Digest, Sha3_256};
 ///    always 1x yakuman.
 #[derive(Debug, Default)]
 pub struct Board {
-    // Counts from 0
+    /// Counts from 0
     pub kyoku: u8,
     pub honba: u8,
-    // Does not effect the kyoku seed
+    /// Does not effect the kyoku seed
     pub kyotaku: u8,
-    // [25000; 4]
+    /// [25000; 4]
     pub scores: [i32; 4],
 
     pub haipai: [[Tile; 13]; 4],
-    // Goes backward (pop)
+    /// Goes backward (pop)
     pub yama: Vec<Tile>,
-    // Goes backward (pop)
+    /// Goes backward (pop)
     pub rinshan: Vec<Tile>,
-    // Goes backward (pop)
+    /// Goes backward (pop)
     pub dora_indicators: Vec<Tile>,
-    // Goes forward (iter)
+    /// Goes forward (iter)
     pub ura_indicators: Vec<Tile>,
 }
 
 impl Board {
     pub fn init_from_seed(&mut self, game_seed: (u64, u64)) {
+        let (nonce, key) = game_seed;
         let kyoku_seed = Sha3_256::new()
-            .chain_update(game_seed.0.to_le_bytes())
-            .chain_update(game_seed.1.to_le_bytes())
+            .chain_update(nonce.to_le_bytes())
+            .chain_update(key.to_le_bytes())
             .chain_update([self.kyoku, self.honba])
             .finalize()
             .try_into()
@@ -531,7 +532,7 @@ impl BoardState {
         // Validate reactions
         reactions.iter().enumerate().try_for_each(|(actor, ev)| {
             self.player_states[actor]
-                .validate_action(&ev.event)
+                .validate_reaction(&ev.event)
                 .with_context(|| {
                     format!(
                         "invalid action: {ev:?}\nstate:\n{}",

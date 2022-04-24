@@ -68,7 +68,10 @@ fn process_path(path: &Path) -> Result<()> {
     ];
     let mut cans = [ActionCandidate::default(); 4];
 
-    for (idx, ev) in events.iter().enumerate() {
+    for (idx, wnd) in events.windows(2).enumerate() {
+        let ev = &wnd[0];
+        let extra = &wnd[1];
+
         let line = idx + 1;
         match ev {
             Event::Dahai { actor, pai, .. } => {
@@ -220,8 +223,13 @@ fn process_path(path: &Path) -> Result<()> {
         }
 
         states.iter_mut().zip(&mut cans).for_each(|(s, c)| {
-            if !matches!(ev, Event::Hora { .. }) {
-                *c = s.update_with_skip(ev, true);
+            if matches!(ev, Event::Hora { .. }) {
+                return;
+            }
+
+            *c = s.update(ev);
+            if matches!(extra, Event::ReachAccepted { .. } | Event::Dora { .. }) {
+                s.update(extra);
             }
         });
     }

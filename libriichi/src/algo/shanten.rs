@@ -1,6 +1,6 @@
 //! Rust port of tomohxx's C++ implementation of Shanten Number Calculator.
 //!
-//! Source: https://github.com/tomohxx/shanten-number-calculator/
+//! Source: <https://github.com/tomohxx/shanten-number-calculator/>
 
 use crate::tuz;
 use std::io::prelude::*;

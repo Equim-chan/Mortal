@@ -7,7 +7,7 @@ use serde_with::{serde_as, skip_serializing_none};
 /// Describes an event in mjai format.
 ///
 /// Mjai protocol was originally defined in
-/// https://gimite.net/pukiwiki/index.php?Mjai%20%E9%BA%BB%E9%9B%80AI%E5%AF%BE%E6%88%A6%E3%82%B5%E3%83%BC%E3%83%90.
+/// <https://gimite.net/pukiwiki/index.php?Mjai%20%E9%BA%BB%E9%9B%80AI%E5%AF%BE%E6%88%A6%E3%82%B5%E3%83%BC%E3%83%90>.
 /// This implementation does not contain the full specs defined in the original
 /// one, and it has some extensions added.
 #[serde_as]
@@ -24,13 +24,17 @@ pub enum Event {
         #[serde(default)]
         names: [String; 4],
 
-        #[serde(default)] // https://github.com/jonasbb/serde_with/issues/185
+        // See https://github.com/jonasbb/serde_with/issues/185 for the reason
+        // for the serde(default).
+        /// Consists of (nonce, key).
+        #[serde(default)]
         seed: Option<(u64, u64)>,
     },
     StartKyoku {
         bakaze: Tile,
         dora_marker: Tile,
-        kyoku: u8, // counts from 1
+        /// Counts from 1
+        kyoku: u8,
         honba: u8,
         kyotaku: u8,
         oya: u8,
