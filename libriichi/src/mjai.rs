@@ -1,7 +1,6 @@
 use crate::tile::Tile;
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use serde_with::{serde_as, skip_serializing_none};
 
 /// Describes an event in mjai format.
@@ -125,7 +124,6 @@ pub struct Metadata {
     pub batch_size: Option<usize>,
     pub eval_time_ns: Option<u64>,
     pub kan_select: Option<Box<Metadata>>,
-    pub extra: Option<Value>,
 }
 
 impl Event {
