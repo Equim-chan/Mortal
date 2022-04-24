@@ -28,7 +28,7 @@ class FileDatasetsIter(IterableDataset):
         self.iterator = None
 
     def build_iter(self):
-        self.loader = GameplayLoader(oracle=True, player_name=self.player_name, trust_seed=False)
+        self.loader = GameplayLoader(oracle=True, player_name=self.player_name)
 
         # do not put it in __init__, it won't work on Windows
         grp = GRP(**config['grp']['network'])
