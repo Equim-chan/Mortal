@@ -264,7 +264,8 @@ impl Invisible {
     *,
     oracle = True,
     player_name = None,
-    trust_seed = True,
+    trust_seed = False,
+    always_include_kyoku_select = True,
 )")]
 #[derive(Debug, Clone, Default)]
 pub struct GameplayLoader {
@@ -274,17 +275,31 @@ pub struct GameplayLoader {
     player_name: Option<String>,
     #[pyo3(get, set)]
     trust_seed: bool,
+    #[pyo3(get, set)]
+    always_include_kyoku_select: bool,
 }
 
 #[pymethods]
 impl GameplayLoader {
     #[new]
-    #[args("*", oracle = "true", player_name = "None", trust_seed = "true")]
-    const fn new(oracle: bool, player_name: Option<String>, trust_seed: bool) -> Self {
+    #[args(
+        "*",
+        oracle = "true",
+        player_name = "None",
+        trust_seed = "false",
+        always_include_kyoku_select = "true"
+    )]
+    const fn new(
+        oracle: bool,
+        player_name: Option<String>,
+        trust_seed: bool,
+        always_include_kyoku_select: bool,
+    ) -> Self {
         Self {
             oracle,
             player_name,
             trust_seed,
+            always_include_kyoku_select,
         }
     }
 
@@ -429,33 +444,33 @@ impl Gameplay {
         mem::take(&mut self.dones)
     }
     #[pyo3(text_signature = "($self, /)")]
-    fn take_grp(&mut self) -> Grp {
-        mem::take(&mut self.grp)
-    }
-    // #[pyo3(text_signature = "($self, /)")]
-    // fn take_shanten(&mut self) -> Vec<[i8; 4]> {
-    //     mem::take(&mut self.shanten)
-    // }
-
-    #[pyo3(text_signature = "($self, /)")]
     fn take_apply_gamma(&mut self) -> Vec<bool> {
         mem::take(&mut self.apply_gamma)
+    }
+
+    #[pyo3(text_signature = "($self, /)")]
+    fn take_grp(&mut self) -> Grp {
+        mem::take(&mut self.grp)
     }
     #[pyo3(text_signature = "($self, /)")]
     fn take_has_houjuu_while_not_waiting(&mut self) -> Vec<bool> {
         mem::take(&mut self.has_houjuu_while_not_waiting)
     }
+
     #[pyo3(text_signature = "($self, /)")]
-    fn take_player_id(&mut self) -> u8 {
+    const fn take_player_id(&self) -> u8 {
         self.player_id
     }
     #[pyo3(text_signature = "($self, /)")]
-    fn take_quality(&mut self) -> u8 {
+    const fn take_quality(&self) -> u8 {
         self.quality as u8
     }
 }
 
-struct LoaderContext {
+struct LoaderContext<'a> {
+    config: &'a GameplayLoader,
+    invisibles: Option<&'a [Invisible]>,
+
     state: PlayerState,
     kyoku_idx: usize,
     // fields below are only used for oracle
@@ -500,6 +515,8 @@ impl Gameplay {
         };
 
         let mut ctx = LoaderContext {
+            config,
+            invisibles,
             state: PlayerState::new(player_id),
             kyoku_idx: 0,
             opponent_states: [
@@ -516,7 +533,7 @@ impl Gameplay {
         // tsumo/dahai -> ryukyoku/hora -> end kyoku -> end game
         events
             .windows(4)
-            .try_for_each(|wnd| data.extend_from_event_window(config, wnd, invisibles, &mut ctx))?;
+            .try_for_each(|wnd| data.extend_from_event_window(&mut ctx, wnd))?;
 
         data.dones = data.at_kyoku.windows(2).map(|w| w[1] > w[0]).collect();
         data.dones.push(true);
@@ -524,13 +541,18 @@ impl Gameplay {
         Ok(data)
     }
 
-    fn extend_from_event_window(
-        &mut self,
-        config: &GameplayLoader,
-        wnd: &[Event],
-        invisibles: Option<&[Invisible]>,
-        ctx: &mut LoaderContext,
-    ) -> Result<()> {
+    fn extend_from_event_window(&mut self, ctx: &mut LoaderContext, wnd: &[Event]) -> Result<()> {
+        let LoaderContext {
+            config,
+            invisibles,
+            state,
+            kyoku_idx,
+            opponent_states,
+            from_rinshan,
+            yama_idx,
+            rinshan_idx,
+        } = ctx;
+
         let cur = &wnd[0];
         let next = if matches!(wnd[1], Event::ReachAccepted { .. } | Event::Dora { .. }) {
             &wnd[2]
@@ -539,44 +561,44 @@ impl Gameplay {
         };
 
         if matches!(cur, Event::EndKyoku) {
-            ctx.kyoku_idx += 1;
+            *kyoku_idx += 1;
         }
 
-        if config.oracle {
+        if invisibles.is_some() {
             match cur {
                 Event::EndKyoku => {
-                    ctx.from_rinshan = false;
-                    ctx.yama_idx = 0;
-                    ctx.rinshan_idx = 0;
+                    *from_rinshan = false;
+                    *yama_idx = 0;
+                    *rinshan_idx = 0;
                 }
                 Event::Tsumo { .. } => {
-                    if ctx.from_rinshan {
-                        ctx.rinshan_idx += 1;
-                        ctx.from_rinshan = false;
+                    if *from_rinshan {
+                        *rinshan_idx += 1;
+                        *from_rinshan = false;
                     } else {
-                        ctx.yama_idx += 1;
+                        *yama_idx += 1;
                     }
                 }
                 Event::Ankan { .. } | Event::Kakan { .. } | Event::Daiminkan { .. } => {
-                    ctx.from_rinshan = true;
+                    *from_rinshan = true;
                 }
                 _ => (),
             };
 
-            ctx.opponent_states.iter_mut().for_each(|s| {
+            for s in opponent_states {
                 s.update(cur);
-            });
+            }
         }
 
-        let cans = ctx.state.update(cur);
+        let cans = state.update(cur);
 
-        if !self.has_houjuu_while_not_waiting[ctx.kyoku_idx]
+        if !self.has_houjuu_while_not_waiting[*kyoku_idx]
             && matches!(next, Event::Hora { actor, target, .. } if *actor != self.player_id && *target == self.player_id)
-            && (ctx.state.shanten() > 0
-                || ctx.state.at_furiten()
-                || !ctx.state.waits().into_iter().any(identity))
+            && (state.shanten() > 0
+                || state.at_furiten()
+                || !state.waits().into_iter().any(identity))
         {
-            self.has_houjuu_while_not_waiting[ctx.kyoku_idx] = true;
+            self.has_houjuu_while_not_waiting[*kyoku_idx] = true;
         };
 
         if !cans.can_act() {
@@ -606,19 +628,21 @@ impl Gameplay {
             }
             Event::Pon { actor, .. } if actor == self.player_id => Some(41),
             Event::Daiminkan { actor, pai, .. } if actor == self.player_id => {
-                kan_select = Some(pai.deaka().as_usize());
+                if config.always_include_kyoku_select {
+                    kan_select = Some(pai.deaka().as_usize());
+                }
                 Some(42)
             }
             Event::Kakan { pai, .. } => {
-                // if state.kakan_candidates().len() > 1 {
-                kan_select = Some(pai.deaka().as_usize());
-                // }
+                if config.always_include_kyoku_select || state.kakan_candidates().len() > 1 {
+                    kan_select = Some(pai.deaka().as_usize());
+                }
                 Some(42)
             }
             Event::Ankan { consumed, .. } => {
-                // if state.ankan_candidates().len() > 1 {
-                kan_select = Some(consumed[0].deaka().as_usize());
-                // }
+                if config.always_include_kyoku_select || state.ankan_candidates().len() > 1 {
+                    kan_select = Some(consumed[0].deaka().as_usize());
+                }
                 Some(42)
             }
             Event::Ryukyoku { .. } if cans.can_ryukyoku => Some(44),
@@ -663,32 +687,31 @@ impl Gameplay {
         };
 
         if let Some(label) = label_opt {
-            let mut add_entry = |at_kan, label| {
-                let (feature, mask) = ctx.state.encode_obs(at_kan);
-                self.obs.push(feature);
-                self.actions.push(label as i64);
-                self.masks.push(mask);
-                self.at_kyoku.push(ctx.kyoku_idx as u8);
-                // only discard and kan will discount
-                self.apply_gamma.push(label <= 37);
-                if config.oracle {
-                    // unwrap is safe because invisible is Some() iff
-                    // `config.oracle` holds.
-                    let invisible_obs = invisibles.unwrap()[ctx.kyoku_idx].encode(
-                        &ctx.opponent_states,
-                        ctx.yama_idx,
-                        ctx.rinshan_idx,
-                    );
-                    self.invisible_obs.push(invisible_obs);
-                }
-            };
-
-            add_entry(false, label);
+            self.add_entry(ctx, false, label);
             if let Some(kan) = kan_select {
-                add_entry(true, kan);
+                self.add_entry(ctx, true, kan);
             }
         }
 
         Ok(())
+    }
+
+    fn add_entry(&mut self, ctx: &LoaderContext, at_kan: bool, label: usize) {
+        let (feature, mask) = ctx.state.encode_obs(at_kan);
+        self.obs.push(feature);
+        self.actions.push(label as i64);
+        self.masks.push(mask);
+        self.at_kyoku.push(ctx.kyoku_idx as u8);
+        // only discard and kan will discount
+        self.apply_gamma.push(label <= 37);
+
+        if let Some(invisibles) = ctx.invisibles {
+            let invisible_obs = invisibles[ctx.kyoku_idx].encode(
+                &ctx.opponent_states,
+                ctx.yama_idx,
+                ctx.rinshan_idx,
+            );
+            self.invisible_obs.push(invisible_obs);
+        }
     }
 }
