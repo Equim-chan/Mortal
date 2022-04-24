@@ -457,10 +457,10 @@ impl Gameplay {
 
 struct LoaderContext {
     state: PlayerState,
+    kyoku_idx: usize,
     // fields below are only used for oracle
     opponent_states: [PlayerState; 3],
     from_rinshan: bool,
-    kyoku_idx: usize,
     yama_idx: usize,
     rinshan_idx: usize,
 }
@@ -501,13 +501,13 @@ impl Gameplay {
 
         let mut ctx = LoaderContext {
             state: PlayerState::new(player_id),
+            kyoku_idx: 0,
             opponent_states: [
                 PlayerState::new((player_id + 1) % 4),
                 PlayerState::new((player_id + 2) % 4),
                 PlayerState::new((player_id + 3) % 4),
             ],
             from_rinshan: false,
-            kyoku_idx: 0,
             yama_idx: 0,
             rinshan_idx: 0,
         };
@@ -538,10 +538,13 @@ impl Gameplay {
             &wnd[1]
         };
 
+        if matches!(cur, Event::EndKyoku) {
+            ctx.kyoku_idx += 1;
+        }
+
         if config.oracle {
             match cur {
                 Event::EndKyoku => {
-                    ctx.kyoku_idx += 1;
                     ctx.from_rinshan = false;
                     ctx.yama_idx = 0;
                     ctx.rinshan_idx = 0;
