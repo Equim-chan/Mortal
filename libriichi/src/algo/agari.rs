@@ -452,8 +452,8 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
             };
         }
         macro_rules! check_early_return {
-            {$($stmt:tt)*} => {{
-                $($stmt)*;
+            ($block:block) => {{
+                $block;
                 if return_if_any {
                     make_return!();
                 }
@@ -462,19 +462,19 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
 
         if has_pinfu {
             // 平和
-            check_early_return! { han += 1 };
+            check_early_return!({ han += 1 });
         }
         if self.div.has_chitoi {
             // 七対子
-            check_early_return! { han += 2 };
+            check_early_return!({ han += 2 });
         }
         if self.div.has_ryanpeikou {
             // 二盃口
-            check_early_return! { han += 3 };
+            check_early_return!({ han += 3 });
         }
         if self.div.has_chuuren {
             // 九蓮宝燈
-            check_early_return! { yakuman += 1 };
+            check_early_return!({ yakuman += 1 });
         }
 
         let has_tanyao = if self.div.has_chitoi {
@@ -498,14 +498,14 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
         };
         if has_tanyao {
             // 断幺九
-            check_early_return! { han += 1 };
+            check_early_return!({ han += 1 });
         }
 
         let has_toitoi =
             !self.div.has_chitoi && self.menzen_shuntsu.is_empty() && self.sup.chis.is_empty();
         if has_toitoi {
             // 対々和
-            check_early_return! { han += 2 };
+            check_early_return!({ han += 2 });
         }
 
         let mut isou_kind = None;
@@ -537,17 +537,17 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
         }
         if isou_kind.is_none() {
             // 字一色
-            check_early_return! { yakuman += 1 };
+            check_early_return!({ yakuman += 1 });
         } else if is_chinitsu_or_honitsu {
             // 混一色, 清一色
             let n = if has_jihai { 2 } else { 5 } + self.sup.is_menzen as u8;
-            check_early_return! { han += n };
+            check_early_return!({ han += n });
         }
 
         if !self.div.has_chitoi {
             // 一盃口
             if self.div.has_ipeikou {
-                check_early_return! { han += 1 };
+                check_early_return!({ han += 1 });
             } else if !self.sup.ankans.is_empty()
                 && self.sup.is_menzen
                 && self.menzen_shuntsu.len() >= 2
@@ -565,15 +565,15 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                     }
                 });
                 if has_ipeikou {
-                    check_early_return! { han += 1 };
+                    check_early_return!({ han += 1 });
                 }
             }
 
             // 一気通貫
             if self.sup.is_menzen && self.div.has_ittsuu {
-                check_early_return! { han += 2 };
+                check_early_return!({ han += 2 });
             } else if self.sup.chis.is_empty() && self.div.has_ittsuu {
-                check_early_return! { han += 1 };
+                check_early_return!({ han += 1 });
             } else if self.menzen_shuntsu.len() + self.sup.chis.len() >= 3 {
                 let mut kinds = [0; 3];
                 for s in self.all_shuntsu() {
@@ -587,7 +587,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                     };
                 }
                 if kinds.contains(&0b111) {
-                    check_early_return! { han += 1 };
+                    check_early_return!({ han += 1 });
                 }
             }
 
@@ -600,7 +600,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
             if s_counter.contains(&0b111) {
                 // 三色同順
                 let n = if self.sup.is_menzen { 2 } else { 1 };
-                check_early_return! { han += n };
+                check_early_return!({ han += n });
             } else {
                 let mut k_counter = [0; 9];
                 for k in self.all_kotsu_and_kantsu() {
@@ -612,7 +612,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                 }
                 if k_counter.contains(&0b111) {
                     // 三色同刻
-                    check_early_return! { han += 2 };
+                    check_early_return!({ han += 2 });
                 }
             }
 
@@ -620,18 +620,18 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                 - self.winning_tile_makes_minkou as usize;
             match ankous_count {
                 // 四暗刻
-                4 => check_early_return! { yakuman += 1 },
+                4 => check_early_return!({ yakuman += 1 }),
                 // 三暗刻
-                3 => check_early_return! { han += 2 },
+                3 => check_early_return!({ han += 2 }),
                 _ => (),
             };
 
             let kans_count = self.sup.ankans.len() + self.sup.minkans.len();
             match kans_count {
                 // 四槓子
-                4 => check_early_return! { yakuman += 1 },
+                4 => check_early_return!({ yakuman += 1 }),
                 // 三槓子
-                3 => check_early_return! { han += 2 },
+                3 => check_early_return!({ han += 2 }),
                 _ => (),
             };
 
@@ -647,7 +647,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                 && self.all_shuntsu().all(|s| s == tu8!(2s)); // only 234s is possible for shuntsu in ryuisou
             if has_ryuisou {
                 // 緑一色
-                check_early_return! { yakuman += 1 };
+                check_early_return!({ yakuman += 1 });
             }
 
             if !has_tanyao {
@@ -660,23 +660,23 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                 }
                 if has_jihai[self.sup.bakaze as usize - 3 * 9] {
                     // 役牌:門風牌
-                    check_early_return! { han += 1 };
+                    check_early_return!({ han += 1 });
                 }
                 if has_jihai[self.sup.jikaze as usize - 3 * 9] {
                     // 役牌:場風牌
-                    check_early_return! { han += 1 };
+                    check_early_return!({ han += 1 });
                 }
 
                 let saneins = (4..7).filter(|&i| has_jihai[i]).count() as u8;
                 if saneins > 0 {
                     // 役牌:三元牌
-                    check_early_return! { han += saneins };
+                    check_early_return!({ han += saneins });
                     if saneins == 3 {
                         // 大三元
-                        check_early_return! { yakuman += 1 };
+                        check_early_return!({ yakuman += 1 });
                     } else if saneins == 2 && matches_tu8!(self.pair_tile, P | F | C) {
                         // 小三元
-                        check_early_return! { han += 2 };
+                        check_early_return!({ han += 2 });
                     }
                 }
 
@@ -684,10 +684,10 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                 #[allow(clippy::if_same_then_else)]
                 if winds == 4 {
                     // 大四喜
-                    check_early_return! { yakuman += 1 };
+                    check_early_return!({ yakuman += 1 });
                 } else if winds == 3 && matches_tu8!(self.pair_tile, E | S | W | N) {
                     // 小四喜
-                    check_early_return! { yakuman += 1 };
+                    check_early_return!({ yakuman += 1 });
                 }
             }
         }
@@ -715,10 +715,10 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                 if self.div.has_chitoi || has_toitoi {
                     if has_jihai {
                         // 混老頭
-                        check_early_return! { han += 2 };
+                        check_early_return!({ han += 2 });
                     } else {
                         // 清老頭
-                        check_early_return! { yakuman += 1 };
+                        check_early_return!({ yakuman += 1 });
                     }
                 } else {
                     let is_junchan_or_chanta = self.all_shuntsu().all(|s| {
@@ -728,7 +728,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                     if is_junchan_or_chanta {
                         // 混全帯幺九, 純全帯幺九
                         let n = if has_jihai { 1 } else { 2 } + self.sup.is_menzen as u8;
-                        check_early_return! { han += n };
+                        check_early_return!({ han += n });
                     }
                 }
             }
