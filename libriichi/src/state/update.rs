@@ -18,7 +18,6 @@ pub(super) enum MoveType {
 }
 
 impl PlayerState {
-    #[inline]
     pub fn update(&mut self, event: &Event) -> ActionCandidate {
         self.last_cans = ActionCandidate {
             target_actor: event.actor().unwrap_or(self.player_id),

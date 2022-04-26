@@ -13,6 +13,7 @@ class MortalEngine:
         stochastic_latent = False,
         enable_amp = False,
         enable_quick_eval = True,
+        enable_rule_based_agari_guard = False,
         name = 'NoName',
         boltzmann_epsilon = 0,
         boltzmann_temp = 1,
@@ -25,6 +26,7 @@ class MortalEngine:
 
         self.enable_amp = enable_amp
         self.enable_quick_eval = enable_quick_eval
+        self.enable_rule_based_agari_guard = enable_rule_based_agari_guard
         self.name = name
 
         self.boltzmann_epsilon = boltzmann_epsilon

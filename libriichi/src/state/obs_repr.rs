@@ -1,5 +1,3 @@
-//! Feature engineering related methods for supervised learning.
-
 use super::PlayerState;
 use crate::consts::{ACTION_SPACE, OBS_SHAPE};
 use crate::state::item::KawaItem;

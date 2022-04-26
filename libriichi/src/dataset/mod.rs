@@ -8,6 +8,7 @@ mod player_list;
 use crate::py_helper::add_submodule;
 pub use gameplay::{Gameplay, GameplayLoader};
 pub use grp::Grp;
+pub use invisible::Invisible;
 
 use pyo3::prelude::*;
 

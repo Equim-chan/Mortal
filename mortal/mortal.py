@@ -33,6 +33,7 @@ def main():
         is_oracle = False,
         device = device,
         enable_amp = True,
+        enable_rule_based_agari_guard = True,
         name = 'mortal',
     )
     bot = Bot(engine, player_id)

@@ -10,9 +10,9 @@ use std::mem;
 use ndarray::prelude::*;
 use rand::prelude::*;
 
+/// All fields are sorted early -> late.
 #[derive(Default)]
 pub struct Invisible {
-    /// early -> late
     pub yama: Vec<Tile>,
     pub rinshan: Vec<Tile>,
     pub dora_indicators: Vec<Tile>,
@@ -28,7 +28,7 @@ impl Invisible {
         let mut ura_is_recorded = false;
         let mut unknown_tiles = new_unknown_tiles();
 
-        game.iter().for_each(|event| {
+        for event in game {
             match event {
                 // If the game was emulated by our lib, then use the seed directly
                 Event::StartGame {
@@ -65,7 +65,7 @@ impl Invisible {
                         cur.dora_indicators.reverse();
 
                         ret.push(mem::take(&mut cur));
-                        return;
+                        continue;
                     } else {
                         cur.dora_indicators.push(*dora_marker);
                         unknown_tiles[dora_marker.as_usize()] -= 1;
@@ -79,7 +79,7 @@ impl Invisible {
             };
 
             if seed.is_some() {
-                return;
+                continue;
             }
 
             match event {
@@ -143,7 +143,7 @@ impl Invisible {
 
                 _ => (),
             };
-        });
+        }
 
         ret
     }

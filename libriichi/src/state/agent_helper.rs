@@ -206,10 +206,10 @@ impl PlayerState {
         if !self.last_cans.can_ryukyoku {
             return false;
         }
-        self.rule_based_ryukyoku_cold()
+        self.rule_based_ryukyoku_slow()
     }
 
-    fn rule_based_ryukyoku_cold(&self) -> bool {
+    fn rule_based_ryukyoku_slow(&self) -> bool {
         // Do not ryukyoku if the hand is already <= 2 shanten.
         if shanten::calc_all(&self.arrs.tehai, self.tehai_len_div3) <= 2 {
             return false;
@@ -257,10 +257,10 @@ impl PlayerState {
         if !self.last_cans.can_ron_agari && !self.last_cans.can_tsumo_agari {
             return false;
         }
-        self.rule_based_agari_cold(self.last_cans.can_ron_agari, self.last_cans.target_actor)
+        self.rule_based_agari_slow(self.last_cans.can_ron_agari, self.last_cans.target_actor)
     }
 
-    fn rule_based_agari_cold(&self, is_ron: bool, target: u8) -> bool {
+    fn rule_based_agari_slow(&self, is_ron: bool, target: u8) -> bool {
         // Agari if it is not yet all-last, or we are oya ourselves, or we are
         // not the last place at all.
         if !self.is_all_last || self.oya == 0 || self.rank < 3 {
@@ -278,7 +278,7 @@ impl PlayerState {
             return true;
         }
 
-        // Calculate the max theoretical score we can achieve through this hora.
+        // Calculate the max theoretical score we can achieve through this agari.
         let max_win_point = if self.riichi_accepted[0] {
             let mut tehai_full = self.arrs.tehai;
             self.ankan_overview[0]
@@ -292,25 +292,27 @@ impl PlayerState {
                 .collect();
             tehai_ordered_by_count.sort_unstable_by(|(_, l), (_, r)| r.cmp(l));
 
+            // Try possible uradoras one by one, starting from the most valuable one
             let mut tiles_seen = self.arrs.tiles_seen;
             let mut ura_indicators = array_vec!([Tile; 5]);
             tehai_ordered_by_count
                 .into_iter()
                 .map(|(t, _)| Tile(t as u8).prev_tile())
-                .take_while(|&ura| {
+                .take_while(|&ura| loop {
                     if ura_indicators.len() >= self.dora_indicators.len() {
+                        // Break out of all loops.
                         return false;
                     }
-                    if tiles_seen[ura.as_usize()] == 4 {
+                    if tiles_seen[ura.as_usize()] >= 4 {
+                        // Try the next most-valuable possible uradora.
                         return true;
                     }
                     ura_indicators.push(ura);
                     tiles_seen[ura.as_usize()] += 1;
-                    true
                 })
                 .for_each(drop);
 
-            // unwrap is safe because there is a condition guard in
+            // `unwrap` is safe because there is a condition guard in
             // `rule_based_agari`.
             self.agari_points(is_ron, &ura_indicators).unwrap()
         } else {

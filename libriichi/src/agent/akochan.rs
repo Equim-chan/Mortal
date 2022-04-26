@@ -26,6 +26,8 @@ pub struct AkochanAgent {
 
 impl AkochanAgent {
     pub fn new(actor: u8) -> Result<Self> {
+        ensure!(matches!(actor, 0..=3));
+
         let akochan_dir = env::var_os("AKOCHAN_DIR").unwrap_or_else(|| OsString::from("akochan"));
         let akochan_exe = [&akochan_dir, OsStr::new("system.exe")]
             .iter()

@@ -904,10 +904,7 @@ mod test {
             assert_eq!(
                 check_ankan_after_riichi(&tehai, len_div3, tile, strict),
                 expected,
-                "failed for {} + {}, expected {}",
-                tehai_str,
-                tile_str,
-                expected
+                "failed for {tehai_str} + {tile_str}, expected {expected}",
             );
         };
 
@@ -1324,5 +1321,22 @@ mod test {
         let yaku = calc.search_yakus().unwrap();
         // 清一色, 一気通貫
         assert_eq!(yaku, Agari::Normal { fu: 60, han: 2 });
+
+        let tehai = hand("111s 2225556677z 7z").unwrap();
+        let calc = AgariCalculator {
+            tehai: &tehai,
+            is_menzen: true,
+            chis: &[],
+            pons: &[],
+            minkans: &[],
+            ankans: &[],
+            bakaze: tu8!(S),
+            jikaze: tu8!(S),
+            winning_tile: tu8!(C),
+            is_ron: true,
+        };
+        let yaku = calc.search_yakus().unwrap();
+        // 三暗刻, 対々和, 混一色, 混老頭, 小三元, double 南, 白, 中
+        assert!(matches!(yaku, Agari::Normal { han: 15, .. }));
     }
 }

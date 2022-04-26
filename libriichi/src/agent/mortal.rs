@@ -4,6 +4,7 @@ use crate::mjai::{Event, EventExt, Metadata};
 use crate::state::PlayerState;
 use crate::tile::Tile;
 use crate::tu8;
+use std::cmp::Ordering;
 use std::time::{Duration, Instant};
 
 use anyhow::{ensure, Context, Result};
@@ -15,6 +16,7 @@ pub struct MortalBatchAgent {
     engine: PyObject,
     is_oracle: bool,
     enable_quick_eval: bool,
+    enable_rule_based_agari_guard: bool,
     name: String,
     player_ids: Vec<u8>,
 
@@ -37,21 +39,32 @@ pub struct MortalBatchAgent {
 
 impl MortalBatchAgent {
     pub fn new(engine: PyObject, player_ids: &[u8]) -> Result<Self> {
-        let (name, is_oracle, enable_quick_eval) = Python::with_gil(|py| {
-            let obj = engine.as_ref(py);
-            ensure!(obj.getattr("react_batch")?.is_callable());
+        ensure!(player_ids.iter().all(|&id| matches!(id, 0..=3)));
 
-            let name = obj.getattr("name")?.extract()?;
-            let is_oracle = obj.getattr("is_oracle")?.extract()?;
-            let enable_quick_eval = obj.getattr("enable_quick_eval")?.extract()?;
-            Ok((name, is_oracle, enable_quick_eval))
-        })?;
+        let (name, is_oracle, enable_quick_eval, enable_rule_based_agari_guard) =
+            Python::with_gil(|py| {
+                let obj = engine.as_ref(py);
+                ensure!(obj.getattr("react_batch")?.is_callable());
+
+                let name = obj.getattr("name")?.extract()?;
+                let is_oracle = obj.getattr("is_oracle")?.extract()?;
+                let enable_quick_eval = obj.getattr("enable_quick_eval")?.extract()?;
+                let enable_rule_based_agari_guard =
+                    obj.getattr("enable_rule_based_agari_guard")?.extract()?;
+                Ok((
+                    name,
+                    is_oracle,
+                    enable_quick_eval,
+                    enable_rule_based_agari_guard,
+                ))
+            })?;
 
         let size = player_ids.len();
         Ok(Self {
             engine,
             is_oracle,
             enable_quick_eval,
+            enable_rule_based_agari_guard,
             name,
             player_ids: player_ids.to_vec(),
 
@@ -256,7 +269,22 @@ impl BatchAgent for MortalBatchAgent {
         let akas_in_hand = state.akas_in_hand();
         let cans = state.last_cans();
 
-        let action = self.actions[action_idx];
+        let orig_action = self.actions[action_idx];
+        let action =
+            if self.enable_rule_based_agari_guard && orig_action == 43 && !state.rule_based_agari()
+            {
+                // The engine says agari, but the rule-based engine says no.
+                // Under rule-based agari guard mode, it will be forced to use
+                // the second-best option other than agari.
+                let q_values = self.q_values[action_idx];
+                let mut v: Vec<_> = q_values.into_iter().enumerate().collect();
+                v[43].1 = f32::NEG_INFINITY;
+                v.sort_unstable_by(|(_, l), (_, r)| r.partial_cmp(l).unwrap_or(Ordering::Less));
+                v[0].0
+            } else {
+                orig_action
+            };
+
         let event = match action {
             0..=36 => {
                 ensure!(

@@ -61,6 +61,8 @@ impl BigArrayFields {
 /// state information from a specific seat's perspective with the ability to
 /// identify the legal actions the specified player can make upon an incoming
 /// mjai event, along with some helper functions to build an actual agent.
+/// Notably, `PlayerState` encodes observation features into numpy arrays which
+/// serve as inputs for deep learning model.
 #[pyclass]
 #[pyo3(text_signature = "(player_id)")]
 #[derive(Debug, Clone, Default)]
@@ -147,6 +149,7 @@ pub struct PlayerState {
 
 #[pymethods]
 impl PlayerState {
+    /// It is an undefined behavior for `player_id` to be outside of range [0, 3].
     #[new]
     pub fn new(player_id: u8) -> Self {
         Self {
