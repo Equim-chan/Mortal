@@ -58,4 +58,4 @@
 ---
 
 [Contributors & Sponsors](contributors_sponsors.md)
-[Donate❤️]()
+[Donate❤️](donate.md)
