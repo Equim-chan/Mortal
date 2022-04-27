@@ -35,6 +35,7 @@ def main():
             stochastic_latent = cfg['champion']['stochastic_latent'],
             device = torch.device(cfg['champion']['device']),
             enable_amp = cfg['champion']['enable_amp'],
+            enable_rule_based_agari_guard = cfg['champion']['enable_rule_based_agari_guard'],
             name = cfg['champion']['name'],
         )
 
@@ -50,6 +51,7 @@ def main():
         stochastic_latent = cfg['challenger']['stochastic_latent'],
         device = torch.device(cfg['challenger']['device']),
         enable_amp = cfg['challenger']['enable_amp'],
+        enable_rule_based_agari_guard = cfg['challenger']['enable_rule_based_agari_guard'],
         name = cfg['challenger']['name'],
     )
 

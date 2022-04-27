@@ -89,6 +89,7 @@ name = 'mortal'
 state_file = '/path/to/challenger.pth'
 stochastic_latent = false
 enable_amp = true
+enable_rule_based_agari_guard = true
 
 [1v3.champion]
 device = 'cuda:0'
@@ -96,12 +97,12 @@ name = 'baseline'
 state_file = '/path/to/baseline.pth'
 stochastic_latent = false
 enable_amp = true
+enable_rule_based_agari_guard = true
 
 [1v3.akochan]
 enabled = false
 dir = '/path/to/akochan'
 tactics = '/path/to/tactics.json'
-
 
 [grp]
 state_file = '/path/to/grp.pth'
