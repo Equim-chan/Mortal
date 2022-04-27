@@ -136,62 +136,62 @@ impl fmt::Display for Stat {
             r#"
 Games            {}
 Rounds           {}
-Rounds as Dealer {}
+Rounds as dealer {}
 
-1st (Rate)       {} ({:.6})
-2nd (Rate)       {} ({:.6})
-3rd (Rate)       {} ({:.6})
-4th (Rate)       {} ({:.6})
-Tobi(Rate)       {} ({:.6})
-Avg Rank         {:.6}
+1st (rate)       {} ({:.6})
+2nd (rate)       {} ({:.6})
+3rd (rate)       {} ({:.6})
+4th (rate)       {} ({:.6})
+Tobi(rate)       {} ({:.6})
+Avg rank         {:.6}
 Total pt         {}
-Avg Game pt      {:.6}
-Total ΔScore     {}
-Avg Game ΔScore  {:.6}
-Avg Round ΔScore {:.6}
+Avg game pt      {:.6}
+Total Δscore     {}
+Avg game Δscore  {:.6}
+Avg round Δscore {:.6}
 
-Win Rate      {:.6}
-Deal-in Rate  {:.6}
-Call Rate     {:.6}
-Riichi Rate   {:.6}
-Ryukyoku Rate {:.6}
+Win rate      {:.6}
+Deal-in rate  {:.6}
+Call rate     {:.6}
+Riichi rate   {:.6}
+Ryukyoku rate {:.6}
 
-Avg Winning ΔScore               {:.6}
-Avg Winning ΔScore as Dealer     {:.6}
-Avg Winning Δscore as Non-dealer {:.6}
-Avg Riichi Winning ΔScore        {:.6}
-Avg Open Winning ΔScore          {:.6}
-Avg Dama Winning ΔScore          {:.6}
-Avg Ryukyoku ΔScore              {:.6}
+Avg winning Δscore               {:.6}
+Avg winning Δscore as dealer     {:.6}
+Avg winning Δscore as non-dealer {:.6}
+Avg riichi winning Δscore        {:.6}
+Avg open winning Δscore          {:.6}
+Avg dama winning Δscore          {:.6}
+Avg ryukyoku Δscore              {:.6}
 
-Avg Winning Turn        {:.6}
-Avg Riichi Winning Turn {:.6}
-Avg Open Winning Turn   {:.6}
-Avg Dama Winning Turn   {:.6}
+Avg winning turn        {:.6}
+Avg riichi winning turn {:.6}
+Avg open winning turn   {:.6}
+Avg dama winning turn   {:.6}
 
-Avg Deal-in Turn                 {:.6}
-Avg Deal-in ΔScore               {:.6}
-Avg Deal-in ΔScore to Dealer     {:.6}
-Avg Deal-in ΔScore to Non-dealer {:.6}
+Avg deal-in turn                 {:.6}
+Avg deal-in Δscore               {:.6}
+Avg deal-in Δscore to dealer     {:.6}
+Avg deal-in Δscore to non-dealer {:.6}
 
-Chasing Riichi Rate       {:.6}
-Riichi Chased Rate        {:.6}
-Winning Rate after Riichi {:.6}
-Deal-in Rate after Riichi {:.6}
-Avg Riichi Turn           {:.6}
-Avg Riichi ΔScore         {:.6}
+Chasing riichi rate       {:.6}
+Riichi chased rate        {:.6}
+Winning rate after riichi {:.6}
+Deal-in rate after riichi {:.6}
+Avg riichi turn           {:.6}
+Avg riichi Δscore         {:.6}
 
-Avg Number of Calls     {:.6}
-Winning Rate after Call {:.6}
-Deal-in Rate after Call {:.6}
-Avg Call ΔScore         {:.6}
+Avg number of calls     {:.6}
+Winning rate after call {:.6}
+Deal-in rate after call {:.6}
+Avg call Δscore         {:.6}
 
-Winning Rate as Dealer                {:.6}
-Dealer Wins out of All Wins           {:.6}
-Deal-in to Dealer out of All Deal-ins {:.6}
+Dealer wins/all dealer rounds  {:.6}
+Dealer wins/all wins           {:.6}
+Deal-in to dealer/all deal-ins {:.6}
 
-Yakuman (Rate)        {} ({:.9})
-Nagashi Mangan (Rate) {} ({:.9})"#,
+Yakuman (rate)        {} ({:.9})
+Nagashi mangan (rate) {} ({:.9})"#,
             self.game,
             self.round,
             self.oya,
