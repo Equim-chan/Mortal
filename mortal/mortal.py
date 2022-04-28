@@ -4,6 +4,7 @@ import sys
 import torch
 from model import Brain, DQN
 from engine import MortalEngine
+from common import filtered_stripped_lines
 from libriichi import Bot
 from config import config
 
@@ -32,19 +33,15 @@ def main():
         dqn,
         is_oracle = False,
         device = device,
-        enable_amp = True,
+        enable_amp = False,
         enable_rule_based_agari_guard = True,
         name = 'mortal',
     )
     bot = Bot(engine, player_id)
 
-    for line in sys.stdin:
-        line = line.strip()
-        if not line:
-            continue
-        reaction = bot.react(line)
-        if reaction:
-            print(reaction.strip(), flush=True)
+    for line in filtered_stripped_lines(sys.stdin):
+        if reaction := bot.react(line):
+            print(reaction, flush=True)
 
 if __name__ == '__main__':
     try:

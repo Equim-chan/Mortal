@@ -17,6 +17,9 @@ def hard_update(src, dst):
 def parameter_count(module):
     return sum(p.numel() for p in module.parameters() if p.requires_grad)
 
+def filtered_stripped_lines(lines):
+    return filter(lambda l: l, map(lambda l: l.strip(), lines))
+
 def drain():
     remote = (config['online']['remote']['host'], config['online']['remote']['port'])
     while True:
