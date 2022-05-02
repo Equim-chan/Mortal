@@ -7,6 +7,8 @@ use pyo3::prelude::*;
 use serde::Deserialize;
 use serde_json as json;
 
+const DUMMY_REACTION: &str = r#"{"type":"none","meta":{"mask_bits":0}}"#;
+
 #[pyclass]
 #[pyo3(text_signature = "(engine, player_id)")]
 pub struct Bot {
@@ -17,12 +19,9 @@ pub struct Bot {
 
 #[derive(Deserialize)]
 struct EventWithCanAct {
-    /// Useful in reconnections where all previous missed logs will be replayed
-    /// (mjsoul)
-    can_act: Option<bool>,
-
     #[serde(flatten)]
     event: Event,
+    can_act: Option<bool>,
 }
 
 #[pymethods]
@@ -40,8 +39,8 @@ impl Bot {
 
     /// Returns the reaction to `line`, if it can react, `None` otherwise.
     ///
-    /// Set `can_act` to False to force the bot to only update its state without
-    /// making any reaction.
+    /// Set `can_act` or `line_json['can_act']` to `False` to force the bot to
+    /// only update its state without making any reaction.
     ///
     /// Both `line` and the return value are JSON strings representing one
     /// single mjai event.
@@ -50,6 +49,19 @@ impl Bot {
     #[args("*", can_act = "true")]
     fn react_py(&mut self, line: &str, can_act: bool, py: Python) -> Result<Option<String>> {
         py.allow_threads(move || self.react(line, can_act))
+    }
+
+    /// The behavior is the same as `react`, except it returns a None event
+    /// instead of `None` when it cannot react.
+    #[pyo3(text_signature = "($self, line, /, *, can_act=True)")]
+    #[args("*", can_act = "true")]
+    fn review(&mut self, line: &str, can_act: bool, py: Python) -> Result<String> {
+        py.allow_threads(move || {
+            let reaction = self
+                .react(line, can_act)?
+                .unwrap_or_else(|| DUMMY_REACTION.to_owned());
+            Ok(reaction)
+        })
     }
 }
 
@@ -89,5 +101,25 @@ impl Bot {
 
         let ret = json::to_string(&reaction)?;
         Ok(Some(ret))
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::mjai::Metadata;
+
+    #[test]
+    fn dummy_reaction() {
+        let ev = EventExt {
+            event: Event::None,
+            meta: Some(Metadata {
+                mask_bits: Some(0),
+                ..Default::default()
+            }),
+        };
+        let expected = json::to_value(&ev).unwrap();
+        let actual: json::Value = json::from_str(DUMMY_REACTION).unwrap();
+        assert_eq!(actual, expected);
     }
 }

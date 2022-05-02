@@ -94,7 +94,7 @@ impl From<u32> for Div {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Eq)]
 pub enum Agari {
     /// `fu` may be 0 if `han` is greater than 4.
     Normal {
@@ -115,8 +115,6 @@ impl PartialEq for Agari {
         }
     }
 }
-
-impl Eq for Agari {}
 
 impl PartialOrd for Agari {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {

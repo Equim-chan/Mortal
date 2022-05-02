@@ -1,5 +1,6 @@
 import prelude
 
+import os
 import sys
 import torch
 from model import Brain, DQN
@@ -20,6 +21,7 @@ def main():
     except:
         print(usage, file=sys.stderr)
         sys.exit(1)
+    review_mode = os.environ.get('MORTAL_REVIEW_MODE', '0') == '1'
 
     device = torch.device('cpu')
     mortal = Brain(False, **config['resnet']).eval()
@@ -40,7 +42,9 @@ def main():
     bot = Bot(engine, player_id)
 
     for line in filtered_stripped_lines(sys.stdin):
-        if reaction := bot.react(line):
+        if review_mode:
+            print(bot.review(line), flush=True)
+        elif reaction := bot.react(line):
             print(reaction, flush=True)
 
 if __name__ == '__main__':
