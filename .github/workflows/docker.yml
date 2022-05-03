@@ -1,0 +1,19 @@
+# This workflow merely checks if the Dockerfile is valid to build, without
+# pushing the image to anywhere.
+
+name: build-docker
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Docker build
+        run: sudo env DOCKER_BUILDKIT=1 docker build -t mortal:latest .
