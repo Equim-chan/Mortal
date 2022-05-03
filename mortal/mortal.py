@@ -42,10 +42,10 @@ def main():
     bot = Bot(engine, player_id)
 
     for line in filtered_stripped_lines(sys.stdin):
-        if review_mode:
-            print(bot.review(line), flush=True)
-        elif reaction := bot.react(line):
+        if reaction := bot.react(line):
             print(reaction, flush=True)
+        elif review_mode:
+            print('{"type":"none","meta":{"mask_bits":0}}', flush=True)
 
 if __name__ == '__main__':
     try:

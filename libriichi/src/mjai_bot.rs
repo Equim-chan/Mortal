@@ -7,8 +7,6 @@ use pyo3::prelude::*;
 use serde::Deserialize;
 use serde_json as json;
 
-const DUMMY_REACTION: &str = r#"{"type":"none","meta":{"mask_bits":0}}"#;
-
 #[pyclass]
 #[pyo3(text_signature = "(engine, player_id)")]
 pub struct Bot {
@@ -50,19 +48,6 @@ impl Bot {
     fn react_py(&mut self, line: &str, can_act: bool, py: Python) -> Result<Option<String>> {
         py.allow_threads(move || self.react(line, can_act))
     }
-
-    /// The behavior is the same as `react`, except it returns a None event
-    /// instead of `None` when it cannot react.
-    #[pyo3(text_signature = "($self, line, /, *, can_act=True)")]
-    #[args("*", can_act = "true")]
-    fn review(&mut self, line: &str, can_act: bool, py: Python) -> Result<String> {
-        py.allow_threads(move || {
-            let reaction = self
-                .react(line, can_act)?
-                .unwrap_or_else(|| DUMMY_REACTION.to_owned());
-            Ok(reaction)
-        })
-    }
 }
 
 impl Bot {
@@ -101,25 +86,5 @@ impl Bot {
 
         let ret = json::to_string(&reaction)?;
         Ok(Some(ret))
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-    use crate::mjai::Metadata;
-
-    #[test]
-    fn dummy_reaction() {
-        let ev = EventExt {
-            event: Event::None,
-            meta: Some(Metadata {
-                mask_bits: Some(0),
-                ..Default::default()
-            }),
-        };
-        let expected = json::to_value(&ev).unwrap();
-        let actual: json::Value = json::from_str(DUMMY_REACTION).unwrap();
-        assert_eq!(actual, expected);
     }
 }
