@@ -34,7 +34,7 @@ Only `torch` is needed. You can skip the installation of `torchvision` and `torc
 ### Build and install libriichi
 > Working directory: `$MORTAL_ROOT`
 ```shell
-$ cargo build --lib --release
+$ cargo build -p libriichi --lib --release
 ```
 
 For Linux
@@ -61,7 +61,8 @@ Type "help", "copyright", "credits" or "license" for more information.
 ## Build executable utilities
 > Working directory: `$MORTAL_ROOT`
 ```shell
-$ cargo build --bins --no-default-features --release
+$ cargo build -p libriichi --bins --no-default-features --release
+$ cargo build -p exe-wrapper --release
 ```
 
 ## Build documentation

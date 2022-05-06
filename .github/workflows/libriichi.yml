@@ -57,11 +57,12 @@ jobs:
 
       - name: Run build
         run: |
-          cargo build --lib
-          cargo build --no-default-features --bins
+          cargo build -p libriichi --lib
+          cargo build -p libriichi --no-default-features --bins
+          cargo build -p exe-wrapper
 
       - name: Check artifact
         run: |
           cd target/debug
-          ldd libriichi.so stat validate_logs
+          ldd libriichi.so stat validate_logs exe-wrapper
           python -c 'import libriichi'

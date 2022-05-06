@@ -121,18 +121,18 @@ impl OneVsThree {
 }
 
 impl OneVsThree {
-    pub fn run_batch<T, R, TA, RA>(
+    pub fn run_batch<C, M, CA, MA>(
         &self,
-        new_challenger_agent: T,
-        new_champion_agent: R,
+        new_challenger_agent: C,
+        new_champion_agent: M,
         seed_start: (u64, u64),
         seed_count: u64,
     ) -> Result<Vec<GameResult>>
     where
-        T: FnOnce(&[u8]) -> Result<TA>,
-        R: FnOnce(&[u8]) -> Result<RA>,
-        TA: BatchAgent + 'static,
-        RA: BatchAgent + 'static,
+        C: FnOnce(&[u8]) -> Result<CA>,
+        M: FnOnce(&[u8]) -> Result<MA>,
+        CA: BatchAgent + 'static,
+        MA: BatchAgent + 'static,
     {
         if let Some(dir) = &self.log_dir {
             fs::create_dir_all(dir)?;

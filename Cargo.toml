@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "libriichi",
+    "exe-wrapper",
 ]
 
 [profile.release]
