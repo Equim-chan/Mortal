@@ -283,11 +283,10 @@ impl BatchGame {
             ProgressBar::new(games.len() as u64)
         };
         bar.set_style(
-            ProgressStyle::default_bar().template(
-                "{spinner:.cyan} steps: {msg}\n[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%",
-            )
-            .tick_chars(".oOo")
-            .progress_chars("#-"),
+            ProgressStyle::default_bar()
+                .template("{spinner:.cyan} steps: {msg}\n[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%")
+                .tick_chars(".oOo")
+                .progress_chars("#-"),
         );
         bar.enable_steady_tick(150);
 

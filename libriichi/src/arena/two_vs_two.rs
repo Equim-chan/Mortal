@@ -208,9 +208,7 @@ impl TwoVsTwo {
             };
             bar.set_style(
                 ProgressStyle::default_bar()
-                    .template(
-                        "{spinner:.cyan} [{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%",
-                    )
+                    .template("{spinner:.cyan} [{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%")
                     .tick_chars(".oOo")
                     .progress_chars("#-"),
             );
