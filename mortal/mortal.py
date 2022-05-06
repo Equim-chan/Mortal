@@ -36,6 +36,7 @@ def main():
         is_oracle = False,
         device = device,
         enable_amp = False,
+        enable_quick_eval = not review_mode,
         enable_rule_based_agari_guard = True,
         name = 'mortal',
     )
