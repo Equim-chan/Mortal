@@ -128,6 +128,7 @@ pub struct Metadata {
 
 impl Event {
     #[inline]
+    #[must_use]
     pub const fn actor(&self) -> Option<u8> {
         match *self {
             Event::Tsumo { actor, .. }
@@ -147,6 +148,7 @@ impl Event {
 
 impl EventExt {
     #[inline]
+    #[must_use]
     pub const fn no_meta(event: Event) -> Self {
         Self { event, meta: None }
     }

@@ -11,11 +11,13 @@ use tinyvec::array_vec;
 
 impl PlayerState {
     /// Used by `BoardState` to check if a player is making 4 kans on his own.
+    #[must_use]
     pub fn kans_count(&self) -> usize {
         self.minkans.len() + self.ankans.len()
     }
 
     /// Used by `Agent` impls, must be called at 3n+2.
+    #[must_use]
     pub fn discard_candidates(&self) -> [bool; 34] {
         let full = self.discard_candidates_aka();
         let mut ret = [false; 34];
@@ -27,10 +29,9 @@ impl PlayerState {
     }
 
     /// Aka dora covered version of `discard_candidates`.
+    #[must_use]
     pub fn discard_candidates_aka(&self) -> [bool; 37] {
-        if !self.last_cans.can_discard {
-            panic!("tehai is not 3n+2");
-        }
+        assert!(self.last_cans.can_discard, "tehai is not 3n+2");
 
         let mut ret = [false; 37];
 
@@ -81,6 +82,7 @@ impl PlayerState {
     /// real after being discarded, with the number of future tenpai tiles left
     /// and furiten considered, without depending on any incidental yaku, and is
     /// not affected by the riichi status of the player.
+    #[must_use]
     pub fn discard_candidates_with_unconditional_tenpai(&self) -> [bool; 34] {
         let full = self.discard_candidates_with_unconditional_tenpai_aka();
         let mut ret = [false; 34];
@@ -92,10 +94,9 @@ impl PlayerState {
     }
 
     /// Aka dora covered version of `discard_candidates_with_unconditional_tenpai`.
+    #[must_use]
     pub fn discard_candidates_with_unconditional_tenpai_aka(&self) -> [bool; 37] {
-        if !self.last_cans.can_discard {
-            panic!("tehai is not 3n+2");
-        }
+        assert!(self.last_cans.can_discard, "tehai is not 3n+2");
 
         let mut ret = [false; 37];
 
@@ -194,6 +195,7 @@ impl PlayerState {
     }
 
     #[inline]
+    #[must_use]
     pub fn yaokyuu_kind_count(&self) -> u8 {
         tuz![1m, 9m, 1p, 9p, 1s, 9s, E, S, W, N, P, F, C]
             .iter()
@@ -202,6 +204,7 @@ impl PlayerState {
     }
 
     #[inline]
+    #[must_use]
     pub fn rule_based_ryukyoku(&self) -> bool {
         if !self.last_cans.can_ryukyoku {
             return false;
@@ -253,6 +256,7 @@ impl PlayerState {
     }
 
     #[inline]
+    #[must_use]
     pub fn rule_based_agari(&self) -> bool {
         if !self.last_cans.can_ron_agari && !self.last_cans.can_tsumo_agari {
             return false;

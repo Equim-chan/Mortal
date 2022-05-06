@@ -66,14 +66,13 @@ impl Invisible {
 
                         ret.push(mem::take(&mut cur));
                         continue;
-                    } else {
-                        cur.dora_indicators.push(*dora_marker);
-                        unknown_tiles[dora_marker.as_usize()] -= 1;
-                        tehais
-                            .iter()
-                            .flatten()
-                            .for_each(|tile| unknown_tiles[tile.as_usize()] -= 1);
                     }
+                    cur.dora_indicators.push(*dora_marker);
+                    unknown_tiles[dora_marker.as_usize()] -= 1;
+                    tehais
+                        .iter()
+                        .flatten()
+                        .for_each(|tile| unknown_tiles[tile.as_usize()] -= 1);
                 }
                 _ => (),
             };
@@ -89,9 +88,7 @@ impl Invisible {
                         from_rinshan = false;
                     } else {
                         cur.yama.push(*pai);
-                        if cur.yama.len() > 70 {
-                            panic!("yama size overflow");
-                        }
+                        assert!(cur.yama.len() <= 70, "yama size overflow");
                     }
                     unknown_tiles[pai.as_usize()] -= 1;
                 }
@@ -106,10 +103,10 @@ impl Invisible {
                     ura_markers: Some(ura),
                     ..
                 } if !ura_is_recorded => {
-                    ura.iter().for_each(|&tile| {
+                    for &tile in ura {
                         cur.ura_indicators.push(tile);
                         unknown_tiles[tile.as_usize()] -= 1;
-                    });
+                    }
                     ura_is_recorded = true;
                 }
                 Event::EndKyoku => {
@@ -159,7 +156,7 @@ impl Invisible {
         let mut arr = Array2::zeros(ORACLE_OBS_SHAPE);
         let mut idx = 0;
 
-        opponent_states.iter().for_each(|state| {
+        for state in opponent_states {
             state
                 .tehai()
                 .iter()
@@ -197,7 +194,7 @@ impl Invisible {
                 arr.slice_mut(s![idx, ..]).fill(1.);
             }
             idx += 1;
-        });
+        }
 
         let mut encode_tile = |idx: usize, tile: Tile| {
             let tile_id = tile.deaka().as_usize();

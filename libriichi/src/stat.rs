@@ -264,6 +264,7 @@ Nagashi mangan (rate) {} ({:.9})"#,
 impl Stat {
     /// We do not use `add_game(&mut self)` here as `Stat` impls `Add` and `Sum` so we
     /// can use rayon easier.
+    #[must_use]
     pub fn from_game(events: &[Event], player_id: u8) -> Self {
         let mut stat = Self {
             game: 1,
@@ -527,235 +528,280 @@ impl Stat {
 
     #[pyo3(text_signature = "($self, pts)")]
     #[inline]
+    #[must_use]
     pub const fn total_pt(&self, pts: [i64; 4]) -> i64 {
         self.rank_1 * pts[0] + self.rank_2 * pts[1] + self.rank_3 * pts[2] + self.rank_4 * pts[3]
     }
     #[pyo3(text_signature = "($self, pts)")]
     #[inline]
+    #[must_use]
     pub fn avg_pt(&self, pts: [i64; 4]) -> f64 {
         self.total_pt(pts) as f64 / self.game as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_rank(&self) -> f64 {
         self.avg_pt([1, 2, 3, 4])
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn rank_1_rate(&self) -> f64 {
         self.rank_1 as f64 / self.game as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn rank_2_rate(&self) -> f64 {
         self.rank_2 as f64 / self.game as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn rank_3_rate(&self) -> f64 {
         self.rank_3 as f64 / self.game as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn rank_4_rate(&self) -> f64 {
         self.rank_4 as f64 / self.game as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn tobi_rate(&self) -> f64 {
         self.tobi as f64 / self.game as f64
     }
 
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_game(&self) -> f64 {
         self.point as f64 / self.game as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_round(&self) -> f64 {
         self.point as f64 / self.round as f64
     }
 
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_agari(&self) -> f64 {
         (self.agari_point_ko + self.agari_point_oya) as f64 / self.agari as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_oya_agari(&self) -> f64 {
         self.agari_point_oya as f64 / self.agari_as_oya as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_ko_agari(&self) -> f64 {
         self.agari_point_ko as f64 / (self.agari - self.agari_as_oya) as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_riichi_agari(&self) -> f64 {
         self.riichi_agari_point as f64 / self.riichi_agari as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_fuuro_agari(&self) -> f64 {
         self.fuuro_agari_point as f64 / self.fuuro_agari as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_dama_agari(&self) -> f64 {
         self.dama_agari_point as f64 / self.dama_agari as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_ryukyoku(&self) -> f64 {
         self.ryukyoku_point as f64 / self.ryukyoku as f64
     }
 
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_agari_jun(&self) -> f64 {
         self.agari_jun as f64 / self.agari as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_riichi_agari_jun(&self) -> f64 {
         self.riichi_agari_jun as f64 / self.riichi_agari as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_fuuro_agari_jun(&self) -> f64 {
         self.fuuro_agari_jun as f64 / self.fuuro_agari as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_dama_agari_jun(&self) -> f64 {
         self.dama_agari_jun as f64 / self.dama_agari as f64
     }
 
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_houjuu(&self) -> f64 {
         (self.houjuu_point_to_ko + self.houjuu_point_to_oya) as f64 / self.houjuu as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_houjuu_to_oya(&self) -> f64 {
         self.houjuu_point_to_oya as f64 / self.houjuu_to_oya as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_point_per_houjuu_to_ko(&self) -> f64 {
         self.houjuu_point_to_ko as f64 / (self.houjuu - self.houjuu_to_oya) as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_houjuu_jun(&self) -> f64 {
         self.houjuu_jun as f64 / self.houjuu as f64
     }
 
     #[getter]
     #[inline]
+    #[must_use]
     pub fn agari_rate(&self) -> f64 {
         self.agari as f64 / self.round as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn houjuu_rate(&self) -> f64 {
         self.houjuu as f64 / self.round as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn riichi_rate(&self) -> f64 {
         self.riichi as f64 / self.round as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn fuuro_rate(&self) -> f64 {
         self.fuuro as f64 / self.round as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn ryukyoku_rate(&self) -> f64 {
         self.ryukyoku as f64 / self.round as f64
     }
 
     #[getter]
     #[inline]
+    #[must_use]
     pub fn agari_rate_after_riichi(&self) -> f64 {
         self.riichi_agari as f64 / self.riichi as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn houjuu_rate_after_riichi(&self) -> f64 {
         self.riichi_houjuu as f64 / self.riichi as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn chasing_riichi_rate(&self) -> f64 {
         self.chasing_riichi as f64 / self.riichi as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn riichi_chased_rate(&self) -> f64 {
         self.riichi_got_chased as f64 / self.riichi as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_riichi_jun(&self) -> f64 {
         self.riichi_jun as f64 / self.riichi as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_riichi_point(&self) -> f64 {
         self.riichi_point as f64 / self.riichi as f64
     }
 
     #[getter]
     #[inline]
+    #[must_use]
     pub fn agari_rate_as_oya(&self) -> f64 {
         self.agari_as_oya as f64 / self.oya as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn agari_as_oya_rate(&self) -> f64 {
         self.agari_as_oya as f64 / self.agari as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn houjuu_to_oya_rate(&self) -> f64 {
         self.houjuu_to_oya as f64 / self.houjuu as f64
     }
 
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_fuuro_num(&self) -> f64 {
         self.fuuro_num as f64 / self.fuuro as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn agari_rate_after_fuuro(&self) -> f64 {
         self.fuuro_agari as f64 / self.fuuro as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn houjuu_rate_after_fuuro(&self) -> f64 {
         self.fuuro_houjuu as f64 / self.fuuro as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn avg_fuuro_point(&self) -> f64 {
         self.fuuro_point as f64 / self.fuuro as f64
     }
 
     #[getter]
     #[inline]
+    #[must_use]
     pub fn yakuman_rate(&self) -> f64 {
         self.yakuman as f64 / self.round as f64
     }
     #[getter]
     #[inline]
+    #[must_use]
     pub fn nagashi_mangan_rate(&self) -> f64 {
         self.nagashi_mangan as f64 / self.round as f64
     }

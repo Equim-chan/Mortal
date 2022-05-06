@@ -84,6 +84,7 @@ fn sum_tiles(tiles: &[u8]) -> usize {
 }
 
 /// `len_div3` must be within [0, 4].
+#[must_use]
 pub fn calc_normal(tiles: &[u8; 34], len_div3: u8) -> i8 {
     let len_div3 = len_div3 as usize;
 
@@ -98,6 +99,7 @@ pub fn calc_normal(tiles: &[u8; 34], len_div3: u8) -> i8 {
     (ret[5 + len_div3] as i8) - 1
 }
 
+#[must_use]
 pub fn calc_chitoi(tiles: &[u8; 34]) -> i8 {
     let mut pairs = 0;
     let mut kinds = 0;
@@ -112,6 +114,7 @@ pub fn calc_chitoi(tiles: &[u8; 34]) -> i8 {
     7 - pairs + redunct - 1
 }
 
+#[must_use]
 pub fn calc_kokushi(tiles: &[u8; 34]) -> i8 {
     let mut pairs = 0;
     let mut kinds = 0;
@@ -131,6 +134,7 @@ pub fn calc_kokushi(tiles: &[u8; 34]) -> i8 {
     14 - kinds - redunct - 1
 }
 
+#[must_use]
 pub fn calc_all(tiles: &[u8; 34], len_div3: u8) -> i8 {
     let mut shanten = calc_normal(tiles, len_div3);
     if shanten <= 0 || len_div3 < 4 {

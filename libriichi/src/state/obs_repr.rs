@@ -27,6 +27,7 @@ impl PlayerState {
 
 impl PlayerState {
     /// Returns `(obs, mask)`
+    #[must_use]
     pub fn encode_obs(&self, at_kan_select: bool) -> (Array2<f32>, Array1<bool>) {
         let mut arr = Array2::zeros(OBS_SHAPE);
         let mut mask = Array1::default(ACTION_SPACE);

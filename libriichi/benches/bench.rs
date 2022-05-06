@@ -32,7 +32,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("shanten", |b| {
         b.iter(|| {
             let tehai = black_box(tehai);
-            shanten::calc_all(&tehai, 4);
+            let _ = shanten::calc_all(&tehai, 4);
         })
     });
 }

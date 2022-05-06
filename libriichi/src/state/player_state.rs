@@ -151,6 +151,7 @@ pub struct PlayerState {
 impl PlayerState {
     /// It is an undefined behavior for `player_id` to be outside of range [0, 3].
     #[new]
+    #[must_use]
     pub fn new(player_id: u8) -> Self {
         Self {
             player_id,
@@ -178,6 +179,7 @@ impl PlayerState {
     ///
     /// Return a human readable description of the current state.
     #[pyo3(text_signature = "($self, /)")]
+    #[must_use]
     pub fn brief_info(&self) -> String {
         let waits = self
             .arrs
@@ -200,17 +202,13 @@ impl PlayerState {
                 format!(
                     "{i:2}. {}\t{}\t{}\t{}",
                     a.as_ref()
-                        .map(|item| item.to_string())
-                        .unwrap_or_else(|| "-".to_owned()),
+                        .map_or_else(|| "-".to_owned(), |item| item.to_string()),
                     b.as_ref()
-                        .map(|item| item.to_string())
-                        .unwrap_or_else(|| "-".to_owned()),
+                        .map_or_else(|| "-".to_owned(), |item| item.to_string()),
                     c.as_ref()
-                        .map(|item| item.to_string())
-                        .unwrap_or_else(|| "-".to_owned()),
+                        .map_or_else(|| "-".to_owned(), |item| item.to_string()),
                     d.as_ref()
-                        .map(|item| item.to_string())
-                        .unwrap_or_else(|| "-".to_owned()),
+                        .map_or_else(|| "-".to_owned(), |item| item.to_string()),
                 )
             })
             .collect::<Vec<_>>()

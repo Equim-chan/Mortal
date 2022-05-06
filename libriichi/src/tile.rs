@@ -42,8 +42,8 @@ impl Tile {
         self.0 >= tu8!(?)
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn deaka(self) -> Self {
         match self.0 {
             tu8!(5mr) => t!(5m),
@@ -53,8 +53,8 @@ impl Tile {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn akaize(self) -> Self {
         match self.0 {
             tu8!(5m) => t!(5mr),
@@ -82,8 +82,8 @@ impl Tile {
         )
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn next_tile(self) -> Self {
         let tile = self.deaka();
         let kind = tile.0 / 9;
@@ -98,8 +98,8 @@ impl Tile {
         }
     }
 
-    #[must_use]
     #[inline]
+    #[must_use]
     pub const fn prev_tile(self) -> Self {
         let tile = self.deaka();
         let kind = tile.0 / 9;

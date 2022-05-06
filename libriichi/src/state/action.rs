@@ -51,12 +51,14 @@ impl PyObjectProtocol for ActionCandidate {
 impl ActionCandidate {
     #[getter]
     #[inline]
+    #[must_use]
     pub const fn can_chi(&self) -> bool {
         self.can_chi_low || self.can_chi_mid || self.can_chi_high
     }
 
     #[getter]
     #[inline]
+    #[must_use]
     pub const fn can_act(&self) -> bool {
         self.can_discard
             || self.can_chi()

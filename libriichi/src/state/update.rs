@@ -538,10 +538,10 @@ impl PlayerState {
                 self.at_ippatsu = false;
 
                 if actor_rel != 0 {
-                    consumed.iter().for_each(|&t| {
+                    for t in consumed {
                         self.witness_tile(t);
                         self.update_doras_owned(actor_rel, t);
-                    });
+                    }
                     return self.last_cans;
                 }
 
@@ -752,9 +752,7 @@ impl PlayerState {
 
     /// Must be called at 3n+2.
     pub(super) fn update_shanten_discards(&mut self) {
-        if !self.last_cans.can_discard {
-            panic!("tehai is not 3n+2");
-        }
+        assert!(self.last_cans.can_discard, "tehai is not 3n+2");
 
         self.arrs.next_shanten_discards.fill(false);
         self.arrs.keep_shanten_discards.fill(false);
@@ -788,9 +786,7 @@ impl PlayerState {
     /// Caller must assure current tehai is 3n+1, and `self.shanten` must be up
     /// to date and correct.
     pub(super) fn update_waits_and_furiten(&mut self) {
-        if self.last_cans.can_discard {
-            panic!("tehai is not 3n+1");
-        }
+        assert!(!self.last_cans.can_discard, "tehai is not 3n+1");
 
         // Reset the furiten flag here for:
         // 1. clearing same-cycle furiten

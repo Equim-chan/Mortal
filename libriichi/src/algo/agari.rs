@@ -139,6 +139,7 @@ impl Ord for Agari {
 }
 
 impl Agari {
+    #[must_use]
     pub fn into_point(self, is_oya: bool) -> Point {
         match self {
             Agari::Normal { fu, han } => Point::calc(fu, han, is_oya),
@@ -171,11 +172,13 @@ pub struct AgariCalculator<'a> {
 
 impl AgariCalculator<'_> {
     #[inline]
+    #[must_use]
     pub fn has_yaku(&self) -> bool {
         self.search_yakus_impl(true).is_some()
     }
 
     #[inline]
+    #[must_use]
     pub fn search_yakus(&self) -> Option<Agari> {
         self.search_yakus_impl(false)
     }
@@ -188,6 +191,7 @@ impl AgariCalculator<'_> {
     ///
     /// This function is designed to be called by only callers who have the
     /// knowledge of the ura doras.
+    #[must_use]
     pub fn agari(&self, additional_hans: u8, doras: u8) -> Option<Agari> {
         if let Some(agari) = self.search_yakus() {
             Some(match agari {
@@ -345,8 +349,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                 let is_minkou = self.winning_tile_makes_minkou && t == self.sup.winning_tile;
                 match (is_minkou, Tile(t).is_yaokyuu()) {
                     (false, true) => 8,
-                    (false, false) => 4,
-                    (true, true) => 4,
+                    (false, false) | (true, true) => 4,
                     (true, false) => 2,
                 }
             })
@@ -385,15 +388,19 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
         }
 
         if fu == 20 {
-            if !self.sup.is_menzen {
-                return 30;
-            }
-
-            if has_pinfu {
-                return if self.sup.is_ron { 30 } else { 20 };
+            return if !self.sup.is_menzen {
+                30
+            } else if has_pinfu {
+                if self.sup.is_ron {
+                    30
+                } else {
+                    20
+                }
+            } else if self.sup.is_ron {
+                40
             } else {
-                return if self.sup.is_ron { 40 } else { 30 };
-            }
+                30
+            };
         }
 
         if !self.sup.is_ron {
@@ -826,6 +833,7 @@ fn get_tile14_and_key(tiles: &[u8; 34]) -> ([u8; 14], u32) {
 /// will not check yaku anyways.
 ///
 /// The behavior is undefined if `tehai` is not tenpai.
+#[must_use]
 pub fn check_ankan_after_riichi(tehai: &[u8; 34], len_div3: u8, tile: Tile, strict: bool) -> bool {
     let tile_id = tile.deaka().as_usize();
     if tehai[tile_id] != 4 {

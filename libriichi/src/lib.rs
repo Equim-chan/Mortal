@@ -1,3 +1,13 @@
+#![deny(
+    clippy::must_use_candidate,
+    clippy::redundant_else,
+    clippy::manual_assert,
+    clippy::needless_for_each,
+    clippy::unnecessary_wraps,
+    clippy::needless_pass_by_value,
+    clippy::map_unwrap_or
+)]
+
 mod agent;
 mod arena;
 mod consts;

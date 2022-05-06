@@ -63,6 +63,7 @@ pub fn hand(s: &str) -> Result<[u8; 34]> {
     Ok(ret)
 }
 
+#[must_use]
 pub fn tile37_to_vec(tiles: &[u8; 37]) -> Vec<Tile> {
     let mut ret = vec![];
     tiles
@@ -79,6 +80,7 @@ pub fn tile37_to_vec(tiles: &[u8; 37]) -> Vec<Tile> {
     ret
 }
 
+#[must_use]
 pub fn tile34_to_vec(tiles: &[u8; 34]) -> Vec<Tile> {
     let mut ret = vec![];
     tiles
@@ -91,6 +93,7 @@ pub fn tile34_to_vec(tiles: &[u8; 34]) -> Vec<Tile> {
     ret
 }
 
+#[must_use]
 pub fn tiles_to_string(tiles: &[u8; 34], aka: [bool; 3]) -> String {
     let suhai = tiles[..3 * 9]
         .chunks_exact(9)
@@ -135,10 +138,10 @@ pub fn tiles_to_string(tiles: &[u8; 34], aka: [bool; 3]) -> String {
         .map(|(num, &count)| (num + 1).to_string().repeat(count as usize))
         .collect();
 
-    if !jihai.is_empty() {
-        format!("{suhai} {jihai}z")
-    } else {
+    if jihai.is_empty() {
         suhai
+    } else {
+        format!("{suhai} {jihai}z")
     }
 }
 

@@ -144,7 +144,7 @@ pub enum Suspension {
 impl BoardState {
     pub fn step_forward(&mut self, mut reactions: [EventExt; 4]) -> Result<Suspension> {
         loop {
-            let suspension = self.step_one(reactions)?;
+            let suspension = self.step_one(&reactions)?;
             match suspension {
                 Suspension::InGame => {
                     if self.player_states.iter().any(|c| c.last_cans().can_act()) {
@@ -517,7 +517,7 @@ impl BoardState {
         // No need to broadcast
     }
 
-    fn step_one(&mut self, reactions: [EventExt; 4]) -> Result<Suspension> {
+    fn step_one(&mut self, reactions: &[EventExt; 4]) -> Result<Suspension> {
         if self.tiles_left == 70 {
             self.haipai()?;
             return Ok(Suspension::InGame);
@@ -663,7 +663,7 @@ impl BoardState {
             }
 
             Event::Hora { actor, target, .. } => {
-                self.handle_hora(actor, target, &reactions)?;
+                self.handle_hora(actor, target, reactions)?;
                 return Ok(Suspension::End);
             }
 
