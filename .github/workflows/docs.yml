@@ -49,19 +49,19 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cargo/bin/mdbook
-          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|mdbook|${{ steps.get-version.outputs.mdbook_ver }}
+          key: ${{ github.workflow }}|${{ runner.os }}|cargo|00|${{ steps.prep.outputs.rustc_ver }}|mdbook|${{ steps.get-version.outputs.mdbook_ver }}
       - name: Cache for mdbook-admonish
         id: cache-mdbook-admonish
         uses: actions/cache@v3
         with:
           path: ~/.cargo/bin/mdbook-admonish
-          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|mdbook-admonish|${{ steps.get-version.outputs.mdbook_admonish_ver }}
+          key: ${{ github.workflow }}|${{ runner.os }}|cargo|00|${{ steps.prep.outputs.rustc_ver }}|mdbook-admonish|${{ steps.get-version.outputs.mdbook_admonish_ver }}
       - name: Cache for mdbook-pagetoc
         id: cache-mdbook-pagetoc
         uses: actions/cache@v3
         with:
           path: ~/.cargo/bin/mdbook-pagetoc
-          key: ${{ github.workflow }}|${{ runner.os }}|cargo|0|${{ steps.prep.outputs.rustc_ver }}|mdbook-pagetoc|${{ steps.get-version.outputs.mdbook_pagetoc_ver }}
+          key: ${{ github.workflow }}|${{ runner.os }}|cargo|00|${{ steps.prep.outputs.rustc_ver }}|mdbook-pagetoc|${{ steps.get-version.outputs.mdbook_pagetoc_ver }}
 
       - name: Install mdbook
         if: steps.cache-mdbook.outputs.cache-hit != 'true'
