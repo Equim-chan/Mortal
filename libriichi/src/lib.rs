@@ -19,6 +19,7 @@ mod tile;
 mod vec_ops;
 
 // pub for bins
+pub mod chi_type;
 pub mod mjai;
 pub mod stat;
 pub mod state;

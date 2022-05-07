@@ -1,4 +1,5 @@
 use super::PlayerState;
+use crate::chi_type::ChiType;
 use crate::mjai::Event;
 use crate::tile::Tile;
 use crate::tuz;
@@ -129,14 +130,10 @@ impl PlayerState {
                 );
                 self.ensure_tiles_in_hand(&consumed)?;
 
-                let low = consumed[0].deaka().as_u8().min(consumed[1].deaka().as_u8());
-                let high = consumed[0].deaka().as_u8().max(consumed[1].deaka().as_u8());
-                if pai.deaka().as_u8() < low {
-                    ensure!(cans.can_chi_low, "cannot chi low");
-                } else if pai.deaka().as_u8() > high {
-                    ensure!(cans.can_chi_high, "cannot chi high");
-                } else {
-                    ensure!(cans.can_chi_mid, "cannot chi mid");
+                match ChiType::new(&consumed, pai) {
+                    ChiType::Low => ensure!(cans.can_chi_low, "cannot chi low"),
+                    ChiType::Mid => ensure!(cans.can_chi_mid, "cannot chi mid"),
+                    ChiType::High => ensure!(cans.can_chi_high, "cannot chi high"),
                 }
             }
             Event::Pon {

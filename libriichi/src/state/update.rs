@@ -354,33 +354,30 @@ impl PlayerState {
                     .iter()
                     .for_each(|&t| self.move_tile(t, MoveType::FuuroConsume));
 
-                let low = consumed[0]
-                    .deaka()
-                    .as_usize()
-                    .min(consumed[1].deaka().as_usize());
-                let high = consumed[0]
-                    .deaka()
-                    .as_usize()
-                    .max(consumed[1].deaka().as_usize());
-                self.chis.push(low.min(pai.deaka().as_usize()) as u8);
+                let a = consumed[0].deaka().as_usize();
+                let b = consumed[1].deaka().as_usize();
+                let min = a.min(b);
+                let max = a.max(b);
+                let deaka_tile_id = pai.deaka().as_usize();
+                self.chis.push(min.min(deaka_tile_id) as u8);
 
                 // Forbid 喰い替え
-                if self.arrs.tehai[pai.deaka().as_usize()] > 0 {
-                    self.arrs.forbidden_tiles[pai.deaka().as_usize()] = true;
+                if self.arrs.tehai[deaka_tile_id] > 0 {
+                    self.arrs.forbidden_tiles[deaka_tile_id] = true;
                 }
-                if pai.deaka().as_usize() < low {
-                    if high % 9 < 8 {
+                if deaka_tile_id < min {
+                    if max % 9 < 8 {
                         // Like 56s chi 4s, then 7s is not allowed to discard
-                        let higher = high + 1;
-                        if self.arrs.tehai[higher] > 0 {
-                            self.arrs.forbidden_tiles[higher] = true;
+                        let bigger = max + 1;
+                        if self.arrs.tehai[bigger] > 0 {
+                            self.arrs.forbidden_tiles[bigger] = true;
                         }
                     }
-                } else if pai.deaka().as_usize() > high && low % 9 > 0 {
+                } else if deaka_tile_id > max && min % 9 > 0 {
                     // Like 56s chi 7s, then 4s is not allowed to discard
-                    let lower = low - 1;
-                    if self.arrs.tehai[lower] > 0 {
-                        self.arrs.forbidden_tiles[lower] = true;
+                    let smaller = min - 1;
+                    if self.arrs.tehai[smaller] > 0 {
+                        self.arrs.forbidden_tiles[smaller] = true;
                     }
                 }
 

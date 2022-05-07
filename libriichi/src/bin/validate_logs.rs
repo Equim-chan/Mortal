@@ -1,4 +1,4 @@
-// use riichi::dataset::Invisible;
+use riichi::chi_type::ChiType;
 use riichi::mjai::Event;
 use riichi::state::{ActionCandidate, PlayerState};
 use std::env;
@@ -98,29 +98,31 @@ fn process_path(path: &Path) -> Result<()> {
                     states[*actor as usize].brief_info(),
                 );
 
-                let low = consumed[0].deaka().as_u8().min(consumed[1].deaka().as_u8());
-                let high = consumed[0].deaka().as_u8().max(consumed[1].deaka().as_u8());
-                if pai.deaka().as_u8() < low {
-                    ensure!(
-                        cans[*actor as usize].can_chi_low,
-                        "fails can_chi_low at line {}\nstate:\n{}",
-                        line,
-                        states[*actor as usize].brief_info(),
-                    );
-                } else if pai.deaka().as_u8() > high {
-                    ensure!(
-                        cans[*actor as usize].can_chi_high,
-                        "fails can_chi_high at line {}\nstate:\n{}",
-                        line,
-                        states[*actor as usize].brief_info(),
-                    );
-                } else {
-                    ensure!(
-                        cans[*actor as usize].can_chi_mid,
-                        "fails can_chi_low at line {}\nstate:\n{}",
-                        line,
-                        states[*actor as usize].brief_info(),
-                    );
+                match ChiType::new(consumed, *pai) {
+                    ChiType::Low => {
+                        ensure!(
+                            cans[*actor as usize].can_chi_low,
+                            "fails can_chi_low at line {}\nstate:\n{}",
+                            line,
+                            states[*actor as usize].brief_info(),
+                        );
+                    }
+                    ChiType::Mid => {
+                        ensure!(
+                            cans[*actor as usize].can_chi_mid,
+                            "fails can_chi_mid at line {}\nstate:\n{}",
+                            line,
+                            states[*actor as usize].brief_info(),
+                        );
+                    }
+                    ChiType::High => {
+                        ensure!(
+                            cans[*actor as usize].can_chi_high,
+                            "fails can_chi_high at line {}\nstate:\n{}",
+                            line,
+                            states[*actor as usize].brief_info(),
+                        );
+                    }
                 }
             }
             Event::Pon { actor, .. } => {

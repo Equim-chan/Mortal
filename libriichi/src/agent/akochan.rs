@@ -1,5 +1,6 @@
 use super::{Agent, BatchifiedAgent};
 use crate::arena::GameResult;
+use crate::chi_type::ChiType;
 use crate::mjai::{Event, EventExt, Metadata};
 use crate::state::PlayerState;
 use std::env;
@@ -159,17 +160,11 @@ impl Agent for AkochanAgent {
                 ensure!(cans.can_discard);
                 ensure!(state.discard_candidates()[pai.deaka().as_usize()]);
             }
-            Event::Chi { pai, consumed, .. } => {
-                let low = consumed[0].deaka().as_u8().min(consumed[1].deaka().as_u8());
-                let high = consumed[0].deaka().as_u8().max(consumed[1].deaka().as_u8());
-                if pai.deaka().as_u8() < low {
-                    ensure!(cans.can_chi_low);
-                } else if pai.deaka().as_u8() > high {
-                    ensure!(cans.can_chi_high);
-                } else {
-                    ensure!(cans.can_chi_mid);
-                }
-            }
+            Event::Chi { pai, consumed, .. } => match ChiType::new(&consumed, pai) {
+                ChiType::Low => ensure!(cans.can_chi_low),
+                ChiType::Mid => ensure!(cans.can_chi_mid),
+                ChiType::High => ensure!(cans.can_chi_high),
+            },
             Event::Pon { .. } => ensure!(cans.can_pon),
             Event::Daiminkan { .. } => ensure!(cans.can_daiminkan),
             Event::Kakan { .. } => ensure!(cans.can_kakan),

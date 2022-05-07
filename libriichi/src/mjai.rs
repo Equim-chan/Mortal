@@ -131,16 +131,16 @@ impl Event {
     #[must_use]
     pub const fn actor(&self) -> Option<u8> {
         match *self {
-            Event::Tsumo { actor, .. }
-            | Event::Dahai { actor, .. }
-            | Event::Chi { actor, .. }
-            | Event::Pon { actor, .. }
-            | Event::Daiminkan { actor, .. }
-            | Event::Kakan { actor, .. }
-            | Event::Ankan { actor, .. }
-            | Event::Reach { actor, .. }
-            | Event::ReachAccepted { actor, .. }
-            | Event::Hora { actor, .. } => Some(actor),
+            Self::Tsumo { actor, .. }
+            | Self::Dahai { actor, .. }
+            | Self::Chi { actor, .. }
+            | Self::Pon { actor, .. }
+            | Self::Daiminkan { actor, .. }
+            | Self::Kakan { actor, .. }
+            | Self::Ankan { actor, .. }
+            | Self::Reach { actor, .. }
+            | Self::ReachAccepted { actor, .. }
+            | Self::Hora { actor, .. } => Some(actor),
             _ => None,
         }
     }

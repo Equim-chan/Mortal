@@ -14,7 +14,6 @@ pub const ACTION_SPACE: usize = 37 // discard | kan (choice)
                               + 1  // ryukyoku
                               + 1; // pass
                                    // = 46
-
 pub const GRP_SIZE: usize = 7;
 
 const_assert!(ACTION_SPACE <= u64::BITS as usize);

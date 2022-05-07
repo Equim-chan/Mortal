@@ -1,6 +1,7 @@
 use super::invisible::Invisible;
 use super::player_list::{TENHOUI, TOP300_2K_GAMES};
 use super::Grp;
+use crate::chi_type::ChiType;
 use crate::mjai::Event;
 use crate::state::PlayerState;
 use std::convert::identity;
@@ -372,18 +373,11 @@ impl Gameplay {
                 pai,
                 consumed,
                 ..
-            } if actor == self.player_id => {
-                let high = consumed[0].deaka().as_u8().max(consumed[1].deaka().as_u8());
-                let low = consumed[0].deaka().as_u8().min(consumed[1].deaka().as_u8());
-                let tile_id = pai.deaka().as_u8();
-                if tile_id < low {
-                    Some(38)
-                } else if tile_id > high {
-                    Some(40)
-                } else {
-                    Some(39)
-                }
-            }
+            } if actor == self.player_id => match ChiType::new(&consumed, pai) {
+                ChiType::Low => Some(38),
+                ChiType::Mid => Some(39),
+                ChiType::High => Some(40),
+            },
             Event::Pon { actor, .. } if actor == self.player_id => Some(41),
             Event::Daiminkan { actor, pai, .. } if actor == self.player_id => {
                 if config.always_include_kyoku_select {

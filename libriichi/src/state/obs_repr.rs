@@ -133,16 +133,12 @@ impl PlayerState {
                 // instead.
                 //
                 // This is one-hot.
-                let low = cp.consumed[0]
-                    .deaka()
-                    .as_usize()
-                    .min(cp.consumed[1].deaka().as_usize());
-                let high = cp.consumed[0]
-                    .deaka()
-                    .as_usize()
-                    .max(cp.consumed[1].deaka().as_usize());
-                arr[[idx, low]] = 1.;
-                arr[[idx + 1, high]] = 1.;
+                let a = cp.consumed[0].deaka().as_usize();
+                let b = cp.consumed[1].deaka().as_usize();
+                let min = a.min(b);
+                let max = a.max(b);
+                arr[[idx, min]] = 1.;
+                arr[[idx + 1, max]] = 1.;
             }
 
             k.kan.iter().for_each(|kan| {
