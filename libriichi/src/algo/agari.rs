@@ -95,7 +95,6 @@ impl From<u32> for Div {
 }
 
 #[derive(Debug, Clone, Copy, Eq)]
-#[must_use]
 pub enum Agari {
     /// `fu` may be 0 if `han` is greater than 4.
     Normal {
@@ -140,6 +139,7 @@ impl Ord for Agari {
 }
 
 impl Agari {
+    #[must_use]
     pub fn into_point(self, is_oya: bool) -> Point {
         match self {
             Agari::Normal { fu, han } => Point::calc(fu, han, is_oya),
@@ -149,7 +149,6 @@ impl Agari {
 }
 
 #[derive(Debug)]
-#[must_use]
 pub struct AgariCalculator<'a> {
     /// Must include the winning tile (i.e. must be 3n+2)
     pub tehai: &'a [u8; 34],

@@ -68,7 +68,6 @@ impl BigArrayFields {
 #[pyclass]
 #[pyo3(text_signature = "(player_id)")]
 #[derive(Debug, Clone, Default)]
-#[must_use]
 pub struct PlayerState {
     #[pyo3(get)]
     pub(super) player_id: u8,
@@ -153,11 +152,10 @@ pub struct PlayerState {
 
 #[pymethods]
 impl PlayerState {
-    /// # Panics
-    /// Panics if `player_id` is outside of range [0, 3].
+    /// It is an undefined behavior for `player_id` to be outside of range [0, 3].
     #[new]
+    #[must_use]
     pub fn new(player_id: u8) -> Self {
-        assert!(matches!(player_id, 0..=3));
         Self {
             player_id,
             ..Default::default()

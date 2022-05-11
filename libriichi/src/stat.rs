@@ -24,7 +24,6 @@ use serde_json as json;
 /// - Ankan does not count as fuuro.
 #[pyclass]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Add, AddAssign, Sum)]
-#[must_use]
 pub struct Stat {
     #[pyo3(get, set)]
     pub game: i64,
@@ -265,6 +264,7 @@ Nagashi mangan (rate) {} ({:.9})"#,
 impl Stat {
     /// We do not use `add_game(&mut self)` here as `Stat` impls `Add` and `Sum` so we
     /// can use rayon easier.
+    #[must_use]
     pub fn from_game(events: &[Event], player_id: u8) -> Self {
         let mut stat = Self {
             game: 1,

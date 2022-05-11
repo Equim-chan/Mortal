@@ -27,13 +27,13 @@ static MJAI_PAI_STRINGS_MAP: Lazy<BoomHashMap<&'static str, Tile>> = Lazy::new(|
 });
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, Hash)]
-#[must_use]
 pub struct Tile(u8);
 
 impl Tile {
     /// # Safety
     /// Calling this method with an out-of-bounds tile ID is undefined behavior.
     #[inline]
+    #[must_use]
     pub const unsafe fn new_unchecked(id: u8) -> Self {
         Self(id)
     }
@@ -43,7 +43,6 @@ impl Tile {
     pub const fn as_u8(self) -> u8 {
         self.0
     }
-
     #[inline]
     #[must_use]
     pub const fn as_usize(self) -> usize {
@@ -51,6 +50,7 @@ impl Tile {
     }
 
     #[inline]
+    #[must_use]
     pub const fn deaka(self) -> Self {
         match self.0 {
             tu8!(5mr) => t!(5m),
@@ -61,6 +61,7 @@ impl Tile {
     }
 
     #[inline]
+    #[must_use]
     pub const fn akaize(self) -> Self {
         match self.0 {
             tu8!(5m) => t!(5mr),
@@ -92,6 +93,7 @@ impl Tile {
     }
 
     #[inline]
+    #[must_use]
     pub const fn next_tile(self) -> Self {
         let tile = self.deaka();
         let kind = tile.0 / 9;
@@ -107,6 +109,7 @@ impl Tile {
     }
 
     #[inline]
+    #[must_use]
     pub const fn prev_tile(self) -> Self {
         let tile = self.deaka();
         let kind = tile.0 / 9;
