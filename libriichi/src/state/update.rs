@@ -177,7 +177,7 @@ impl PlayerState {
                             false,
                         );
                         if self.last_cans.can_ankan {
-                            self.ankan_candidates.push(pai.deaka().as_u8());
+                            self.ankan_candidates.push(pai.deaka());
                         }
                     }
                     return self.last_cans;
@@ -190,13 +190,13 @@ impl PlayerState {
                         .enumerate()
                         .filter(|(_, &count)| count > 0)
                         .for_each(|(tid, &count)| {
-                            let tid_u8 = tid as u8;
+                            let tile = must_tile!(tid);
                             if count == 4 {
                                 self.last_cans.can_ankan = true;
-                                self.ankan_candidates.push(tid_u8);
-                            } else if self.pons.contains(&tid_u8) {
+                                self.ankan_candidates.push(tile);
+                            } else if self.pons.contains(&(tid as u8)) {
                                 self.last_cans.can_kakan = true;
-                                self.kakan_candidates.push(tid_u8);
+                                self.kakan_candidates.push(tile);
                             }
                         });
                 }

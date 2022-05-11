@@ -72,12 +72,12 @@ impl PlayerState {
     }
     #[inline]
     #[must_use]
-    pub fn ankan_candidates(&self) -> &[u8] {
+    pub fn ankan_candidates(&self) -> &[Tile] {
         &self.ankan_candidates
     }
     #[inline]
     #[must_use]
-    pub fn kakan_candidates(&self) -> &[u8] {
+    pub fn kakan_candidates(&self) -> &[Tile] {
         &self.kakan_candidates
     }
 

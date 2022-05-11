@@ -111,8 +111,9 @@ pub struct PlayerState {
     pub(super) last_kawa_tile: Option<Tile>,
     pub(super) last_cans: ActionCandidate,
 
-    pub(super) ankan_candidates: ArrayVec<[u8; 3]>,
-    pub(super) kakan_candidates: ArrayVec<[u8; 3]>,
+    /// Both deaka'd
+    pub(super) ankan_candidates: ArrayVec<[Tile; 3]>,
+    pub(super) kakan_candidates: ArrayVec<[Tile; 3]>,
     pub(super) chankan_chance: Option<()>,
 
     pub(super) can_w_riichi: bool,

@@ -168,7 +168,7 @@ impl PlayerState {
             Event::Kakan { pai, .. } => {
                 ensure!(cans.can_kakan, "cannot kakan");
                 ensure!(
-                    self.kakan_candidates.contains(&pai.deaka().as_u8()),
+                    self.kakan_candidates.contains(&pai.deaka()),
                     "cannot kakan {pai}",
                 );
                 self.ensure_tiles_in_hand(&[pai])?;
@@ -176,10 +176,7 @@ impl PlayerState {
             Event::Ankan { consumed, .. } => {
                 ensure!(cans.can_ankan, "cannot ankan");
                 let tile = consumed[0].deaka();
-                ensure!(
-                    self.ankan_candidates.contains(&tile.as_u8()),
-                    "cannot ankan {tile}",
-                );
+                ensure!(self.ankan_candidates.contains(&tile), "cannot ankan {tile}");
                 self.ensure_tiles_in_hand(&consumed)?;
             }
 

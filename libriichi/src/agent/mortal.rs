@@ -321,7 +321,7 @@ impl BatchAgent for MortalBatchAgent {
                 let pai = state
                     .last_kawa_tile()
                     .context("invalid state: no last kawa tile")?;
-                let tile_id = pai.deaka().as_u8();
+                let first = pai.next_tile();
 
                 let can_akaize_consumed = match pai.as_u8() {
                     tu8!(3m) | tu8!(4m) => akas_in_hand[0],
@@ -330,12 +330,9 @@ impl BatchAgent for MortalBatchAgent {
                     _ => false,
                 };
                 let consumed = if can_akaize_consumed {
-                    [
-                        must_tile!(tile_id + 1).akaize(),
-                        must_tile!(tile_id + 2).akaize(),
-                    ]
+                    [first.akaize(), first.next_tile().akaize()]
                 } else {
-                    [must_tile!(tile_id + 1), must_tile!(tile_id + 2)]
+                    [first, first.next_tile()]
                 };
                 Event::Chi {
                     actor,
@@ -354,7 +351,6 @@ impl BatchAgent for MortalBatchAgent {
                 let pai = state
                     .last_kawa_tile()
                     .context("invalid state: no last kawa tile")?;
-                let tile_id = pai.deaka().as_u8();
 
                 let can_akaize_consumed = match pai.as_u8() {
                     tu8!(4m) | tu8!(6m) => akas_in_hand[0],
@@ -363,12 +359,9 @@ impl BatchAgent for MortalBatchAgent {
                     _ => false,
                 };
                 let consumed = if can_akaize_consumed {
-                    [
-                        must_tile!(tile_id - 1).akaize(),
-                        must_tile!(tile_id + 1).akaize(),
-                    ]
+                    [pai.prev_tile().akaize(), pai.next_tile().akaize()]
                 } else {
-                    [must_tile!(tile_id - 1), must_tile!(tile_id + 1)]
+                    [pai.prev_tile(), pai.next_tile()]
                 };
                 Event::Chi {
                     actor,
@@ -387,7 +380,7 @@ impl BatchAgent for MortalBatchAgent {
                 let pai = state
                     .last_kawa_tile()
                     .context("invalid state: no last kawa tile")?;
-                let tile_id = pai.deaka().as_u8();
+                let last = pai.prev_tile();
 
                 let can_akaize_consumed = match pai.as_u8() {
                     tu8!(6m) | tu8!(7m) => akas_in_hand[0],
@@ -396,12 +389,9 @@ impl BatchAgent for MortalBatchAgent {
                     _ => false,
                 };
                 let consumed = if can_akaize_consumed {
-                    [
-                        must_tile!(tile_id - 2).akaize(),
-                        must_tile!(tile_id - 1).akaize(),
-                    ]
+                    [last.prev_tile().akaize(), last.akaize()]
                 } else {
-                    [must_tile!(tile_id - 2), must_tile!(tile_id - 1)]
+                    [last.prev_tile(), last]
                 };
                 Event::Chi {
                     actor,
@@ -448,23 +438,21 @@ impl BatchAgent for MortalBatchAgent {
                 let kakan_candidates = state.kakan_candidates();
 
                 let tile = if let Some(kan_idx) = kan_select_idx {
-                    let tid = self.actions[kan_idx] as u8;
+                    let tile = must_tile!(self.actions[kan_idx]);
                     ensure!(
-                        ankan_candidates.contains(&tid) || kakan_candidates.contains(&tid),
+                        ankan_candidates.contains(&tile) || kakan_candidates.contains(&tile),
                         "kan choice not in kan candidates: {}",
                         state.brief_info()
                     );
-                    must_tile!(tid)
+                    tile
                 } else if cans.can_daiminkan {
                     state
                         .last_kawa_tile()
                         .context("invalid state: no last kawa tile")?
                 } else if cans.can_ankan {
-                    let tid = ankan_candidates[0];
-                    must_tile!(tid)
+                    ankan_candidates[0]
                 } else {
-                    let tid = kakan_candidates[0];
-                    must_tile!(tid)
+                    kakan_candidates[0]
                 };
 
                 if cans.can_daiminkan {
@@ -479,7 +467,7 @@ impl BatchAgent for MortalBatchAgent {
                         pai: tile,
                         consumed,
                     }
-                } else if cans.can_ankan && ankan_candidates.contains(&tile.deaka().as_u8()) {
+                } else if cans.can_ankan && ankan_candidates.contains(&tile.deaka()) {
                     Event::Ankan {
                         actor,
                         consumed: [tile.akaize(), tile, tile, tile],

@@ -416,10 +416,10 @@ impl PlayerState {
         idx += 1;
 
         if cans.can_ankan {
-            self.ankan_candidates.iter().for_each(|&tile_id| {
-                arr[[idx, tile_id as usize]] = 1.;
+            self.ankan_candidates.iter().for_each(|tile| {
+                arr[[idx, tile.as_usize()]] = 1.;
                 if at_kan_select {
-                    mask[tile_id as usize] = true;
+                    mask[tile.as_usize()] = true;
                 }
             });
             if !at_kan_select {
@@ -429,10 +429,10 @@ impl PlayerState {
         idx += 1;
 
         if cans.can_kakan {
-            self.kakan_candidates.iter().for_each(|&tile_id| {
-                arr[[idx, tile_id as usize]] = 1.;
+            self.kakan_candidates.iter().for_each(|tile| {
+                arr[[idx, tile.as_usize()]] = 1.;
                 if at_kan_select {
-                    mask[tile_id as usize] = true;
+                    mask[tile.as_usize()] = true;
                 }
             });
             if !at_kan_select {
