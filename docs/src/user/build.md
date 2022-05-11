@@ -58,6 +58,13 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> help(libriichi)
 ```
 
+## Optional targets
+### Run tests
+> Working directory: `$MORTAL_ROOT`
+```shell
+$ cargo test --lib --no-default-features --features flate2/zlib
+```
+
 ## Build executable utilities
 > Working directory: `$MORTAL_ROOT`
 ```shell

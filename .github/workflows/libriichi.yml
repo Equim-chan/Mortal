@@ -53,12 +53,12 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features -- -Dwarnings
 
       - name: Run tests
-        run: cargo test --no-default-features --lib --features flate2/zlib -- --nocapture
+        run: cargo test --lib --no-default-features --features flate2/zlib -- --nocapture
 
       - name: Run build
         run: |
           cargo build -p libriichi --lib
-          cargo build -p libriichi --no-default-features --bins
+          cargo build -p libriichi --bins --no-default-features
           cargo build -p exe-wrapper
 
       - name: Check artifact
