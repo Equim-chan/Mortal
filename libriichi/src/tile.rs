@@ -145,7 +145,7 @@ impl fmt::Debug for Tile {
 
 impl fmt::Display for Tile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(MJAI_PAI_STRINGS[self.0 as usize], f)
+        f.write_str(MJAI_PAI_STRINGS[self.0 as usize])
     }
 }
 

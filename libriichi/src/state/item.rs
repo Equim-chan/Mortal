@@ -51,11 +51,11 @@ impl fmt::Display for ChiPon {
 impl fmt::Display for KawaItem {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if !self.kan.is_empty() {
-            write!(f, "{{")?;
+            f.write_str("{")?;
             for kan in self.kan {
                 write!(f, "{}", kan)?;
             }
-            write!(f, "}}")?;
+            f.write_str("}")?;
         }
 
         if let Some(chi_pon) = &self.chi_pon {
