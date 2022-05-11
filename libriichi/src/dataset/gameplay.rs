@@ -10,6 +10,7 @@ use std::io::prelude::*;
 use std::mem;
 
 use anyhow::{bail, ensure, Context, Result};
+use derivative::Derivative;
 use flate2::read::GzDecoder;
 use ndarray::prelude::*;
 use numpy::{PyArray1, PyArray2};
@@ -135,7 +136,7 @@ impl GameplayLoader {
     }
 }
 
-#[derive(Clone, Copy, derivative::Derivative)]
+#[derive(Clone, Copy, Derivative)]
 #[derivative(Default)]
 #[repr(u8)]
 pub enum Quality {

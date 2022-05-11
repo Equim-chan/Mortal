@@ -8,6 +8,7 @@ use crate::{matches_tu8, must_tile, t, tu8};
 use std::convert::TryInto;
 use std::mem;
 
+use derivative::Derivative;
 use anyhow::{bail, Context, Result};
 use ndarray::prelude::*;
 use rand::prelude::*;
@@ -44,7 +45,7 @@ pub struct Board {
     pub ura_indicators: Vec<Tile>,
 }
 
-#[derive(derivative::Derivative)]
+#[derive(Derivative)]
 #[derivative(Default)]
 pub struct BoardState {
     board: Board,

@@ -1,5 +1,6 @@
 use crate::tile::Tile;
 
+use derivative::Derivative;
 use serde::{Deserialize, Serialize};
 use serde_with::{serde_as, skip_serializing_none};
 
@@ -11,10 +12,9 @@ use serde_with::{serde_as, skip_serializing_none};
 /// one, and it has some extensions added.
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, derivative::Derivative)]
+#[derive(Debug, Clone, PartialEq, Eq, Derivative, Serialize, Deserialize)]
 #[derivative(Default)]
-#[serde(tag = "type")]
-#[serde(rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum Event {
     #[derivative(Default)]
     None,

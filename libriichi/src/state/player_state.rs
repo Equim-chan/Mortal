@@ -6,13 +6,14 @@ use crate::tile::Tile;
 use std::iter;
 
 use anyhow::Result;
+use derivative::Derivative;
 use pyo3::prelude::*;
 use serde_json as json;
 use tinyvec::ArrayVec;
 
 /// The struct is defined here because Default doesn't have impls for big arrays
 /// yet.
-#[derive(Debug, Clone, derivative::Derivative)]
+#[derive(Debug, Clone, Derivative)]
 #[derivative(Default)]
 pub(super) struct BigArrayFields {
     /// Does not include aka.
