@@ -20,8 +20,8 @@ const_assert_eq!(MJAI_PAI_STRINGS.len(), 3 * 9 + 4 + 3 + 3 + 1);
 
 static MJAI_PAI_STRINGS_MAP: Lazy<BoomHashMap<&'static str, Tile>> = Lazy::new(|| {
     let mut values = vec![];
-    for id in 0..MJAI_PAI_STRINGS.len() as u8 {
-        values.push(Tile(id));
+    for id in 0..MJAI_PAI_STRINGS.len() {
+        values.push(Tile::try_from(id).unwrap());
     }
     BoomHashMap::new(MJAI_PAI_STRINGS.to_vec(), values)
 });
@@ -145,7 +145,9 @@ impl TryFrom<usize> for Tile {
         if v >= MJAI_PAI_STRINGS.len() {
             Err(InvalidTile::Number(v))
         } else {
-            Ok(Tile(v as u8))
+            // SAFETY: `v` has been proven to be in bound.
+            let tile = unsafe { Self::new_unchecked(v as u8) };
+            Ok(tile)
         }
     }
 }
