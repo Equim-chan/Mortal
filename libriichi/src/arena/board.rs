@@ -8,8 +8,8 @@ use crate::{matches_tu8, must_tile, t, tu8};
 use std::convert::TryInto;
 use std::mem;
 
-use derivative::Derivative;
 use anyhow::{bail, Context, Result};
+use derivative::Derivative;
 use ndarray::prelude::*;
 use rand::prelude::*;
 use rand_chacha::ChaCha12Rng;
