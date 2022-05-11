@@ -1,4 +1,4 @@
-use super::board::{Board, BoardState, Suspension};
+use super::board::{Board, BoardState, Poll};
 use super::result::GameResult;
 use crate::agent::BatchAgent;
 use crate::mjai::EventExt;
@@ -83,9 +83,9 @@ impl Game {
         }
 
         let reactions = mem::take(&mut self.last_reactions);
-        let suspension = self.board.step_forward(reactions)?;
-        match suspension {
-            Suspension::InGame => {
+        let poll = self.board.poll(reactions)?;
+        match poll {
+            Poll::InGame => {
                 let ctx = self.board.agent_context();
                 for (player_id, state) in ctx.player_states.iter().enumerate() {
                     if !state.last_cans().can_act() {
@@ -106,7 +106,7 @@ impl Game {
                 }
             }
 
-            Suspension::End => {
+            Poll::End => {
                 self.kyoku_started = false;
                 self.in_renchan = false;
 

@@ -44,6 +44,53 @@ pub struct Board {
     pub ura_indicators: Vec<Tile>,
 }
 
+#[derive(derivative::Derivative)]
+#[derivative(Default)]
+pub struct BoardState {
+    board: Board,
+    // Absolute seat, with the oya of E1 always being 0
+    oya: u8,
+    player_states: [PlayerState; 4],
+
+    can_renchan: bool,
+    has_hora: bool,
+    has_abortive_ryukyoku: bool,
+    kyoku_deltas: [i32; 4],
+
+    #[derivative(Default(value = "70"))]
+    tiles_left: u8,
+    tsumo_actor: u8,
+    // Just a fancy bool
+    deal_from_rinshan: Option<()>,
+    need_new_dora_at_discard: Option<()>,
+    need_new_dora_at_tsumo: Option<()>,
+    riichi_to_be_accepted: Option<u8>,
+    #[derivative(Default(value = "[true; 4]"))]
+    can_nagashi_mangan: [bool; 4],
+    #[derivative(Default(value = "true"))]
+    can_four_wind: bool,
+    four_wind_tile: Option<Tile>,
+    accepted_riichis: u8,
+    kans: u8,
+    check_four_kan: bool,
+    paos: [Option<u8>; 4],
+
+    log: Vec<EventExt>,
+
+    // For oracle_obs only
+    dora_indicators_full: Vec<Tile>,
+}
+
+pub struct AgentContext<'a> {
+    pub player_states: &'a [PlayerState; 4],
+    pub log: &'a [EventExt],
+}
+
+pub enum Poll {
+    InGame,
+    End,
+}
+
 impl Board {
     pub fn init_from_seed(&mut self, game_seed: (u64, u64)) {
         let (nonce, key) = game_seed;
@@ -94,70 +141,23 @@ impl Board {
     }
 }
 
-#[derive(derivative::Derivative)]
-#[derivative(Default)]
-pub struct BoardState {
-    board: Board,
-    // Absolute seat, with the oya of E1 always being 0
-    oya: u8,
-    player_states: [PlayerState; 4],
-
-    can_renchan: bool,
-    has_hora: bool,
-    has_abortive_ryukyoku: bool,
-    kyoku_deltas: [i32; 4],
-
-    #[derivative(Default(value = "70"))]
-    tiles_left: u8,
-    tsumo_actor: u8,
-    // Just a fancy bool
-    deal_from_rinshan: Option<()>,
-    need_new_dora_at_discard: Option<()>,
-    need_new_dora_at_tsumo: Option<()>,
-    riichi_to_be_accepted: Option<u8>,
-    #[derivative(Default(value = "[true; 4]"))]
-    can_nagashi_mangan: [bool; 4],
-    #[derivative(Default(value = "true"))]
-    can_four_wind: bool,
-    four_wind_tile: Option<Tile>,
-    accepted_riichis: u8,
-    kans: u8,
-    check_four_kan: bool,
-    paos: [Option<u8>; 4],
-
-    log: Vec<EventExt>,
-
-    // For oracle_obs only
-    dora_indicators_full: Vec<Tile>,
-}
-
-pub struct AgentContext<'a> {
-    pub player_states: &'a [PlayerState; 4],
-    pub log: &'a [EventExt],
-}
-
-pub enum Suspension {
-    InGame,
-    End,
-}
-
 impl BoardState {
-    pub fn step_forward(&mut self, mut reactions: [EventExt; 4]) -> Result<Suspension> {
+    pub fn poll(&mut self, mut reactions: [EventExt; 4]) -> Result<Poll> {
         loop {
-            let suspension = self.step_one(&reactions)?;
-            match suspension {
-                Suspension::InGame => {
+            let poll = self.step(&reactions)?;
+            match poll {
+                Poll::InGame => {
                     if self.player_states.iter().any(|c| c.last_cans().can_act()) {
-                        return Ok(suspension);
+                        return Ok(poll);
                     }
                 }
-                Suspension::End => {
+                Poll::End => {
                     self.add_log_no_meta(Event::EndKyoku);
                     vec_add_assign(&mut self.board.scores, &self.kyoku_deltas);
                     if self.has_abortive_ryukyoku {
                         self.can_renchan = true;
                     }
-                    return Ok(suspension);
+                    return Ok(poll);
                 }
             };
             reactions = [
@@ -517,16 +517,16 @@ impl BoardState {
         // No need to broadcast
     }
 
-    fn step_one(&mut self, reactions: &[EventExt; 4]) -> Result<Suspension> {
+    fn step(&mut self, reactions: &[EventExt; 4]) -> Result<Poll> {
         if self.tiles_left == 70 {
             self.haipai()?;
-            return Ok(Suspension::InGame);
+            return Ok(Poll::InGame);
         }
 
         if self.accepted_riichis == 4 {
             // 四家立直
             self.abortive_ryukyoku();
-            return Ok(Suspension::End);
+            return Ok(Poll::End);
         }
 
         // Validate reactions
@@ -554,7 +554,7 @@ impl BoardState {
         if self.check_four_kan && !matches!(ev.event, Event::Hora { .. }) {
             // 四槓散了
             self.abortive_ryukyoku();
-            return Ok(Suspension::End);
+            return Ok(Poll::End);
         }
 
         self.update_nagashi_mangan_and_four_wind(&ev.event);
@@ -563,7 +563,7 @@ impl BoardState {
             Event::None => {
                 if self.tiles_left == 0 {
                     self.exhaustive_ryukyoku();
-                    return Ok(Suspension::End);
+                    return Ok(Poll::End);
                 }
                 self.check_riichi_accepted();
 
@@ -605,7 +605,7 @@ impl BoardState {
                 // 四風連打
                 if self.can_four_wind && self.check_four_wind(pai)? {
                     self.abortive_ryukyoku();
-                    return Ok(Suspension::End);
+                    return Ok(Poll::End);
                 }
 
                 if self.kans == 4 && self.player_states.iter().all(|s| s.kans_count() < 4) {
@@ -664,13 +664,13 @@ impl BoardState {
 
             Event::Hora { actor, target, .. } => {
                 self.handle_hora(actor, target, reactions)?;
-                return Ok(Suspension::End);
+                return Ok(Poll::End);
             }
 
             Event::Ryukyoku { .. } => {
                 // 九種九牌
                 self.abortive_ryukyoku();
-                return Ok(Suspension::End);
+                return Ok(Poll::End);
             }
 
             _ => {
@@ -683,7 +683,7 @@ impl BoardState {
         // `.minkans()`.
         self.update_paos(&ev.event);
 
-        Ok(Suspension::InGame)
+        Ok(Poll::InGame)
     }
 
     pub fn encode_oracle_obs(&self, perspective: u8) -> Array2<f32> {
