@@ -8,10 +8,13 @@ use crate::tile::Tile;
 use crate::vec_ops::vec_add_assign;
 use crate::{must_tile, tuz};
 
-use anyhow::{bail, Result};
+use anyhow::{bail, ensure, Result};
 
 /// Spaces are allowed.
 pub fn hand_with_aka(s: &str) -> Result<[u8; 37]> {
+    // We will be using bytes instead of chars afterwards.
+    ensure!(s.is_ascii(), "hand {s} contains non-ascii content");
+
     let mut ret = [0; 37];
     let mut stack = vec![];
 
