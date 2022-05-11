@@ -1,11 +1,12 @@
 use crate::{matches_tu8, t, tu8};
+use std::error::Error as StdError;
 use std::fmt;
 use std::str::FromStr;
 
-use anyhow::{Context, Error};
 use boomphf::hashmap::BoomHashMap;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use static_assertions::const_assert_eq;
 
 const MJAI_PAI_STRINGS: &[&str] = &[
     "1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m", // m
@@ -15,6 +16,7 @@ const MJAI_PAI_STRINGS: &[&str] = &[
     "5mr", "5pr", "5sr", // a
     "?",   // unknown
 ];
+const_assert_eq!(MJAI_PAI_STRINGS.len(), 3 * 9 + 4 + 3 + 3 + 1);
 
 static MJAI_PAI_STRINGS_MAP: Lazy<BoomHashMap<&'static str, Tile>> = Lazy::new(|| {
     let mut values = vec![];
@@ -25,21 +27,26 @@ static MJAI_PAI_STRINGS_MAP: Lazy<BoomHashMap<&'static str, Tile>> = Lazy::new(|
 });
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct Tile(pub u8);
+pub struct Tile(u8);
 
 impl Tile {
+    /// # Safety
+    /// Calling this method with an out-of-bounds tile ID is undefined behavior.
     #[inline]
+    #[must_use]
+    pub const unsafe fn new_unchecked(id: u8) -> Self {
+        Self(id)
+    }
+
+    #[inline]
+    #[must_use]
     pub const fn as_u8(self) -> u8 {
         self.0
     }
     #[inline]
+    #[must_use]
     pub const fn as_usize(self) -> usize {
         self.0 as usize
-    }
-
-    #[inline]
-    pub const fn is_unknown(self) -> bool {
-        self.0 >= tu8!(?)
     }
 
     #[inline]
@@ -65,16 +72,19 @@ impl Tile {
     }
 
     #[inline]
+    #[must_use]
     pub const fn is_aka(self) -> bool {
         matches_tu8!(self.0, 5mr | 5pr | 5sr)
     }
 
     #[inline]
+    #[must_use]
     pub const fn is_jihai(self) -> bool {
         matches_tu8!(self.0, E | S | W | N | P | F | C)
     }
 
     #[inline]
+    #[must_use]
     pub const fn is_yaokyuu(self) -> bool {
         matches_tu8!(
             self.0,
@@ -114,38 +124,54 @@ impl Tile {
     }
 }
 
-impl From<u8> for Tile {
-    fn from(v: u8) -> Self {
-        Tile(v)
+#[derive(Debug)]
+pub enum InvalidTile {
+    Number(usize),
+    String(String),
+}
+
+impl TryFrom<u8> for Tile {
+    type Error = InvalidTile;
+
+    fn try_from(v: u8) -> Result<Self, Self::Error> {
+        Self::try_from(v as usize)
     }
 }
 
-impl From<usize> for Tile {
-    fn from(v: usize) -> Self {
-        Tile(v as u8)
+impl TryFrom<usize> for Tile {
+    type Error = InvalidTile;
+
+    fn try_from(v: usize) -> Result<Self, Self::Error> {
+        if v >= MJAI_PAI_STRINGS.len() {
+            Err(InvalidTile::Number(v))
+        } else {
+            Ok(Tile(v as u8))
+        }
     }
 }
 
 impl FromStr for Tile {
-    type Err = Error;
+    type Err = InvalidTile;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let tile = *MJAI_PAI_STRINGS_MAP
+        MJAI_PAI_STRINGS_MAP
             .get(s)
-            .with_context(|| format!("invalid mjai pai string {s}"))?;
-        Ok(tile)
+            .copied()
+            .ok_or_else(|| InvalidTile::String(s.to_owned()))
     }
 }
 
 impl fmt::Debug for Tile {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt(&self, f)
     }
 }
 
 impl fmt::Display for Tile {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(MJAI_PAI_STRINGS[self.0 as usize])
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        // SAFETY: `Tile` is in-bound iff it is constructed safely.
+        let s = unsafe { MJAI_PAI_STRINGS.get_unchecked(self.0 as usize) };
+        f.write_str(s)
     }
 }
 
@@ -169,6 +195,18 @@ impl Serialize for Tile {
         serializer.collect_str(self)
     }
 }
+
+impl fmt::Display for InvalidTile {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("not a valid tile: ")?;
+        match self {
+            Self::Number(n) => fmt::Display::fmt(n, f),
+            Self::String(s) => write!(f, "not a valid tile: \"{s}\""),
+        }
+    }
+}
+
+impl StdError for InvalidTile {}
 
 #[cfg(test)]
 mod test {

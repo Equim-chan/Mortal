@@ -4,7 +4,7 @@ use crate::algo::point::Point;
 use crate::algo::shanten;
 use crate::tile::Tile;
 use crate::vec_ops::vec_add_assign;
-use crate::{t, tuz};
+use crate::{must_tile, t, tuz};
 
 use anyhow::{ensure, Context, Result};
 use tinyvec::array_vec;
@@ -301,7 +301,7 @@ impl PlayerState {
             let mut ura_indicators = array_vec!([Tile; 5]);
             tehai_ordered_by_count
                 .into_iter()
-                .map(|(t, _)| Tile(t as u8).prev_tile())
+                .map(|(t, _)| must_tile!(t).prev_tile())
                 .take_while(|&ura| loop {
                     if ura_indicators.len() >= self.dora_indicators.len() {
                         // Break out of all loops.

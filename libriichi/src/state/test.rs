@@ -1,8 +1,7 @@
 use super::PlayerState;
 use crate::hand::{hand, hand_with_aka, tile37_to_vec};
 use crate::mjai::Event;
-use crate::tile::Tile;
-use crate::{t, tuz};
+use crate::{must_tile, t, tuz};
 use std::convert::TryInto;
 
 #[test]
@@ -13,7 +12,7 @@ fn waits() {
     ps.update_waits_and_furiten();
     let expected = t![6p, 9p, C];
     ps.arrs.waits.iter().enumerate().for_each(|(idx, &b)| {
-        if expected.contains(&Tile(idx as u8)) {
+        if expected.contains(&must_tile!(idx)) {
             assert!(b);
         } else {
             assert!(!b);
@@ -26,7 +25,7 @@ fn waits() {
     ps.update_waits_and_furiten();
     let expected = t![1s, 2s, 3s, 5s, 7s, 8s, 9s];
     ps.arrs.waits.iter().enumerate().for_each(|(idx, &b)| {
-        if expected.contains(&Tile(idx as u8)) {
+        if expected.contains(&must_tile!(idx)) {
             assert!(b);
         } else {
             assert!(!b);
@@ -864,7 +863,7 @@ fn discard_candidates_with_unconditional_tenpai() {
         .iter()
         .enumerate()
         .for_each(|(idx, &b)| {
-            if expected.contains(&Tile(idx as u8)) {
+            if expected.contains(&must_tile!(idx)) {
                 assert!(b);
             } else {
                 assert!(!b);
@@ -1022,7 +1021,7 @@ fn discard_candidates_with_unconditional_tenpai() {
 
     let expected = t![5p, 8p];
     ps.arrs.waits.iter().enumerate().for_each(|(idx, &b)| {
-        if expected.contains(&Tile(idx as u8)) {
+        if expected.contains(&must_tile!(idx)) {
             assert!(b);
         } else {
             assert!(!b);

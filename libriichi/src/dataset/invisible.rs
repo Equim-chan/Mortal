@@ -3,7 +3,7 @@ use crate::consts::ORACLE_OBS_SHAPE;
 use crate::mjai::Event;
 use crate::state::PlayerState;
 use crate::tile::Tile;
-use crate::{tu8, tuz};
+use crate::{must_tile, tu8, tuz};
 use std::iter;
 use std::mem;
 
@@ -114,7 +114,7 @@ impl Invisible {
                         .into_iter()
                         .enumerate()
                         .filter(|&(_, count)| count > 0)
-                        .flat_map(|(tid, count)| iter::repeat(Tile(tid as u8)).take(count as usize))
+                        .flat_map(|(tid, count)| iter::repeat(must_tile!(tid)).take(count as usize))
                         .collect();
                     filler.shuffle(&mut thread_rng());
 

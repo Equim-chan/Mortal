@@ -53,7 +53,7 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features -- -Dwarnings
 
       - name: Run tests
-        run: cargo test --lib --no-default-features --features flate2/zlib -- --nocapture
+        run: cargo test --no-default-features --features flate2/zlib -- --nocapture
 
       - name: Run build
         run: |

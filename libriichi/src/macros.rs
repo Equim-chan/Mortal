@@ -1,123 +1,130 @@
+/// Used for making const tile IDs in u8.
+///
+/// ```
+/// use riichi::tu8;
+///
+/// assert_eq!(tu8!(E), 27u8);
+/// ```
 #[macro_export]
 macro_rules! tu8 {
     (1m) => {
-        0
+        0u8
     };
     (2m) => {
-        1
+        1u8
     };
     (3m) => {
-        2
+        2u8
     };
     (4m) => {
-        3
+        3u8
     };
     (5m) => {
-        4
+        4u8
     };
     (6m) => {
-        5
+        5u8
     };
     (7m) => {
-        6
+        6u8
     };
     (8m) => {
-        7
+        7u8
     };
     (9m) => {
-        8
+        8u8
     };
 
     (1p) => {
-        9
+        9u8
     };
     (2p) => {
-        10
+        10u8
     };
     (3p) => {
-        11
+        11u8
     };
     (4p) => {
-        12
+        12u8
     };
     (5p) => {
-        13
+        13u8
     };
     (6p) => {
-        14
+        14u8
     };
     (7p) => {
-        15
+        15u8
     };
     (8p) => {
-        16
+        16u8
     };
     (9p) => {
-        17
+        17u8
     };
 
     (1s) => {
-        18
+        18u8
     };
     (2s) => {
-        19
+        19u8
     };
     (3s) => {
-        20
+        20u8
     };
     (4s) => {
-        21
+        21u8
     };
     (5s) => {
-        22
+        22u8
     };
     (6s) => {
-        23
+        23u8
     };
     (7s) => {
-        24
+        24u8
     };
     (8s) => {
-        25
+        25u8
     };
     (9s) => {
-        26
+        26u8
     };
 
     (E) => {
-        27
+        27u8
     };
     (S) => {
-        28
+        28u8
     };
     (W) => {
-        29
+        29u8
     };
     (N) => {
-        30
+        30u8
     };
     (P) => {
-        31
+        31u8
     };
     (F) => {
-        32
+        32u8
     };
     (C) => {
-        33
+        33u8
     };
 
     (5mr) => {
-        34
+        34u8
     };
     (5pr) => {
-        35
+        35u8
     };
     (5sr) => {
-        36
+        36u8
     };
 
     (?) => {
-        37
+        37u8
     };
 
     [$($s:tt),* $(,)?] => {
@@ -125,6 +132,7 @@ macro_rules! tu8 {
     };
 }
 
+/// Used for making const tile IDs in usize.
 #[macro_export]
 macro_rules! tuz {
     ($s:tt) => {
@@ -135,16 +143,18 @@ macro_rules! tuz {
     };
 }
 
+/// Used for making const tiles.
 #[macro_export]
 macro_rules! t {
     ($s:tt) => {
-        $crate::tile::Tile($crate::tu8!($s))
+        unsafe { $crate::tile::Tile::new_unchecked($crate::tu8!($s)) }
     };
     [$($s:tt),* $(,)?] => {
         [$($crate::t!($s)),*]
     };
 }
 
+/// A handy macro for matching a `u8` against const tile IDs.
 #[macro_export]
 macro_rules! matches_tu8 {
     ($o:expr, $($s:tt)|* $(|)?) => {
@@ -152,8 +162,32 @@ macro_rules! matches_tu8 {
     };
 }
 
+/// Used for making non-const tiles.
+///
+/// # Panics
+/// Panics if the input is not a valid tile.
+///
+/// ```rust,should_panic
+/// use riichi::{must_tile, tu8};
+///
+/// let t = must_tile!(tu8!(?) + 1);
+/// ```
+#[macro_export]
+macro_rules! must_tile {
+    ($($id:tt)*) => {
+        $crate::tile::Tile::try_from($($id)*).unwrap()
+    };
+}
+
 #[cfg(test)]
 mod test {
+    /// ```rust,compile_fail
+    /// use riichi::tu8;
+    ///
+    /// let t = tu8!(0m);
+    /// ```
+    struct _CompileFail;
+
     #[test]
     fn syntax() {
         assert_eq!(t!(3s).as_usize(), tuz!(3s));

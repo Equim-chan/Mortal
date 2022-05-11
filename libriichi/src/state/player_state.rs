@@ -1,6 +1,7 @@
 use super::action::ActionCandidate;
 use super::item::{ChiPon, KawaItem};
 use crate::hand::tiles_to_string;
+use crate::must_tile;
 use crate::tile::Tile;
 use std::iter;
 
@@ -187,7 +188,7 @@ impl PlayerState {
             .iter()
             .enumerate()
             .filter(|(_, &b)| b)
-            .map(|(i, _)| Tile(i as u8))
+            .map(|(i, _)| must_tile!(i))
             .collect::<Vec<_>>();
 
         let zipped_kawa = self.kawa[0]

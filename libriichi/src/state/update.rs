@@ -4,7 +4,7 @@ use super::PlayerState;
 use crate::algo::{agari, shanten};
 use crate::mjai::Event;
 use crate::tile::Tile;
-use crate::tu8;
+use crate::{must_tile, tu8};
 use std::cmp::Ordering;
 use std::mem;
 
@@ -51,7 +51,7 @@ impl PlayerState {
                 self.honba = honba;
                 self.kyotaku = kyotaku;
                 self.oya = self.rel(oya) as u8;
-                self.jikaze = Tile(tu8!(E) + (4 - self.oya) % 4);
+                self.jikaze = must_tile!(tu8!(E) + (4 - self.oya) % 4);
                 self.is_all_last = match self.bakaze.as_u8() {
                     tu8!(S) => kyoku == 4,
                     tu8!(W) => true,

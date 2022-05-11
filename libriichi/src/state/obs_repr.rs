@@ -1,7 +1,7 @@
 use super::PlayerState;
 use crate::consts::{ACTION_SPACE, OBS_SHAPE};
 use crate::state::item::KawaItem;
-use crate::tu8;
+use crate::{tu8, tuz};
 use std::iter;
 
 use ndarray::prelude::*;
@@ -310,9 +310,9 @@ impl PlayerState {
                 .filter(|(_, &c)| c)
                 .for_each(|(t, _)| {
                     let deaka_t = match t as u8 {
-                        tu8!(5mr) => tu8!(5m),
-                        tu8!(5pr) => tu8!(5p),
-                        tu8!(5sr) => tu8!(5s),
+                        tu8!(5mr) => tuz!(5m),
+                        tu8!(5pr) => tuz!(5p),
+                        tu8!(5sr) => tuz!(5s),
                         _ => t,
                     };
                     arr[[idx, deaka_t]] = 1.;

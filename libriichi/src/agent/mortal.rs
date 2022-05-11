@@ -2,8 +2,7 @@ use super::BatchAgent;
 use crate::consts::ACTION_SPACE;
 use crate::mjai::{Event, EventExt, Metadata};
 use crate::state::PlayerState;
-use crate::tile::Tile;
-use crate::tu8;
+use crate::{must_tile, tu8};
 use std::cmp::Ordering;
 use std::time::{Duration, Instant};
 
@@ -202,7 +201,7 @@ impl BatchAgent for MortalBatchAgent {
 
             if let Some(tile_id) = only_candidate {
                 let actor = self.player_ids[index];
-                let pai = Tile(tile_id as u8);
+                let pai = must_tile!(tile_id);
                 let tsumogiri = state.last_self_tsumo().filter(|&t| t == pai).is_some();
                 let ev = Event::Dahai {
                     actor,
@@ -293,7 +292,7 @@ impl BatchAgent for MortalBatchAgent {
                     state.brief_info()
                 );
 
-                let pai = Tile(action as u8);
+                let pai = must_tile!(action);
                 let tsumogiri = state.last_self_tsumo().filter(|&t| t == pai).is_some();
                 Event::Dahai {
                     actor,
@@ -331,9 +330,12 @@ impl BatchAgent for MortalBatchAgent {
                     _ => false,
                 };
                 let consumed = if can_akaize_consumed {
-                    [Tile(tile_id + 1).akaize(), Tile(tile_id + 2).akaize()]
+                    [
+                        must_tile!(tile_id + 1).akaize(),
+                        must_tile!(tile_id + 2).akaize(),
+                    ]
                 } else {
-                    [Tile(tile_id + 1), Tile(tile_id + 2)]
+                    [must_tile!(tile_id + 1), must_tile!(tile_id + 2)]
                 };
                 Event::Chi {
                     actor,
@@ -361,9 +363,12 @@ impl BatchAgent for MortalBatchAgent {
                     _ => false,
                 };
                 let consumed = if can_akaize_consumed {
-                    [Tile(tile_id - 1).akaize(), Tile(tile_id + 1).akaize()]
+                    [
+                        must_tile!(tile_id - 1).akaize(),
+                        must_tile!(tile_id + 1).akaize(),
+                    ]
                 } else {
-                    [Tile(tile_id - 1), Tile(tile_id + 1)]
+                    [must_tile!(tile_id - 1), must_tile!(tile_id + 1)]
                 };
                 Event::Chi {
                     actor,
@@ -391,9 +396,12 @@ impl BatchAgent for MortalBatchAgent {
                     _ => false,
                 };
                 let consumed = if can_akaize_consumed {
-                    [Tile(tile_id - 2).akaize(), Tile(tile_id - 1).akaize()]
+                    [
+                        must_tile!(tile_id - 2).akaize(),
+                        must_tile!(tile_id - 1).akaize(),
+                    ]
                 } else {
-                    [Tile(tile_id - 2), Tile(tile_id - 1)]
+                    [must_tile!(tile_id - 2), must_tile!(tile_id - 1)]
                 };
                 Event::Chi {
                     actor,
@@ -446,17 +454,17 @@ impl BatchAgent for MortalBatchAgent {
                         "kan choice not in kan candidates: {}",
                         state.brief_info()
                     );
-                    Tile(tid)
+                    must_tile!(tid)
                 } else if cans.can_daiminkan {
                     state
                         .last_kawa_tile()
                         .context("invalid state: no last kawa tile")?
                 } else if cans.can_ankan {
                     let tid = ankan_candidates[0];
-                    Tile(tid)
+                    must_tile!(tid)
                 } else {
                     let tid = kakan_candidates[0];
-                    Tile(tid)
+                    must_tile!(tid)
                 };
 
                 if cans.can_daiminkan {

@@ -8,14 +8,12 @@
     clippy::map_unwrap_or
 )]
 
-mod agent;
 mod arena;
 mod consts;
 mod dataset;
 mod macros;
 mod mjai_bot;
 mod py_helper;
-mod tile;
 mod vec_ops;
 
 // pub for bins
@@ -23,6 +21,10 @@ pub mod chi_type;
 pub mod mjai;
 pub mod stat;
 pub mod state;
+
+// pub for tests
+pub mod agent;
+pub mod tile;
 
 // pub for benchmarks
 pub mod algo;

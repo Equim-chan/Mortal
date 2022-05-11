@@ -62,7 +62,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 ### Run tests
 > Working directory: `$MORTAL_ROOT`
 ```shell
-$ cargo test --lib --no-default-features --features flate2/zlib
+$ cargo test --no-default-features --features flate2/zlib
 ```
 
 ## Build executable utilities

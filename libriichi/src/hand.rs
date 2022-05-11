@@ -5,8 +5,8 @@
 //! 5mr ESW).
 
 use crate::tile::Tile;
-use crate::tuz;
 use crate::vec_ops::vec_add_assign;
+use crate::{must_tile, tuz};
 
 use anyhow::{bail, Result};
 
@@ -72,9 +72,9 @@ pub fn tile37_to_vec(tiles: &[u8; 37]) -> Vec<Tile> {
         .filter(|(_, &count)| count > 0)
         .for_each(|(tid, &count)| {
             if tid < 34 {
-                ret.resize(ret.len() + count as usize, Tile(tid as u8));
+                ret.resize(ret.len() + count as usize, must_tile!(tid));
             } else {
-                ret.push(Tile(tid as u8));
+                ret.push(must_tile!(tid));
             }
         });
     ret
@@ -88,7 +88,7 @@ pub fn tile34_to_vec(tiles: &[u8; 34]) -> Vec<Tile> {
         .enumerate()
         .filter(|(_, &count)| count > 0)
         .for_each(|(tid, &count)| {
-            ret.resize(ret.len() + count as usize, Tile(tid as u8));
+            ret.resize(ret.len() + count as usize, must_tile!(tid));
         });
     ret
 }

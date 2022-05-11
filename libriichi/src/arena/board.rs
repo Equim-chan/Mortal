@@ -4,7 +4,7 @@ use crate::mjai::{Event, EventExt};
 use crate::state::PlayerState;
 use crate::tile::Tile;
 use crate::vec_ops::vec_add_assign;
-use crate::{matches_tu8, t, tu8};
+use crate::{matches_tu8, must_tile, t, tu8};
 use std::convert::TryInto;
 use std::mem;
 
@@ -213,7 +213,7 @@ impl BoardState {
     }
 
     fn haipai(&mut self) -> Result<()> {
-        let bakaze = Tile(tu8!(E) + self.board.kyoku / 4);
+        let bakaze = must_tile!(tu8!(E) + self.board.kyoku / 4);
         let start_kyoku = Event::StartKyoku {
             bakaze,
             dora_marker: self

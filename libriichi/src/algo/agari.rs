@@ -9,7 +9,7 @@
 use super::point::Point;
 use super::shanten;
 use crate::tile::Tile;
-use crate::{matches_tu8, tu8};
+use crate::{matches_tu8, must_tile, tu8};
 use std::cmp::Ordering;
 use std::io::prelude::*;
 use std::iter;
@@ -347,7 +347,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
             .iter()
             .map(|&t| {
                 let is_minkou = self.winning_tile_makes_minkou && t == self.sup.winning_tile;
-                match (is_minkou, Tile(t).is_yaokyuu()) {
+                match (is_minkou, must_tile!(t).is_yaokyuu()) {
                     (false, true) => 8,
                     (false, false) | (true, true) => 4,
                     (true, false) => 2,
@@ -358,19 +358,19 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
             .sup
             .pons
             .iter()
-            .map(|&t| if Tile(t).is_yaokyuu() { 4 } else { 2 })
+            .map(|&t| if must_tile!(t).is_yaokyuu() { 4 } else { 2 })
             .sum::<u8>();
         fu += self
             .sup
             .ankans
             .iter()
-            .map(|&t| if Tile(t).is_yaokyuu() { 32 } else { 16 })
+            .map(|&t| if must_tile!(t).is_yaokyuu() { 32 } else { 16 })
             .sum::<u8>();
         fu += self
             .sup
             .minkans
             .iter()
-            .map(|&t| if Tile(t).is_yaokyuu() { 16 } else { 8 })
+            .map(|&t| if must_tile!(t).is_yaokyuu() { 16 } else { 8 })
             .sum::<u8>();
 
         if matches_tu8!(self.pair_tile, P | F | C) {
@@ -1071,7 +1071,7 @@ mod test {
             chis: &[],
             pons: &[],
             minkans: &[],
-            ankans: &[tu8!(9m)],
+            ankans: &tu8![9m,],
             bakaze: tu8!(E),
             jikaze: tu8!(E),
             winning_tile: tu8!(8p),
@@ -1088,7 +1088,7 @@ mod test {
             chis: &[],
             pons: &[],
             minkans: &[],
-            ankans: &[tu8!(9s)],
+            ankans: &tu8![9s,],
             bakaze: tu8!(E),
             jikaze: tu8!(E),
             winning_tile: tu8!(7m),
@@ -1236,7 +1236,7 @@ mod test {
             chis: &[],
             pons: &tu8![S, C],
             minkans: &[],
-            ankans: &[tu8!(N)],
+            ankans: &tu8![N,],
             bakaze: tu8!(S),
             jikaze: tu8!(N),
             winning_tile: tu8!(9m),
@@ -1297,7 +1297,7 @@ mod test {
         let calc = AgariCalculator {
             tehai: &tehai,
             is_menzen: false,
-            chis: &[tu8!(7s)],
+            chis: &tu8![7s,],
             pons: &[],
             minkans: &[],
             ankans: &[],
