@@ -59,6 +59,7 @@ const KODOMO_TSUMO_POINTS: &[&[(i32, i32)]] = &[
 ];
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+#[must_use]
 pub struct Point {
     pub ron: i32,
     pub tsumo_oya: i32,
@@ -77,7 +78,6 @@ impl Point {
     }
 
     #[inline]
-    #[must_use]
     pub const fn mangan(is_oya: bool) -> Self {
         if is_oya {
             Self {
@@ -95,7 +95,6 @@ impl Point {
     }
 
     #[inline]
-    #[must_use]
     pub const fn haneman(is_oya: bool) -> Self {
         if is_oya {
             Self {
@@ -113,7 +112,6 @@ impl Point {
     }
 
     #[inline]
-    #[must_use]
     pub const fn baiman(is_oya: bool) -> Self {
         if is_oya {
             Self {
@@ -131,7 +129,6 @@ impl Point {
     }
 
     #[inline]
-    #[must_use]
     pub const fn sanbaiman(is_oya: bool) -> Self {
         if is_oya {
             Self {
@@ -149,7 +146,6 @@ impl Point {
     }
 
     #[inline]
-    #[must_use]
     pub const fn yakuman(is_oya: bool, count: i32) -> Self {
         if is_oya {
             Self {
@@ -177,7 +173,6 @@ impl Point {
     }
 
     /// If `is_oya` holds, the `tsumo_oya` of the return value will always be `0`.
-    #[must_use]
     pub fn calc(fu: u8, han: u8, is_oya: bool) -> Self {
         if han >= 5 || fu >= 40 && han >= 4 {
             return Self::mangan_up(han, is_oya);

@@ -15,6 +15,7 @@ use serde_with::{serde_as, skip_serializing_none};
 #[derive(Debug, Clone, PartialEq, Eq, Derivative, Serialize, Deserialize)]
 #[derivative(Default)]
 #[serde(tag = "type", rename_all = "snake_case")]
+#[must_use]
 pub enum Event {
     #[derivative(Default)]
     None,
@@ -109,6 +110,7 @@ pub enum Event {
 /// An extended version of `Event` which allows metadata recording.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[must_use]
 pub struct EventExt {
     #[serde(flatten)]
     pub event: Event,
@@ -117,6 +119,7 @@ pub struct EventExt {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[must_use]
 pub struct Metadata {
     pub q_values: Option<Vec<f32>>,
     pub mask_bits: Option<u64>,
@@ -148,7 +151,6 @@ impl Event {
 
 impl EventExt {
     #[inline]
-    #[must_use]
     pub const fn no_meta(event: Event) -> Self {
         Self { event, meta: None }
     }
