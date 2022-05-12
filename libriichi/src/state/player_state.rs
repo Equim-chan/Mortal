@@ -152,10 +152,11 @@ pub struct PlayerState {
 
 #[pymethods]
 impl PlayerState {
-    /// It is an undefined behavior for `player_id` to be outside of range [0, 3].
+    /// Panics if `player_id` is outside of range [0, 3].
     #[new]
     #[must_use]
     pub fn new(player_id: u8) -> Self {
+        assert!(player_id < 4, "{player_id} is not in range [0, 3]");
         Self {
             player_id,
             ..Default::default()

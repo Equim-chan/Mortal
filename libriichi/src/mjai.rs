@@ -1,8 +1,10 @@
 use crate::tile::Tile;
+use std::error::Error;
+use std::fmt;
 
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, skip_serializing_none};
+use serde_with::{serde_as, skip_serializing_none, TryFromInto};
 
 /// Describes an event in mjai format.
 ///
@@ -14,7 +16,8 @@ use serde_with::{serde_as, skip_serializing_none};
 #[skip_serializing_none]
 #[derive(Debug, Clone, PartialEq, Eq, Derivative, Serialize, Deserialize)]
 #[derivative(Default)]
-#[serde(tag = "type", rename_all = "snake_case")]
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
 pub enum Event {
     #[derivative(Default)]
     None,
@@ -33,48 +36,59 @@ pub enum Event {
         bakaze: Tile,
         dora_marker: Tile,
         /// Counts from 1
+        #[serde_as(deserialize_as = "TryFromInto<BoundedU8<1, 4>>")]
         kyoku: u8,
         honba: u8,
         kyotaku: u8,
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         oya: u8,
         scores: [i32; 4],
         tehais: [[Tile; 13]; 4],
     },
 
     Tsumo {
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
         pai: Tile,
     },
     Dahai {
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
         pai: Tile,
         tsumogiri: bool,
     },
 
     Chi {
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         target: u8,
         pai: Tile,
         consumed: [Tile; 2],
     },
     Pon {
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         target: u8,
         pai: Tile,
         consumed: [Tile; 2],
     },
     Daiminkan {
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
         target: u8,
         pai: Tile,
         consumed: [Tile; 3],
     },
     Kakan {
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
         pai: Tile,
         consumed: [Tile; 3],
     },
     Ankan {
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
         consumed: [Tile; 4],
     },
@@ -83,14 +97,18 @@ pub enum Event {
     },
 
     Reach {
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
     },
     ReachAccepted {
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
     },
 
     Hora {
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         target: u8,
         #[serde(default)]
         deltas: Option<[i32; 4]>,
@@ -105,6 +123,14 @@ pub enum Event {
     EndKyoku,
     EndGame,
 }
+
+#[derive(Deserialize)]
+struct BoundedU8<const MIN: u8, const MAX: u8>(u8);
+
+type Actor = BoundedU8<0, 3>;
+
+#[derive(Debug)]
+pub struct OutOfBoundError(pub u8);
 
 /// An extended version of `Event` which allows metadata recording.
 #[skip_serializing_none]
@@ -146,6 +172,26 @@ impl Event {
     }
 }
 
+impl<const MIN: u8, const MAX: u8> TryFrom<BoundedU8<MIN, MAX>> for u8 {
+    type Error = OutOfBoundError;
+
+    fn try_from(value: BoundedU8<MIN, MAX>) -> Result<Self, Self::Error> {
+        if MIN <= value.0 && value.0 <= MAX {
+            Ok(value.0)
+        } else {
+            Err(OutOfBoundError(value.0))
+        }
+    }
+}
+
+impl fmt::Display for OutOfBoundError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "out-of-range number {}", self.0)
+    }
+}
+
+impl Error for OutOfBoundError {}
+
 impl EventExt {
     #[inline]
     #[must_use]
@@ -157,5 +203,87 @@ impl EventExt {
 impl From<Event> for EventExt {
     fn from(ev: Event) -> Self {
         Self::no_meta(ev)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    use serde_json::{self as json, json, Map, Number, Value};
+
+    #[test]
+    fn json_consistency() {
+        let lines = r#"
+            {"type":"none"}
+            {"type":"start_game","names":["Equim","Mortal","akochan","NoName"],"seed":[123,456]}
+            {"type":"start_kyoku","bakaze":"E","dora_marker":"5s","kyoku":1,"honba":0,"kyotaku":0,"oya":0,"scores":[25000,25000,25000,25000],"tehais":[["N","3p","W","W","7m","N","S","C","7m","P","8p","2m","5m"],["7p","1p","2m","3m","4m","C","7s","7s","9s","9p","1m","C","1s"],["3s","E","5m","P","5m","F","7p","6m","5s","9p","1s","S","N"],["2p","4s","4p","E","5p","F","3p","1s","8p","6s","8s","7s","5p"]]}
+            {"type":"tsumo","actor":0,"pai":"1m"}
+            {"type":"dahai","actor":0,"pai":"2m","tsumogiri":true}
+            {"type":"chi","actor":1,"target":0,"pai":"6s","consumed":["5sr","7s"]}
+            {"type":"pon","actor":1,"target":0,"pai":"C","consumed":["C","C"]}
+            {"type":"daiminkan","actor":2,"target":0,"pai":"5p","consumed":["5pr","5p","5p"]}
+            {"type":"kakan","actor":3,"pai":"S","consumed":["S","S","S"]}
+            {"type":"ankan","actor":0,"consumed":["9m","9m","9m","9m"]}
+            {"type":"dora","dora_marker":"3s"}
+            {"type":"reach","actor":1}
+            {"type":"reach_accepted","actor":2}
+            {"type":"hora","actor":3,"target":1,"deltas":[0,-8000,0,9000],"ura_markers":["4p"]}
+            {"type":"hora","actor":3,"target":1}
+            {"type":"ryukyoku","deltas":[0,1500,0,-1500]}
+            {"type":"ryukyoku"}
+            {"type":"end_kyoku"}
+            {"type":"end_game"}
+        "#.trim();
+
+        let expected: Vec<Value> = lines.lines().map(|l| json::from_str(l).unwrap()).collect();
+        let actual: Vec<Value> = lines
+            .lines()
+            .map(|l| {
+                let event: Event = json::from_str(l).unwrap();
+                json::to_value(&event).unwrap()
+            })
+            .collect();
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn bound_check() {
+        let value = json! ({
+            "type": "reach",
+            "actor": 4,
+        });
+        json::from_value::<Event>(value).unwrap_err();
+
+        let value = json! ({
+            "type": "hora",
+            "actor": 0,
+            "target": 5,
+        });
+        json::from_value::<Event>(value).unwrap_err();
+
+        let value = json!({
+            "type": "start_kyoku",
+            "bakaze": "E",
+            "dora_marker": "5s",
+            "kyoku": 1,
+            "honba": 0,
+            "kyotaku": 0,
+            "oya": 0,
+            "scores": [25000, 25000, 25000, 25000],
+            "tehais": [
+                ["N","3p","W","W","7m","N","S","C","7m","P","8p","2m","5m"],
+                ["7p","1p","2m","3m","4m","C","7s","7s","9s","9p","1m","C","1s"],
+                ["3s","E","5m","P","5m","F","7p","6m","5s","9p","1s","S","N"],
+                ["2p","4s","4p","E","5p","F","3p","1s","8p","6s","8s","7s","5p"],
+            ],
+        });
+        let mut obj: Map<String, Value> = json::from_value(value).unwrap();
+        json::from_value::<Event>(Value::Object(obj.clone())).unwrap();
+        obj["kyoku"] = Value::Number(Number::from(0));
+        json::from_value::<Event>(Value::Object(obj.clone())).unwrap_err();
+        obj["kyoku"] = Value::Number(Number::from(5));
+        json::from_value::<Event>(Value::Object(obj.clone())).unwrap_err();
     }
 }
