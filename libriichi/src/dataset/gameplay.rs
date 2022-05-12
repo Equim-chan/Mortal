@@ -15,7 +15,6 @@ use flate2::read::GzDecoder;
 use ndarray::prelude::*;
 use numpy::{PyArray1, PyArray2};
 use pyo3::prelude::*;
-use pyo3::PyObjectProtocol;
 use rayon::prelude::*;
 use serde_json as json;
 
@@ -79,10 +78,7 @@ impl GameplayLoader {
     fn load_gz_log_files_py(&self, gzip_filenames: Vec<String>) -> Result<Vec<Gameplay>> {
         self.load_gz_log_files(gzip_filenames)
     }
-}
 
-#[pyproto]
-impl PyObjectProtocol for GameplayLoader {
     fn __repr__(&self) -> String {
         format!("{self:?}")
     }

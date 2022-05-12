@@ -64,16 +64,16 @@ fn libriichi(py: Python, m: &PyModule) -> PyResult<()> {
     }
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
 
-    crate::algo::shanten::ensure_init();
-    crate::algo::agari::ensure_init();
+    algo::shanten::ensure_init();
+    algo::agari::ensure_init();
 
-    crate::consts::register_module(py, name, m)?;
-    crate::state::register_module(py, name, m)?;
-    crate::dataset::register_module(py, name, m)?;
-    crate::arena::register_module(py, name, m)?;
+    consts::register_module(py, name, m)?;
+    state::register_module(py, name, m)?;
+    dataset::register_module(py, name, m)?;
+    arena::register_module(py, name, m)?;
 
-    m.add_class::<crate::stat::Stat>()?;
-    m.add_class::<crate::mjai_bot::Bot>()?;
+    m.add_class::<stat::Stat>()?;
+    m.add_class::<mjai_bot::Bot>()?;
 
     Ok(())
 }

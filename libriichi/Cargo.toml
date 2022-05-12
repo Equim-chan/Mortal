@@ -18,7 +18,7 @@ boomphf = "0.5"
 byteorder = "1"
 rayon = "1"
 ndarray = "0.15"
-numpy = "0.15"
+numpy = "0.16"
 serde_with = "1"
 derive_more = "0.99"
 rand = "0.8"
@@ -34,7 +34,7 @@ serde = { version = "1", features = ["derive"] }
 mimalloc = { version = "0.1", default-features = false, optional = true }
 
 [dependencies.pyo3]
-version = "0.15"
+version = "0.16"
 features = [
     "auto-initialize",
     "multiple-pymethods",

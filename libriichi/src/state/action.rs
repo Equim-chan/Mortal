@@ -6,7 +6,6 @@ use crate::tuz;
 
 use anyhow::{bail, ensure, Result};
 use pyo3::prelude::*;
-use pyo3::PyObjectProtocol;
 use serde::Serialize;
 
 #[pyclass]
@@ -41,13 +40,6 @@ pub struct ActionCandidate {
     pub target_actor: u8,
 }
 
-#[pyproto]
-impl PyObjectProtocol for ActionCandidate {
-    fn __repr__(&self) -> String {
-        format!("{self:?}")
-    }
-}
-
 #[pymethods]
 impl ActionCandidate {
     #[getter]
@@ -71,6 +63,10 @@ impl ActionCandidate {
             || self.can_tsumo_agari
             || self.can_ron_agari
             || self.can_ryukyoku
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{self:?}")
     }
 }
 

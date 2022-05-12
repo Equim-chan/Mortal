@@ -11,7 +11,6 @@ use flate2::read::GzDecoder;
 use glob::glob;
 use indicatif::{ProgressBar, ProgressStyle};
 use pyo3::prelude::*;
-use pyo3::PyObjectProtocol;
 use rayon::prelude::*;
 use serde_json as json;
 
@@ -120,13 +119,6 @@ pub struct Stat {
     pub yakuman: i64,
     #[pyo3(get, set)]
     pub nagashi_mangan: i64,
-}
-
-#[pyproto]
-impl PyObjectProtocol for Stat {
-    fn __str__(&self) -> PyResult<String> {
-        Ok(self.to_string())
-    }
 }
 
 impl fmt::Display for Stat {
@@ -804,5 +796,9 @@ impl Stat {
     #[must_use]
     pub fn nagashi_mangan_rate(&self) -> f64 {
         self.nagashi_mangan as f64 / self.round as f64
+    }
+
+    fn __str__(&self) -> String {
+        self.to_string()
     }
 }
