@@ -279,11 +279,15 @@ mod test {
                 ["2p","4s","4p","E","5p","F","3p","1s","8p","6s","8s","7s","5p"],
             ],
         });
-        let mut obj: Map<String, Value> = json::from_value(value).unwrap();
+        let obj: Map<String, Value> = json::from_value(value).unwrap();
         json::from_value::<Event>(Value::Object(obj.clone())).unwrap();
-        obj["kyoku"] = Value::Number(Number::from(0));
-        json::from_value::<Event>(Value::Object(obj.clone())).unwrap_err();
-        obj["kyoku"] = Value::Number(Number::from(5));
-        json::from_value::<Event>(Value::Object(obj.clone())).unwrap_err();
+
+        let mut test_obj = obj.clone();
+        test_obj["kyoku"] = Value::Number(Number::from(0));
+        json::from_value::<Event>(Value::Object(test_obj)).unwrap_err();
+
+        let mut test_obj = obj;
+        test_obj["kyoku"] = Value::Number(Number::from(5));
+        json::from_value::<Event>(Value::Object(test_obj)).unwrap_err();
     }
 }

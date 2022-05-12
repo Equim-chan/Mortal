@@ -30,6 +30,8 @@ static MJAI_PAI_STRINGS_MAP: Lazy<BoomHashMap<&'static str, Tile>> = Lazy::new(|
 pub struct Tile(u8);
 
 impl Tile {
+    const MAX: usize = MJAI_PAI_STRINGS.len() - 1;
+
     /// # Safety
     /// Calling this method with an out-of-bounds tile ID is undefined behavior.
     #[inline]
@@ -142,7 +144,7 @@ impl TryFrom<usize> for Tile {
     type Error = InvalidTile;
 
     fn try_from(v: usize) -> Result<Self, Self::Error> {
-        if v >= MJAI_PAI_STRINGS.len() {
+        if v > Tile::MAX {
             Err(InvalidTile::Number(v))
         } else {
             // SAFETY: `v` has been proven to be in bound.
