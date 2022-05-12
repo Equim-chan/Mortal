@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 
 pub(crate) fn add_submodule(
-    py: Python,
+    py: Python<'_>,
     prefix: &str,
     super_mod: &PyModule,
     m: &PyModule,

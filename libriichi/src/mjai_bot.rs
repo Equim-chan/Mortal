@@ -45,7 +45,7 @@ impl Bot {
     #[pyo3(name = "react")]
     #[pyo3(text_signature = "($self, line, /, *, can_act=True)")]
     #[args("*", can_act = "true")]
-    fn react_py(&mut self, line: &str, can_act: bool, py: Python) -> Result<Option<String>> {
+    fn react_py(&mut self, line: &str, can_act: bool, py: Python<'_>) -> Result<Option<String>> {
         py.allow_threads(move || self.react(line, can_act))
     }
 }

@@ -1,5 +1,5 @@
 use crate::{matches_tu8, t, tu8};
-use std::error::Error as StdError;
+use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
 
@@ -164,13 +164,13 @@ impl FromStr for Tile {
 }
 
 impl fmt::Debug for Tile {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fmt::Display::fmt(&self, f)
     }
 }
 
 impl fmt::Display for Tile {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // SAFETY: `Tile` is in-bound iff it is constructed safely.
         let s = unsafe { MJAI_PAI_STRINGS.get_unchecked(self.0 as usize) };
         f.write_str(s)
@@ -199,7 +199,7 @@ impl Serialize for Tile {
 }
 
 impl fmt::Display for InvalidTile {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str("not a valid tile: ")?;
         match self {
             Self::Number(n) => fmt::Display::fmt(n, f),
@@ -208,7 +208,7 @@ impl fmt::Display for InvalidTile {
     }
 }
 
-impl StdError for InvalidTile {}
+impl Error for InvalidTile {}
 
 #[cfg(test)]
 mod test {

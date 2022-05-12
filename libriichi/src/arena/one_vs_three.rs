@@ -45,7 +45,7 @@ impl OneVsThree {
         champion: PyObject,
         seed_start: (u64, u64),
         seed_count: u64,
-        py: Python,
+        py: Python<'_>,
     ) -> Result<[i32; 4]> {
         // `allow_threads` is required, otherwise it will block python GC to
         // run, leading to memory leaks, since this function is doing long
@@ -74,7 +74,7 @@ impl OneVsThree {
         engine: PyObject,
         seed_start: (u64, u64),
         seed_count: u64,
-        py: Python,
+        py: Python<'_>,
     ) -> Result<[i32; 4]> {
         py.allow_threads(move || {
             let results = self.run_batch(
@@ -100,7 +100,7 @@ impl OneVsThree {
         engine: PyObject,
         seed_start: (u64, u64),
         seed_count: u64,
-        py: Python,
+        py: Python<'_>,
     ) -> Result<[i32; 4]> {
         py.allow_threads(move || {
             let results = self.run_batch(

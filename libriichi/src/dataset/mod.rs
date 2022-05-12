@@ -12,7 +12,7 @@ pub use invisible::Invisible;
 
 use pyo3::prelude::*;
 
-pub(crate) fn register_module(py: Python, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
+pub(crate) fn register_module(py: Python<'_>, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
     let m = PyModule::new(py, "dataset")?;
     m.add_class::<Gameplay>()?;
     m.add_class::<GameplayLoader>()?;

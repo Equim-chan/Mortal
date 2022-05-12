@@ -15,7 +15,7 @@ pub use player_state::PlayerState;
 
 use pyo3::prelude::*;
 
-pub(crate) fn register_module(py: Python, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
+pub(crate) fn register_module(py: Python<'_>, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
     let m = PyModule::new(py, "state")?;
     m.add_class::<ActionCandidate>()?;
     m.add_class::<PlayerState>()?;

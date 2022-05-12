@@ -44,7 +44,7 @@ impl TwoVsTwo {
         champion: PyObject,
         seed_start: (u64, u64),
         seed_count: u64,
-        py: Python,
+        py: Python<'_>,
     ) -> Result<()> {
         // `allow_threads` is required, otherwise it will block python GC to
         // run, leading to memory leaks, since this function is doing long
@@ -66,7 +66,7 @@ impl TwoVsTwo {
         engine: PyObject,
         seed_start: (u64, u64),
         seed_count: u64,
-        py: Python,
+        py: Python<'_>,
     ) -> Result<()> {
         py.allow_threads(move || {
             self.run_batch(
@@ -85,7 +85,7 @@ impl TwoVsTwo {
         engine: PyObject,
         seed_start: (u64, u64),
         seed_count: u64,
-        py: Python,
+        py: Python<'_>,
     ) -> Result<()> {
         py.allow_threads(move || {
             self.run_batch(
@@ -104,7 +104,7 @@ impl TwoVsTwo {
         engine: PyObject,
         seed: (u64, u64),
         split: usize,
-        py: Python,
+        py: Python<'_>,
     ) -> Result<()> {
         py.allow_threads(move || {
             self.run_one(

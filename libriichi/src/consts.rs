@@ -18,7 +18,7 @@ pub const GRP_SIZE: usize = 7;
 
 const_assert!(ACTION_SPACE <= u64::BITS as usize);
 
-pub(crate) fn register_module(py: Python, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
+pub(crate) fn register_module(py: Python<'_>, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
     let m = PyModule::new(py, "consts")?;
     m.add("OBS_SHAPE", OBS_SHAPE)?;
     m.add("ORACLE_OBS_SHAPE", ORACLE_OBS_SHAPE)?;

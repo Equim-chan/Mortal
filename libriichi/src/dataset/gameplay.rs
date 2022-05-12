@@ -38,6 +38,51 @@ pub struct GameplayLoader {
     always_include_kyoku_select: bool,
 }
 
+#[pyclass]
+#[derive(Clone, Default)]
+pub struct Gameplay {
+    // one per move
+    pub obs: Vec<Array2<f32>>,
+    pub invisible_obs: Vec<Array2<f32>>,
+    pub actions: Vec<i64>,
+    pub masks: Vec<Array1<bool>>,
+    pub at_kyoku: Vec<u8>,
+    pub dones: Vec<bool>,
+    pub apply_gamma: Vec<bool>,
+
+    // one per kyoku
+    pub grp: Grp,
+    pub has_houjuu_while_not_waiting: Vec<bool>,
+
+    // one per game
+    pub player_id: u8,
+    pub quality: Quality,
+}
+
+#[derive(Clone, Copy, Derivative)]
+#[derivative(Default)]
+#[repr(u8)]
+pub enum Quality {
+    LastPlace,
+    #[derivative(Default)]
+    Normal,
+    Top300,
+    Tenhoui,
+}
+
+struct LoaderContext<'a> {
+    config: &'a GameplayLoader,
+    invisibles: Option<&'a [Invisible]>,
+
+    state: PlayerState,
+    kyoku_idx: usize,
+    // fields below are only used for oracle
+    opponent_states: [PlayerState; 3],
+    from_rinshan: bool,
+    yama_idx: usize,
+    rinshan_idx: usize,
+}
+
 #[pymethods]
 impl GameplayLoader {
     #[new]
@@ -132,38 +177,6 @@ impl GameplayLoader {
     }
 }
 
-#[derive(Clone, Copy, Derivative)]
-#[derivative(Default)]
-#[repr(u8)]
-pub enum Quality {
-    LastPlace,
-    #[derivative(Default)]
-    Normal,
-    Top300,
-    Tenhoui,
-}
-
-#[pyclass]
-#[derive(Clone, Default)]
-pub struct Gameplay {
-    // one per move
-    pub obs: Vec<Array2<f32>>,
-    pub invisible_obs: Vec<Array2<f32>>,
-    pub actions: Vec<i64>,
-    pub masks: Vec<Array1<bool>>,
-    pub at_kyoku: Vec<u8>,
-    pub dones: Vec<bool>,
-    pub apply_gamma: Vec<bool>,
-
-    // one per kyoku
-    pub grp: Grp,
-    pub has_houjuu_while_not_waiting: Vec<bool>,
-
-    // one per game
-    pub player_id: u8,
-    pub quality: Quality,
-}
-
 #[pymethods]
 impl Gameplay {
     #[pyo3(text_signature = "($self, /)")]
@@ -221,19 +234,6 @@ impl Gameplay {
     const fn take_quality(&self) -> u8 {
         self.quality as u8
     }
-}
-
-struct LoaderContext<'a> {
-    config: &'a GameplayLoader,
-    invisibles: Option<&'a [Invisible]>,
-
-    state: PlayerState,
-    kyoku_idx: usize,
-    // fields below are only used for oracle
-    opponent_states: [PlayerState; 3],
-    from_rinshan: bool,
-    yama_idx: usize,
-    rinshan_idx: usize,
 }
 
 impl Gameplay {
@@ -297,7 +297,7 @@ impl Gameplay {
         Ok(data)
     }
 
-    fn extend_from_event_window(&mut self, ctx: &mut LoaderContext, wnd: &[Event]) {
+    fn extend_from_event_window(&mut self, ctx: &mut LoaderContext<'_>, wnd: &[Event]) {
         let LoaderContext {
             config,
             invisibles,
@@ -443,7 +443,7 @@ impl Gameplay {
         }
     }
 
-    fn add_entry(&mut self, ctx: &LoaderContext, at_kan: bool, label: usize) {
+    fn add_entry(&mut self, ctx: &LoaderContext<'_>, at_kan: bool, label: usize) {
         let (feature, mask) = ctx.state.encode_obs(at_kan);
         self.obs.push(feature);
         self.actions.push(label as i64);

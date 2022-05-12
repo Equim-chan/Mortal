@@ -1,4 +1,5 @@
 #![deny(
+    rust_2018_idioms,
     clippy::must_use_candidate,
     clippy::redundant_else,
     clippy::manual_assert,
@@ -48,7 +49,7 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 /// - Definitions of observation and action space (via `consts`)
 /// - Statistical works on mjai log (via `Stat`)
 #[pymodule]
-fn libriichi(py: Python, m: &PyModule) -> PyResult<()> {
+fn libriichi(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     let name = m.name()?;
     if cfg!(debug_assertions) {
         eprintln!("{name}: this is a debug build.");
