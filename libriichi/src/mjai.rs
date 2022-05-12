@@ -77,6 +77,7 @@ pub enum Event {
     Daiminkan {
         #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         actor: u8,
+        #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         target: u8,
         pai: Tile,
         consumed: [Tile; 3],
