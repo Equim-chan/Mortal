@@ -127,8 +127,8 @@ macro_rules! tu8 {
         37u8
     };
 
-    [$($s:tt),* $(,)?] => {
-        [$($crate::tu8!($s)),*]
+    ($first:tt, $($left:tt),*) => {
+        [$crate::tu8!($first), $($crate::tu8!($left)),*]
     };
 }
 
@@ -138,8 +138,8 @@ macro_rules! tuz {
     ($s:tt) => {
         $crate::tu8!($s) as usize
     };
-    [$($s:tt),* $(,)?] => {
-        [$($crate::tuz!($s)),*]
+    ($first:tt, $($left:tt),*) => {
+        [$crate::tuz!($first), $($crate::tuz!($left)),*]
     };
 }
 
@@ -149,8 +149,8 @@ macro_rules! t {
     ($s:tt) => {
         unsafe { $crate::tile::Tile::new_unchecked($crate::tu8!($s)) }
     };
-    [$($s:tt),* $(,)?] => {
-        [$($crate::t!($s)),*]
+    ($first:tt, $($left:tt),*) => {
+        [$crate::t!($first), $($crate::t!($left)),*]
     };
 }
 
@@ -179,15 +179,16 @@ macro_rules! must_tile {
     };
 }
 
+#[cfg(doctest)]
+/// ```rust,compile_fail
+/// use riichi::tu8;
+///
+/// let t = tu8!(0m);
+/// ```
+struct _CompileFail;
+
 #[cfg(test)]
 mod test {
-    /// ```rust,compile_fail
-    /// use riichi::tu8;
-    ///
-    /// let t = tu8!(0m);
-    /// ```
-    struct _CompileFail;
-
     #[test]
     fn syntax() {
         assert_eq!(t!(3s).as_usize(), tuz!(3s));
