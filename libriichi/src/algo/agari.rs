@@ -44,10 +44,6 @@ static AGARI_TABLE: Lazy<BoomHashMap<u32, Vec<Div>>> = Lazy::new(|| {
     BoomHashMap::new(keys, values)
 });
 
-pub fn ensure_init() {
-    assert_eq!(AGARI_TABLE.len(), AGARI_TABLE_SIZE);
-}
-
 #[derive(Debug)]
 struct Div {
     pair_idx: u8,
@@ -59,6 +55,58 @@ struct Div {
     has_ryanpeikou: bool,
     // CAUTION: it is sound but not complete, broken if there is any ankan
     has_ipeikou: bool,
+}
+
+#[derive(Debug, Clone, Copy, Eq)]
+pub enum Agari {
+    /// `fu` may be 0 if `han` is greater than 4.
+    Normal {
+        fu: u8,
+        han: u8,
+    },
+    Yakuman(u8),
+}
+
+#[derive(Debug)]
+pub struct AgariCalculator<'a> {
+    /// Must include the winning tile (i.e. must be 3n+2)
+    pub tehai: &'a [u8; 34],
+    /// `self.chis.is_empty() && self.pons.is_empty() && self.minkans.is_empty()`
+    pub is_menzen: bool,
+    pub chis: &'a [u8],
+    pub pons: &'a [u8],
+    pub minkans: &'a [u8],
+    pub ankans: &'a [u8],
+
+    pub bakaze: u8,
+    pub jikaze: u8,
+
+    /// Must be deakaized
+    pub winning_tile: u8,
+    /// For consistency reasons, `is_ron` is only used to calculate fu and check
+    /// ankou/ankan-related yakus like 三/四暗刻. It will not be used to
+    /// determine 門前清自摸和.
+    pub is_ron: bool,
+}
+
+struct DivWorker<'sup, 'a> {
+    sup: &'a AgariCalculator<'sup>,
+    tile14: &'a [u8; 14],
+    div: &'a Div,
+    pair_tile: u8,
+    menzen_kotsu: Vec<u8>,
+    menzen_shuntsu: Vec<u8>,
+
+    /// Used in fu calc and sanankou condition.
+    ///
+    /// If the winning tile can be just fit in a shuntsu, it always makes higher
+    /// score than it turning an existing ankou into minkou, because a penchan
+    /// or kanchan only adds 2 fu, and will not bring extra yaku (except for
+    /// pinfu, but since we have ankous it can never be pinfu), but an ankou
+    /// adds 2 or more fu and brings extra yakus like sanankou.
+    ///
+    /// An example of this is 45556 + 5, a test case covers this.
+    winning_tile_makes_minkou: bool,
 }
 
 impl From<u32> for Div {
@@ -92,16 +140,6 @@ impl From<u32> for Div {
             has_ipeikou,
         }
     }
-}
-
-#[derive(Debug, Clone, Copy, Eq)]
-pub enum Agari {
-    /// `fu` may be 0 if `han` is greater than 4.
-    Normal {
-        fu: u8,
-        han: u8,
-    },
-    Yakuman(u8),
 }
 
 impl PartialEq for Agari {
@@ -146,28 +184,6 @@ impl Agari {
             Agari::Yakuman(n) => Point::yakuman(is_oya, n as i32),
         }
     }
-}
-
-#[derive(Debug)]
-pub struct AgariCalculator<'a> {
-    /// Must include the winning tile (i.e. must be 3n+2)
-    pub tehai: &'a [u8; 34],
-    /// `self.chi.is_empty() && self.pon.is_empty() && self.minkan.is_empty()`
-    pub is_menzen: bool,
-    pub chis: &'a [u8],
-    pub pons: &'a [u8],
-    pub minkans: &'a [u8],
-    pub ankans: &'a [u8],
-
-    pub bakaze: u8,
-    pub jikaze: u8,
-
-    /// Must be deakaized
-    pub winning_tile: u8,
-    /// For consistency reasons, `is_ron` is only used to calculate fu and check
-    /// ankou/ankan-related yakus like 三/四暗刻. It will not be used to
-    /// determine 門前清自摸和.
-    pub is_ron: bool,
 }
 
 impl AgariCalculator<'_> {
@@ -225,6 +241,11 @@ impl AgariCalculator<'_> {
     }
 
     fn search_yakus_impl(&self, return_if_any: bool) -> Option<Agari> {
+        assert_eq!(
+            self.is_menzen,
+            self.chis.is_empty() && self.pons.is_empty() && self.minkans.is_empty(),
+        );
+
         // Special case, because kokushi is a special shape and also cannot be combined
         // with other div-han.
         if self.is_menzen && shanten::calc_kokushi(self.tehai) == -1 {
@@ -239,34 +260,14 @@ impl AgariCalculator<'_> {
             // Benchmark result indicates it is too trivial to use rayon here.
             divs.iter()
                 .map(|div| DivWorker::new(self, &tile14, div))
-                .find_map(|w| w.search_yakus(true))
+                .find_map(|w| w.search_yakus::<true>())
         } else {
             divs.iter()
                 .map(|div| DivWorker::new(self, &tile14, div))
-                .filter_map(|w| w.search_yakus(false))
+                .filter_map(|w| w.search_yakus::<false>())
                 .max()
         }
     }
-}
-
-struct DivWorker<'sup, 'a> {
-    sup: &'a AgariCalculator<'sup>,
-    tile14: &'a [u8; 14],
-    div: &'a Div,
-    pair_tile: u8,
-    menzen_kotsu: Vec<u8>,
-    menzen_shuntsu: Vec<u8>,
-
-    /// Used in fu calc and sanankou condition.
-    ///
-    /// If the winning tile can be just fit in a shuntsu, it always makes higher
-    /// score than it turning an existing ankou into minkou, because a penchan
-    /// or kanchan only adds 2 fu, and will not bring extra yaku (except for
-    /// pinfu, but since we have ankous it can never be pinfu), but an ankou
-    /// adds 2 or more fu and brings extra yakus like sanankou.
-    ///
-    /// An example of this is 45556 + 5, a test case covers this.
-    winning_tile_makes_minkou: bool,
 }
 
 impl<'sup, 'a> DivWorker<'sup, 'a> {
@@ -427,7 +428,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
         ((fu - 1) / 10 + 1) * 10
     }
 
-    fn search_yakus(&self, return_if_any: bool) -> Option<Agari> {
+    fn search_yakus<const RETURN_IF_ANY: bool>(&self) -> Option<Agari> {
         let mut han = 0;
         let mut yakuman = 0;
 
@@ -445,7 +446,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                 return if yakuman > 0 {
                     Some(Agari::Yakuman(yakuman))
                 } else if han > 0 {
-                    let fu = if return_if_any || han >= 5 {
+                    let fu = if RETURN_IF_ANY || han >= 5 {
                         0
                     } else {
                         self.calc_fu(has_pinfu)
@@ -457,9 +458,9 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
             };
         }
         macro_rules! check_early_return {
-            {$($stmt:tt)*} => {{
-                $($stmt)*;
-                if return_if_any {
+            ($($block:tt)*) => {{
+                $($block)*;
+                if RETURN_IF_ANY {
                     make_return!();
                 }
             }};
@@ -741,6 +742,10 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
 
         make_return!();
     }
+}
+
+pub fn ensure_init() {
+    assert_eq!(AGARI_TABLE.len(), AGARI_TABLE_SIZE);
 }
 
 fn get_tile14_and_key(tiles: &[u8; 34]) -> ([u8; 14], u32) {
@@ -1141,6 +1146,23 @@ mod test {
         let yaku = calc.search_yakus().unwrap();
         // 一気通貫
         assert_eq!(yaku, Agari::Normal { fu: 70, han: 2 });
+
+        let tehai = hand("12345678m 11p 9m").unwrap();
+        let calc = AgariCalculator {
+            tehai: &tehai,
+            is_menzen: false,
+            chis: &[],
+            pons: &tu8![9p,],
+            minkans: &[],
+            ankans: &[],
+            bakaze: tu8!(E),
+            jikaze: tu8!(E),
+            winning_tile: tu8!(9m),
+            is_ron: true,
+        };
+        let yaku = calc.search_yakus().unwrap();
+        // 一気通貫
+        assert_eq!(yaku, Agari::Normal { fu: 30, han: 1 });
 
         let tehai = hand("111222333m 67p 88s 8p").unwrap();
         let calc = AgariCalculator {
