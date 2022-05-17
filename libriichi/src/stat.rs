@@ -1,5 +1,6 @@
 use crate::algo::point::Point;
 use crate::mjai::Event;
+use crate::py_helper::add_submodule;
 use crate::vec_ops::vec_add_assign;
 use std::fmt;
 use std::fs::File;
@@ -14,13 +15,14 @@ use pyo3::prelude::*;
 use rayon::prelude::*;
 use serde_json as json;
 
-/// Notes about the Stat:
+/// Notes:
 ///
-/// - All the Δscore about riichi do not cover the 1000 kyotaku of its sengenhai,
-/// but do cover all other kyotakus.
-/// - Deal-in After Riichi counts at the moment the sengenhai is discarded.
+/// - All the Δscore about riichi do not cover the 1000 kyotaku of its
+///   sengenhai, but do cover all other kyotakus.
+/// - Deal-in After Riichi is recognized at the moment the sengenhai is
+///   discarded.
 /// - Every other Δscore cover kyotakus.
-/// - Ankan does not count as fuuro.
+/// - Ankan is not recognized as fuuro.
 #[pyclass]
 #[derive(Debug, Clone, Default, PartialEq, Eq, Add, AddAssign, Sum)]
 pub struct Stat {
@@ -804,4 +806,10 @@ impl Stat {
     fn __repr__(&self) -> String {
         format!("{self:?}")
     }
+}
+
+pub(crate) fn register_module(py: Python<'_>, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
+    let m = PyModule::new(py, "stat")?;
+    m.add_class::<Stat>()?;
+    add_submodule(py, prefix, super_mod, m)
 }

@@ -6,7 +6,7 @@ import secrets
 from os import path
 from model import Brain, DQN
 from engine import MortalEngine
-from libriichi import Stat
+from libriichi.stat import Stat
 from libriichi.arena import OneVsThree
 from config import config
 

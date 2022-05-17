@@ -13,7 +13,7 @@ mod arena;
 mod consts;
 mod dataset;
 mod macros;
-mod mjai_bot;
+mod mjai_api;
 mod py_helper;
 mod vec_ops;
 
@@ -23,7 +23,7 @@ pub mod mjai;
 pub mod stat;
 pub mod state;
 
-// pub for tests
+// pub for non-cfg(test) tests
 pub mod agent;
 pub mod tile;
 
@@ -41,16 +41,18 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 /// This module provides implementations of the riichi mahjong including the
 /// following features:
 ///
-/// - (primary usage) Player state maintenance driven by mjai events (via
+/// - The core feature - player state maintenance driven by mjai events (via
 ///   `state.PlayerState`).
 /// - Read mjai logs and produce a batch of instances for training (via
 ///   `dataset`).
 /// - Self-play under standard Tenhou rules (via `arena`).
-/// - Definitions of observation and action space (via `consts`)
-/// - Statistical works on mjai log (via `Stat`)
+/// - Definitions of observation and action space for Mortal (via `consts`).
+/// - Statistical works on mjai logs (via `stat.Stat`).
+/// - mjai interface (via `mjai_api.Bot`).
 #[pymodule]
 fn libriichi(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     let name = m.name()?;
+
     if cfg!(debug_assertions) {
         eprintln!("{name}: this is a debug build.");
         m.add("__profile__", "debug")?;
@@ -72,9 +74,8 @@ fn libriichi(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     state::register_module(py, name, m)?;
     dataset::register_module(py, name, m)?;
     arena::register_module(py, name, m)?;
-
-    m.add_class::<stat::Stat>()?;
-    m.add_class::<mjai_bot::Bot>()?;
+    stat::register_module(py, name, m)?;
+    mjai_api::register_module(py, name, m)?;
 
     Ok(())
 }
