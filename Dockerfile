@@ -11,7 +11,7 @@ WORKDIR /
 COPY Cargo.toml Cargo.lock .
 COPY libriichi libriichi
 
-RUN cargo build --lib --release
+RUN cargo build -p libriichi --lib --release
 
 # -----
 FROM archlinux:base
