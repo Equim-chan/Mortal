@@ -1,4 +1,4 @@
-use super::BatchAgent;
+use super::{BatchAgent, InvisibleState};
 use crate::consts::ACTION_SPACE;
 use crate::mjai::{Event, EventExt, Metadata};
 use crate::state::PlayerState;
@@ -173,7 +173,7 @@ impl BatchAgent for MortalBatchAgent {
         index: usize,
         _: &[EventExt],
         state: &PlayerState,
-        invisible_state: Option<Array2<f32>>,
+        invisible_state: Option<InvisibleState>,
     ) -> Result<()> {
         self.evaluated = false;
         let cans = state.last_cans();
@@ -247,7 +247,7 @@ impl BatchAgent for MortalBatchAgent {
         index: usize,
         _: &[EventExt],
         state: &PlayerState,
-        _: Option<Array2<f32>>,
+        _: Option<InvisibleState>,
     ) -> Result<EventExt> {
         if self.enable_quick_eval {
             if let Some(ev) = self.quick_eval_reactions[index].take() {

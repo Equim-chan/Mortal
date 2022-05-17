@@ -5,6 +5,8 @@ use crate::state::PlayerState;
 use anyhow::Result;
 use ndarray::prelude::*;
 
+pub type InvisibleState = Array2<f32>;
+
 /// `react` provides various choices for input, the implementor may choose
 /// one or many of them to produce the result.
 ///
@@ -19,7 +21,7 @@ pub trait Agent {
         &mut self,
         log: &[EventExt],
         state: &PlayerState,
-        invisible_state: Option<Array2<f32>>,
+        invisible_state: Option<InvisibleState>,
     ) -> Result<EventExt>;
 
     fn start_game(&mut self) -> Result<()> {
@@ -45,7 +47,7 @@ pub trait BatchAgent {
         index: usize,
         log: &[EventExt],
         state: &PlayerState,
-        invisible_state: Option<Array2<f32>>,
+        invisible_state: Option<InvisibleState>,
     ) -> Result<()>;
 
     fn get_reaction(
@@ -53,7 +55,7 @@ pub trait BatchAgent {
         index: usize,
         log: &[EventExt],
         state: &PlayerState,
-        invisible_state: Option<Array2<f32>>,
+        invisible_state: Option<InvisibleState>,
     ) -> Result<EventExt>;
 
     fn start_game(&mut self, index: usize) -> Result<()> {

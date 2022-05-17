@@ -1,9 +1,8 @@
-use super::{Agent, BatchifiedAgent};
+use super::{Agent, BatchifiedAgent, InvisibleState};
 use crate::mjai::{Event, EventExt};
 use crate::state::PlayerState;
 
 use anyhow::{Context, Result};
-use ndarray::prelude::*;
 
 /// `Tsumogiri` always performs tsumogiri in all case and will not emit any
 /// action other than discard.
@@ -24,7 +23,7 @@ impl Agent for Tsumogiri {
         &mut self,
         _: &[EventExt],
         state: &PlayerState,
-        _: Option<Array2<f32>>,
+        _: Option<InvisibleState>,
     ) -> Result<EventExt> {
         let ev = if state.last_cans().can_discard {
             Event::Dahai {

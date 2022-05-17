@@ -1,4 +1,4 @@
-use super::{Agent, BatchifiedAgent};
+use super::{Agent, BatchifiedAgent, InvisibleState};
 use crate::arena::GameResult;
 use crate::chi_type::ChiType;
 use crate::mjai::{Event, EventExt, Metadata};
@@ -12,7 +12,6 @@ use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 use std::time::{Duration, Instant};
 
 use anyhow::{bail, ensure, Context, Result};
-use ndarray::prelude::*;
 use serde_json as json;
 
 pub struct AkochanAgent {
@@ -150,7 +149,7 @@ impl Agent for AkochanAgent {
         &mut self,
         events: &[EventExt],
         state: &PlayerState,
-        _: Option<Array2<f32>>,
+        _: Option<InvisibleState>,
     ) -> Result<EventExt> {
         let cans = state.last_cans();
         let ev = self.react_inner(events)?;
