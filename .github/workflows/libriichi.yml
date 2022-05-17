@@ -53,7 +53,9 @@ jobs:
         run: cargo clippy --workspace --all-targets --all-features -- -Dwarnings
 
       - name: Run tests
-        run: cargo test --no-default-features --features flate2/zlib -- --nocapture
+        run: |
+          cargo test --workspace --no-default-features --features flate2/zlib -- --nocapture
+          cargo test -p libriichi --no-default-features --bench bench
 
       - name: Run build
         run: |

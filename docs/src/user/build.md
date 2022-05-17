@@ -62,17 +62,23 @@ Type "help", "copyright", "credits" or "license" for more information.
 ### Run tests
 > Working directory: `$MORTAL_ROOT`
 ```shell
-$ cargo test --no-default-features --features flate2/zlib
+$ cargo test --workspace --no-default-features --features flate2/zlib -- --nocapture
 ```
 
-## Build executable utilities
+### Run benchmarks
+> Working directory: `$MORTAL_ROOT`
+```shell
+$ cargo test -p libriichi --no-default-features --bench bench
+```
+
+### Build executable utilities
 > Working directory: `$MORTAL_ROOT`
 ```shell
 $ cargo build -p libriichi --bins --no-default-features --release
 $ cargo build -p exe-wrapper --release
 ```
 
-## Build documentation
+### Build documentation
 > Working directory: `$MORTAL_ROOT/docs`
 ```shell
 $ cargo install mdbook mdbook-admonish mdbook-pagetoc

@@ -45,13 +45,14 @@ AMD Ryzen 5 3600 on Windows 10
 rustc 1.60.0 (7737e0b5c 2022-04-04)
 -C target-cpu=native -C link-arg=fuse-ld=lld
 
-agari                   time:   [222.55 ns 222.84 ns 223.21 ns]
-Found 9 outliers among 100 measurements (9.00%)
+agari                   time:   [202.10 ns 202.56 ns 203.12 ns]
+Found 7 outliers among 100 measurements (7.00%)
+  3 (3.00%) low mild
   1 (1.00%) high mild
-  8 (8.00%) high severe
+  3 (3.00%) high severe
 
-shanten                 time:   [86.848 ns 86.996 ns 87.160 ns]
-Found 2 outliers among 100 measurements (2.00%)
+shanten                 time:   [87.103 ns 87.209 ns 87.359 ns]
+Found 5 outliers among 100 measurements (5.00%)
   1 (1.00%) high mild
-  1 (1.00%) high severe
+  4 (4.00%) high severe
 */
