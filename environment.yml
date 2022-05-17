@@ -2,7 +2,8 @@ name: mortal
 channels:
   - conda-forge
 dependencies:
-  - python=3.9
+  - python=3.10
+  - pip
   - pip:
     - tqdm
     - toml

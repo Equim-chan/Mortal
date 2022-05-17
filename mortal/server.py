@@ -65,52 +65,53 @@ class Handler(BaseRequestHandler):
         global buffer_size
         msg = self.recv_msg()
 
-        if msg['type'] == 'get_param':
-            self.get_param()
+        match msg['type']:
+            case 'get_param':
+                self.get_param()
 
-        elif msg['type'] == 'submit_replay':
-            with dir_lock:
-                for filename, content in msg['logs'].items():
-                    save_log(filename, content)
-                buffer_size += len(msg['logs'])
-                logging.info(f'total buffer size: {buffer_size}')
-
-        elif msg['type'] == 'submit_param':
-            update_param(msg['oracle'], msg['mortal'], msg['dqn'])
-
-        elif msg['type'] == 'drain':
-            with dir_lock:
-                buffer_list = os.listdir(buffer_dir)
-                count = len(buffer_list)
-                if count > 0:
-                    drain_list = os.listdir(drain_dir)
-                    to_delete_count = int(max(
-                        len(drain_list) * (1 - sample_reuse_rate),
-                        # x/(k+x) = t, x = tk/(1-t)
-                        len(drain_list) - (count * sample_reuse_threshold) / (1 - sample_reuse_threshold),
-                    ))
-                    logging.info(f'previously drained files to delete: {to_delete_count}')
-                    to_delete = random.sample(drain_list, to_delete_count)
-                    for filename in to_delete:
-                        delete_drain(filename)
-                    for filename in buffer_list:
-                        move_log(filename)
-
-                    drain_size = len(drain_list) - to_delete_count + count
-                    buffer_size = 0
-                    logging.info(f'new drain files size: {drain_size}')
+            case 'submit_replay':
+                with dir_lock:
+                    for filename, content in msg['logs'].items():
+                        save_log(filename, content)
+                    buffer_size += len(msg['logs'])
                     logging.info(f'total buffer size: {buffer_size}')
-            self.send_msg({
-                'count': count,
-                'drain_dir': drain_dir,
-            })
 
-        elif msg['type'] == 'set_config':
-            set_config(msg)
-            with dir_lock:
-                logging.info(f'sample_reuse_rate = {sample_reuse_rate}')
-                logging.info(f'sample_reuse_threshold = {sample_reuse_threshold}')
-                logging.info(f'capacity = {capacity}')
+            case 'submit_param':
+                update_param(msg['oracle'], msg['mortal'], msg['dqn'])
+
+            case 'drain':
+                with dir_lock:
+                    buffer_list = os.listdir(buffer_dir)
+                    count = len(buffer_list)
+                    if count > 0:
+                        drain_list = os.listdir(drain_dir)
+                        to_delete_count = int(max(
+                            len(drain_list) * (1 - sample_reuse_rate),
+                            # x/(k+x) = t, x = tk/(1-t)
+                            len(drain_list) - (count * sample_reuse_threshold) / (1 - sample_reuse_threshold),
+                        ))
+                        logging.info(f'previously drained files to delete: {to_delete_count}')
+                        to_delete = random.sample(drain_list, to_delete_count)
+                        for filename in to_delete:
+                            delete_drain(filename)
+                        for filename in buffer_list:
+                            move_log(filename)
+
+                        drain_size = len(drain_list) - to_delete_count + count
+                        buffer_size = 0
+                        logging.info(f'new drain files size: {drain_size}')
+                        logging.info(f'total buffer size: {buffer_size}')
+                self.send_msg({
+                    'count': count,
+                    'drain_dir': drain_dir,
+                })
+
+            case 'set_config':
+                set_config(msg)
+                with dir_lock:
+                    logging.info(f'sample_reuse_rate = {sample_reuse_rate}')
+                    logging.info(f'sample_reuse_threshold = {sample_reuse_threshold}')
+                    logging.info(f'capacity = {capacity}')
 
     def get_param(self):
         with dir_lock:
