@@ -87,6 +87,7 @@ pub struct AgentContext<'a> {
     pub log: &'a [EventExt],
 }
 
+#[derive(Clone, Copy)]
 pub enum Poll {
     InGame,
     End,
@@ -120,7 +121,9 @@ impl Board {
         idx += 5;
         self.ura_indicators = seq[idx..idx + 5].to_vec();
         idx += 5;
-        self.yama = seq[idx..].to_vec();
+        self.yama = seq[idx..idx + 70].to_vec();
+        idx += 70;
+        assert_eq!(idx, seq.len());
     }
 
     pub fn into_state(self) -> BoardState {
