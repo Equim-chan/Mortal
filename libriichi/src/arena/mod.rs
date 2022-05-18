@@ -7,9 +7,9 @@ mod two_vs_two;
 pub use board::Board;
 pub use result::{GameResult, KyokuEndState};
 
-use self::one_vs_three::OneVsThree;
-use self::two_vs_two::TwoVsTwo;
 use crate::py_helper::add_submodule;
+use one_vs_three::OneVsThree;
+use two_vs_two::TwoVsTwo;
 
 use pyo3::prelude::*;
 

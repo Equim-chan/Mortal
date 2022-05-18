@@ -6,7 +6,7 @@ import torch
 from model import Brain, DQN
 from engine import MortalEngine
 from common import filtered_stripped_lines
-from libriichi.mjai_api import Bot
+from libriichi.mjai import Bot
 from config import config
 
 usage = '''Usage: python mortal.py <ID>

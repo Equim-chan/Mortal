@@ -13,7 +13,6 @@ mod arena;
 mod consts;
 mod dataset;
 mod macros;
-mod mjai_api;
 mod py_helper;
 mod vec_ops;
 
@@ -48,7 +47,7 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 /// - Self-play under standard Tenhou rules (via `arena`).
 /// - Definitions of observation and action space for Mortal (via `consts`).
 /// - Statistical works on mjai logs (via `stat.Stat`).
-/// - mjai interface (via `mjai_api.Bot`).
+/// - mjai interface (via `mjai.Bot`).
 #[pymodule]
 fn libriichi(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     let name = m.name()?;
@@ -75,7 +74,7 @@ fn libriichi(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     dataset::register_module(py, name, m)?;
     arena::register_module(py, name, m)?;
     stat::register_module(py, name, m)?;
-    mjai_api::register_module(py, name, m)?;
+    mjai::register_module(py, name, m)?;
 
     Ok(())
 }

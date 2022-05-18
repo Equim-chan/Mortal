@@ -1,6 +1,5 @@
+use super::{Event, EventExt};
 use crate::agent::{BatchAgent, MortalBatchAgent};
-use crate::mjai::{Event, EventExt};
-use crate::py_helper::add_submodule;
 use crate::state::PlayerState;
 
 use anyhow::{Context, Result};
@@ -10,7 +9,7 @@ use serde_json as json;
 
 #[pyclass]
 #[pyo3(text_signature = "(engine, player_id)")]
-struct Bot {
+pub struct Bot {
     agent: MortalBatchAgent,
     state: PlayerState,
     log: Vec<EventExt>,
@@ -88,10 +87,4 @@ impl Bot {
         let ret = json::to_string(&reaction)?;
         Ok(Some(ret))
     }
-}
-
-pub(crate) fn register_module(py: Python<'_>, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
-    let m = PyModule::new(py, "mjai_api")?;
-    m.add_class::<Bot>()?;
-    add_submodule(py, prefix, super_mod, m)
 }
