@@ -10,7 +10,6 @@ use anyhow::Result;
 use flate2::read::GzEncoder;
 use flate2::Compression;
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
-use log::info;
 use pyo3::prelude::*;
 use rayon::prelude::*;
 
@@ -136,7 +135,7 @@ impl TwoVsTwo {
             fs::create_dir_all(dir)?;
         }
 
-        info!(
+        log::info!(
             "seed: [{}, {}) w/ {}, start {} groups, {} hanchans",
             seed_start.0,
             seed_start.0 + seed_count,
@@ -169,7 +168,8 @@ impl TwoVsTwo {
         let batch_game = BatchGame::tenhou_hanchan(self.disable_progress_bar);
 
         let mut indexes = Vec::with_capacity(seed_count as usize * 4 * 2);
-        let (mut challenger_idx, mut champion_idx) = (0, 0);
+        let mut challenger_idx = 0;
+        let mut champion_idx = 0;
         let mut push_agent = |agent_idx| {
             let player_id_idx = if agent_idx == 0 {
                 &mut challenger_idx
@@ -183,7 +183,7 @@ impl TwoVsTwo {
             indexes.push(index);
             *player_id_idx += 1;
         };
-        (0..seed_count).for_each(|_| {
+        for _ in 0..seed_count {
             // split A
             push_agent(0);
             push_agent(1);
@@ -194,12 +194,12 @@ impl TwoVsTwo {
             push_agent(0);
             push_agent(1);
             push_agent(0);
-        });
+        };
 
         let results = batch_game.run(&mut agents, &indexes, &seeds)?;
 
         if let Some(dir) = &self.log_dir {
-            info!("dumping game logs");
+            log::info!("dumping game logs");
 
             let bar = if self.disable_progress_bar {
                 ProgressBar::hidden()
@@ -263,9 +263,11 @@ impl TwoVsTwo {
             fs::create_dir_all(dir)?;
         }
 
-        info!(
+        log::info!(
             "seed: {} w/ {}, split: {}, start 1 hanchan",
-            seed.0, seed.1, split
+            seed.0,
+            seed.1,
+            split
         );
 
         let challenger_player_ids = if split == 0 { [0, 2] } else { [1, 3] };
@@ -320,7 +322,7 @@ impl TwoVsTwo {
         let results = batch_game.run(&mut agents, &indexes, &[seed])?;
 
         if let Some(dir) = &self.log_dir {
-            info!("dumping game logs");
+            log::info!("dumping game logs");
 
             let split_name = ["a", "b"][split];
             let filename: PathBuf = [dir, &format!("{}_{}_{split_name}.json.gz", seed.0, seed.1)]

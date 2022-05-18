@@ -10,7 +10,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use ndarray::prelude::*;
 
 pub struct BatchGame {
-    // 8 for hanchan and 4 for tonpuu
+    /// 8 for hanchan and 4 for tonpuu
     pub length: u8,
     pub init_scores: [i32; 4],
     pub disable_progress_bar: bool,
@@ -18,9 +18,9 @@ pub struct BatchGame {
 
 #[derive(Clone, Copy, Default)]
 pub struct Index {
-    // For `Game` to find a specific `Agent`.
+    /// For `Game` to find a specific `Agent`.
     pub agent_idx: usize,
-    // For `Agent` to find a specific player ID accordingly.
+    /// For `Agent` to find a specific player ID accordingly.
     pub player_id_idx: usize,
 }
 
@@ -44,13 +44,13 @@ struct Game {
 
     kyoku_started: bool,
     ended: bool,
-    // Used in 西入 where the oya and another player get to 30000 at the same
-    // time, but the game continues because oya is not the top.
-    //
-    // As per [Tenhou's rule](https://tenhou.net/man/#RULE):
-    //
-    // > サドンデスルールは、30000点(供託未収)以上になった時点で終了、ただし親の
-    // > 連荘がある場合は連荘を優先する
+    /// Used in 西入 where the oya and another player get to 30000 at the same
+    /// time, but the game continues because oya is not the top.
+    ///
+    /// As per [Tenhou's rule](https://tenhou.net/man/#RULE):
+    ///
+    /// > サドンデスルールは、30000点(供託未収)以上になった時点で終了、ただし親の
+    /// > 連荘がある場合は連荘を優先する
     in_renchan: bool,
 }
 
@@ -262,12 +262,11 @@ impl BatchGame {
                 let game = Box::new(Game {
                     length: self.length,
                     seed,
-                    indexes: [idxs[0], idxs[1], idxs[2], idxs[3]],
+                    indexes: idxs.try_into()?,
                     scores: self.init_scores,
                     need_invisible_state,
                     ..Default::default()
                 });
-
                 Ok((game_idx, game))
             })
             .collect::<Result<VecDeque<_>>>()?;

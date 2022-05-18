@@ -30,7 +30,6 @@ pub mod tile;
 pub mod algo;
 pub mod hand;
 
-use env_logger::Env;
 use pyo3::prelude::*;
 
 #[cfg(feature = "mimalloc")]
@@ -50,19 +49,14 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 /// - mjai interface (via `mjai.Bot`).
 #[pymodule]
 fn libriichi(py: Python<'_>, m: &PyModule) -> PyResult<()> {
-    let name = m.name()?;
+    pyo3_log::init();
 
+    let name = m.name()?;
     if cfg!(debug_assertions) {
         eprintln!("{name}: this is a debug build.");
         m.add("__profile__", "debug")?;
-        env_logger::Builder::from_env(Env::default().default_filter_or("debug"))
-            .format_timestamp_millis()
-            .init();
     } else {
         m.add("__profile__", "release")?;
-        env_logger::Builder::from_env(Env::default().default_filter_or("info"))
-            .format_timestamp_millis()
-            .init();
     }
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
 

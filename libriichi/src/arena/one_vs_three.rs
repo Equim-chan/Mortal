@@ -10,7 +10,6 @@ use anyhow::Result;
 use flate2::read::GzEncoder;
 use flate2::Compression;
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
-use log::info;
 use pyo3::prelude::*;
 use rayon::prelude::*;
 
@@ -138,7 +137,7 @@ impl OneVsThree {
             fs::create_dir_all(dir)?;
         }
 
-        info!(
+        log::info!(
             "seed: [{}, {}) w/ {}, start {} groups, {} hanchans",
             seed_start.0,
             seed_start.0 + seed_count,
@@ -166,7 +165,8 @@ impl OneVsThree {
         let batch_game = BatchGame::tenhou_hanchan(self.disable_progress_bar);
 
         let mut indexes = Vec::with_capacity(seed_count as usize * 4 * 4);
-        let (mut challenger_idx, mut champion_idx) = (0, 0);
+        let mut challenger_idx = 0;
+        let mut champion_idx = 0;
         let mut push_agent = |agent_idx| {
             let player_id_idx = if agent_idx == 0 {
                 &mut challenger_idx
@@ -180,7 +180,7 @@ impl OneVsThree {
             indexes.push(index);
             *player_id_idx += 1;
         };
-        (0..seed_count).for_each(|_| {
+        for _ in 0..seed_count {
             // split A
             push_agent(0);
             push_agent(1);
@@ -201,12 +201,12 @@ impl OneVsThree {
             push_agent(1);
             push_agent(1);
             push_agent(0);
-        });
+        }
 
         let results = batch_game.run(&mut agents, &indexes, &seeds)?;
 
         if let Some(dir) = &self.log_dir {
-            info!("dumping game logs");
+            log::info!("dumping game logs");
 
             let bar = if self.disable_progress_bar {
                 ProgressBar::hidden()
