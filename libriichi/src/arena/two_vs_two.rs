@@ -148,18 +148,22 @@ impl TwoVsTwo {
             .flat_map(|seed| iter::repeat((seed, seed_start.1)).take(2))
             .collect();
 
-        let challenger_player_ids: Vec<_> = [0, 2, 1, 3]
-            .iter()
-            .copied()
-            .cycle()
-            .take(seed_count as usize * 4)
-            .collect();
-        let champion_player_ids: Vec<_> = [1, 3, 0, 2]
-            .iter()
-            .copied()
-            .cycle()
-            .take(seed_count as usize * 4)
-            .collect();
+        let challenger_player_ids: Vec<_> = [
+            0, 2, // A
+            1, 3, // B
+        ]
+        .into_iter()
+        .cycle()
+        .take(seed_count as usize * 4)
+        .collect();
+        let champion_player_ids: Vec<_> = [
+            1, 3, // A
+            0, 2, // B
+        ]
+        .into_iter()
+        .cycle()
+        .take(seed_count as usize * 4)
+        .collect();
 
         let mut agents: [Box<dyn BatchAgent>; 2] = [
             Box::new(new_challenger_agent(&challenger_player_ids)?),
@@ -167,34 +171,34 @@ impl TwoVsTwo {
         ];
         let batch_game = BatchGame::tenhou_hanchan(self.disable_progress_bar);
 
-        let mut indexes = Vec::with_capacity(seed_count as usize * 4 * 2);
         let mut challenger_idx = 0;
         let mut champion_idx = 0;
-        let mut push_agent = |agent_idx| {
-            let player_id_idx = if agent_idx == 0 {
-                &mut challenger_idx
-            } else {
-                &mut champion_idx
-            };
-            let index = Index {
-                agent_idx,
-                player_id_idx: *player_id_idx,
-            };
-            indexes.push(index);
-            *player_id_idx += 1;
+        let mut make_idx_group = |agent_idxs: [usize; 4]| {
+            let mut idx_group = [Index::default(); 4];
+            for (agent_idx, idx_item) in agent_idxs.into_iter().zip(&mut idx_group) {
+                let player_id_idx = if agent_idx == 0 {
+                    &mut challenger_idx
+                } else {
+                    &mut champion_idx
+                };
+                *idx_item = Index {
+                    agent_idx,
+                    player_id_idx: *player_id_idx,
+                };
+                *player_id_idx += 1;
+            }
+            idx_group
         };
-        for _ in 0..seed_count {
-            // split A
-            push_agent(0);
-            push_agent(1);
-            push_agent(0);
-            push_agent(1);
-            // split B
-            push_agent(1);
-            push_agent(0);
-            push_agent(1);
-            push_agent(0);
-        };
+        let indexes: Vec<_> = (0..seed_count)
+            .flat_map(|_| {
+                [
+                    // split A
+                    make_idx_group([0, 1, 0, 1]),
+                    // split B
+                    make_idx_group([1, 0, 1, 0]),
+                ]
+            })
+            .collect();
 
         let results = batch_game.run(&mut agents, &indexes, &seeds)?;
 
@@ -280,7 +284,7 @@ impl TwoVsTwo {
         let batch_game = BatchGame::tenhou_hanchan(self.disable_progress_bar);
 
         let indexes = if split == 0 {
-            [
+            [[
                 Index {
                     agent_idx: 0,
                     player_id_idx: 0,
@@ -297,9 +301,9 @@ impl TwoVsTwo {
                     agent_idx: 1,
                     player_id_idx: 1,
                 },
-            ]
+            ]]
         } else {
-            [
+            [[
                 Index {
                     agent_idx: 1,
                     player_id_idx: 0,
@@ -316,7 +320,7 @@ impl TwoVsTwo {
                     agent_idx: 0,
                     player_id_idx: 1,
                 },
-            ]
+            ]]
         };
 
         let results = batch_game.run(&mut agents, &indexes, &[seed])?;

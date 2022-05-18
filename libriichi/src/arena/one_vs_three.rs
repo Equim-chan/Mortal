@@ -151,12 +151,16 @@ impl OneVsThree {
             .collect();
 
         let challenger_player_ids: Vec<_> = (0..4).cycle().take(seed_count as usize * 4).collect();
-        let champion_player_ids: Vec<_> = [1, 2, 3, 0, 2, 3, 0, 1, 3, 0, 1, 2]
-            .iter()
-            .copied()
-            .cycle()
-            .take(seed_count as usize * 4 * 3)
-            .collect();
+        let champion_player_ids: Vec<_> = [
+            1, 2, 3, // A
+            0, 2, 3, // B
+            0, 1, 3, // C
+            0, 1, 2, // D
+        ]
+        .into_iter()
+        .cycle()
+        .take(seed_count as usize * 4 * 3)
+        .collect();
 
         let mut agents: [Box<dyn BatchAgent>; 2] = [
             Box::new(new_challenger_agent(&challenger_player_ids)?),
@@ -164,44 +168,38 @@ impl OneVsThree {
         ];
         let batch_game = BatchGame::tenhou_hanchan(self.disable_progress_bar);
 
-        let mut indexes = Vec::with_capacity(seed_count as usize * 4 * 4);
         let mut challenger_idx = 0;
         let mut champion_idx = 0;
-        let mut push_agent = |agent_idx| {
-            let player_id_idx = if agent_idx == 0 {
-                &mut challenger_idx
-            } else {
-                &mut champion_idx
-            };
-            let index = Index {
-                agent_idx,
-                player_id_idx: *player_id_idx,
-            };
-            indexes.push(index);
-            *player_id_idx += 1;
+        let mut make_idx_group = |agent_idxs: [usize; 4]| {
+            let mut idx_group = [Index::default(); 4];
+            for (agent_idx, idx_item) in agent_idxs.into_iter().zip(&mut idx_group) {
+                let player_id_idx = if agent_idx == 0 {
+                    &mut challenger_idx
+                } else {
+                    &mut champion_idx
+                };
+                *idx_item = Index {
+                    agent_idx,
+                    player_id_idx: *player_id_idx,
+                };
+                *player_id_idx += 1;
+            }
+            idx_group
         };
-        for _ in 0..seed_count {
-            // split A
-            push_agent(0);
-            push_agent(1);
-            push_agent(1);
-            push_agent(1);
-            // split B
-            push_agent(1);
-            push_agent(0);
-            push_agent(1);
-            push_agent(1);
-            // split C
-            push_agent(1);
-            push_agent(1);
-            push_agent(0);
-            push_agent(1);
-            // split D
-            push_agent(1);
-            push_agent(1);
-            push_agent(1);
-            push_agent(0);
-        }
+        let indexes: Vec<_> = (0..seed_count)
+            .flat_map(|_| {
+                [
+                    // split A
+                    make_idx_group([0, 1, 1, 1]),
+                    // split B
+                    make_idx_group([1, 0, 1, 1]),
+                    // split C
+                    make_idx_group([1, 1, 0, 1]),
+                    // split D
+                    make_idx_group([1, 1, 1, 0]),
+                ]
+            })
+            .collect();
 
         let results = batch_game.run(&mut agents, &indexes, &seeds)?;
 

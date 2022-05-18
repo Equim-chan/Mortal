@@ -231,25 +231,20 @@ impl BatchGame {
     pub fn run(
         &self,
         agents: &mut [Box<dyn BatchAgent>],
-        indexes: &[Index],
+        indexes: &[[Index; 4]],
         seeds: &[(u64, u64)],
     ) -> Result<Vec<GameResult>> {
-        ensure!(!agents.is_empty(), "`agents` is empty");
-        ensure!(!indexes.is_empty(), "`indexes` is empty");
+        ensure!(!agents.is_empty());
+        ensure!(!indexes.is_empty());
         ensure!(
-            indexes.len() % 4 == 0,
-            "`indexes.len()` ({}) must be divisible by 4",
-            indexes.len(),
-        );
-        ensure!(
-            indexes.len() == seeds.len() * 4,
-            "`indexes.len()` ({}) must be 4 times the `seeds.len()` ({})",
+            indexes.len() == seeds.len(),
+            "expected `indexes.len() == seeds.len()`, got {} and {}",
             indexes.len(),
             seeds.len(),
         );
 
         let mut games = indexes
-            .chunks_exact(4)
+            .iter()
             .zip(seeds)
             .enumerate()
             .map(|(game_idx, (idxs, &seed))| {
@@ -262,7 +257,7 @@ impl BatchGame {
                 let game = Box::new(Game {
                     length: self.length,
                     seed,
-                    indexes: idxs.try_into()?,
+                    indexes: *idxs,
                     scores: self.init_scores,
                     need_invisible_state,
                     ..Default::default()
@@ -335,38 +330,42 @@ mod test {
             Box::new(Tsumogiri::new_batched(&[3, 2, 1, 0]).unwrap()),
         ];
         let indexes = &[
-            Index {
-                agent_idx: 0,
-                player_id_idx: 0,
-            },
-            Index {
-                agent_idx: 0,
-                player_id_idx: 1,
-            },
-            Index {
-                agent_idx: 1,
-                player_id_idx: 1,
-            },
-            Index {
-                agent_idx: 1,
-                player_id_idx: 0,
-            },
-            Index {
-                agent_idx: 1,
-                player_id_idx: 3,
-            },
-            Index {
-                agent_idx: 1,
-                player_id_idx: 2,
-            },
-            Index {
-                agent_idx: 0,
-                player_id_idx: 2,
-            },
-            Index {
-                agent_idx: 0,
-                player_id_idx: 3,
-            },
+            [
+                Index {
+                    agent_idx: 0,
+                    player_id_idx: 0,
+                },
+                Index {
+                    agent_idx: 0,
+                    player_id_idx: 1,
+                },
+                Index {
+                    agent_idx: 1,
+                    player_id_idx: 1,
+                },
+                Index {
+                    agent_idx: 1,
+                    player_id_idx: 0,
+                },
+            ],
+            [
+                Index {
+                    agent_idx: 1,
+                    player_id_idx: 3,
+                },
+                Index {
+                    agent_idx: 1,
+                    player_id_idx: 2,
+                },
+                Index {
+                    agent_idx: 0,
+                    player_id_idx: 2,
+                },
+                Index {
+                    agent_idx: 0,
+                    player_id_idx: 3,
+                },
+            ],
         ];
 
         g.run(&mut agents, indexes, &[(1009, 0), (1021, 0)])
