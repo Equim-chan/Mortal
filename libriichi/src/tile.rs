@@ -96,7 +96,7 @@ impl Tile {
 
     #[inline]
     #[must_use]
-    pub const fn next_tile(self) -> Self {
+    pub const fn next(self) -> Self {
         let tile = self.deaka();
         let kind = tile.0 / 9;
         let num = tile.0 % 9;
@@ -112,7 +112,7 @@ impl Tile {
 
     #[inline]
     #[must_use]
-    pub const fn prev_tile(self) -> Self {
+    pub const fn prev(self) -> Self {
         let tile = self.deaka();
         let kind = tile.0 / 9;
         let num = tile.0 % 9;
@@ -220,8 +220,8 @@ mod test {
     fn next_prev() {
         MJAI_PAI_STRINGS.iter().take(37).for_each(|&s| {
             let tile: Tile = s.parse().unwrap();
-            assert_eq!(tile.prev_tile().next_tile(), tile.deaka());
-            assert_eq!(tile.next_tile().prev_tile(), tile.deaka());
+            assert_eq!(tile.prev().next(), tile.deaka());
+            assert_eq!(tile.next().prev(), tile.deaka());
         });
     }
 }

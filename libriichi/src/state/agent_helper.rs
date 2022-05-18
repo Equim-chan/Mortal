@@ -301,7 +301,7 @@ impl PlayerState {
             let mut ura_indicators = array_vec!([Tile; 5]);
             tehai_ordered_by_count
                 .into_iter()
-                .map(|(t, _)| must_tile!(t).prev_tile())
+                .map(|(t, _)| must_tile!(t).prev())
                 .take_while(|&ura| loop {
                     if ura_indicators.len() >= self.dora_indicators.len() {
                         // Break out of all loops.
@@ -419,7 +419,7 @@ impl PlayerState {
             final_doras_owned += ura_indicators
                 .iter()
                 .map(|&ura| {
-                    let next = ura.next_tile();
+                    let next = ura.next();
                     let mut count = tehai[next.as_usize()];
                     if self.ankan_overview[0].contains(&next) {
                         count += 4;

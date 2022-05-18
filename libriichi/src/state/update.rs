@@ -650,7 +650,7 @@ impl PlayerState {
         // `doras_seen`. This must be done before adding `dora_factor`.
         self.witness_tile(tile);
 
-        let next = tile.next_tile();
+        let next = tile.next();
         self.arrs.dora_factor[next.as_usize()] += 1;
 
         // Count new dora in my tehai

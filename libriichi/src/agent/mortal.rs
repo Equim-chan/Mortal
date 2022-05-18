@@ -321,7 +321,7 @@ impl BatchAgent for MortalBatchAgent {
                 let pai = state
                     .last_kawa_tile()
                     .context("invalid state: no last kawa tile")?;
-                let first = pai.next_tile();
+                let first = pai.next();
 
                 let can_akaize_consumed = match pai.as_u8() {
                     tu8!(3m) | tu8!(4m) => akas_in_hand[0],
@@ -330,9 +330,9 @@ impl BatchAgent for MortalBatchAgent {
                     _ => false,
                 };
                 let consumed = if can_akaize_consumed {
-                    [first.akaize(), first.next_tile().akaize()]
+                    [first.akaize(), first.next().akaize()]
                 } else {
-                    [first, first.next_tile()]
+                    [first, first.next()]
                 };
                 Event::Chi {
                     actor,
@@ -359,9 +359,9 @@ impl BatchAgent for MortalBatchAgent {
                     _ => false,
                 };
                 let consumed = if can_akaize_consumed {
-                    [pai.prev_tile().akaize(), pai.next_tile().akaize()]
+                    [pai.prev().akaize(), pai.next().akaize()]
                 } else {
-                    [pai.prev_tile(), pai.next_tile()]
+                    [pai.prev(), pai.next()]
                 };
                 Event::Chi {
                     actor,
@@ -380,7 +380,7 @@ impl BatchAgent for MortalBatchAgent {
                 let pai = state
                     .last_kawa_tile()
                     .context("invalid state: no last kawa tile")?;
-                let last = pai.prev_tile();
+                let last = pai.prev();
 
                 let can_akaize_consumed = match pai.as_u8() {
                     tu8!(6m) | tu8!(7m) => akas_in_hand[0],
@@ -389,9 +389,9 @@ impl BatchAgent for MortalBatchAgent {
                     _ => false,
                 };
                 let consumed = if can_akaize_consumed {
-                    [last.prev_tile().akaize(), last.akaize()]
+                    [last.prev().akaize(), last.akaize()]
                 } else {
-                    [last.prev_tile(), last]
+                    [last.prev(), last]
                 };
                 Event::Chi {
                     actor,
