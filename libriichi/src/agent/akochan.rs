@@ -15,7 +15,7 @@ use anyhow::{bail, ensure, Context, Result};
 use serde_json as json;
 
 pub struct AkochanAgent {
-    actor: u8,
+    player_id: u8,
     child: Child,
     stdin: ChildStdin,
     stdout_lines: Lines<BufReader<ChildStdout>>,
@@ -25,8 +25,8 @@ pub struct AkochanAgent {
 }
 
 impl AkochanAgent {
-    pub fn new(actor: u8) -> Result<Self> {
-        ensure!(matches!(actor, 0..=3));
+    pub fn new(player_id: u8) -> Result<Self> {
+        ensure!(matches!(player_id, 0..=3));
 
         let akochan_dir = env::var_os("AKOCHAN_DIR").unwrap_or_else(|| OsString::from("akochan"));
         let akochan_exe = [&akochan_dir, OsStr::new("system.exe")]
@@ -35,10 +35,10 @@ impl AkochanAgent {
         let akochan_tactics =
             env::var_os("AKOCHAN_TACTICS").unwrap_or_else(|| OsString::from("tactics.json"));
 
-        let mut akochan = Command::new(akochan_exe)
+        let mut child = Command::new(akochan_exe)
             .arg("pipe")
             .arg(akochan_tactics)
-            .arg(&actor.to_string())
+            .arg(&player_id.to_string())
             .current_dir(akochan_dir)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -46,19 +46,19 @@ impl AkochanAgent {
             .spawn()
             .context("failed to spawn akochan")?;
 
-        let stdin = akochan
+        let stdin = child
             .stdin
             .take()
             .context("failed to get stdin of akochan")?;
-        let stdout = akochan
+        let stdout = child
             .stdout
             .take()
             .context("failed to get stdout of akochan")?;
         let stdout_lines = BufReader::new(stdout).lines();
 
         Ok(Self {
-            actor,
-            child: akochan,
+            player_id,
+            child,
             stdin,
             stdout_lines,
 
@@ -80,7 +80,7 @@ impl AkochanAgent {
                 | Event::Pon { actor, .. }
                 | Event::Daiminkan { actor, .. }
                 | Event::Reach { actor, .. }
-                    if actor == self.actor =>
+                    if actor == self.player_id =>
                 {
                     return Ok(EventExt::no_meta(dahai));
                 }
@@ -135,8 +135,12 @@ impl AkochanAgent {
 
 impl Drop for AkochanAgent {
     fn drop(&mut self) {
-        self.child.kill().expect("failed to kill akochan");
-        self.child.wait().expect("failed to wait akochan");
+        if let Err(err) = self.child.kill() {
+            log::error!("failed to kill akochan: {err}");
+        }
+        if let Err(err) = self.child.wait() {
+            log::error!("failed to wait akochan: {err}");
+        }
     }
 }
 
