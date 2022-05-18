@@ -11,7 +11,7 @@ I got the inspiration from Kajiki Yumi, a character from Saki. She is indeed a m
 I had a hard time thinking for a name. The project started with "OpenPhoenix", because it was at first a reproduction of Suphx, but after I changed many parts of it, it became less and less alike to Suphx, then I renamed it to "Reishanten". In the end, I thought the name was too hard to read and get its meaning, I came up with the name "Mortal".
 
 ## When was the project started?
-The project started on 2021-04-24. A prototype of `PlayerState` was made that day.
+The project started on 2021-04-22. A prototype of `PlayerState` was made that day.
 
 ## Why AGPL?
 First of all, it is because the shanten algorithm (`/libriichi/src/algo/shanten.rs`) is a Rust port of [tomohxx/shanten-number-calculator](https://github.com/tomohxx/shanten-number-calculator), which is licensed under GPL. As for the reason for it to be **A**GPL, my consideration is this project is natually easy to be exploited, such as being used for cheats or getting renamed then sold to unaware people, so even if I can't _really_ stop such exploit, at least I want to do my part and make my attempt on what I can to stop this.

@@ -46,6 +46,7 @@
 * [Comparison with Other AIs - Engineering-Wise]()
 * [Failed Attempts]()
 * [Meta](ref/meta.md)
+* [References](ref/references.md)
 
 # Contributor Guide
 * [How to Contribute]()
