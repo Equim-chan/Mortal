@@ -1,7 +1,7 @@
 mod bot;
 mod event;
 
-pub use event::{Event, EventExt, Metadata, OutOfBoundError};
+pub use event::{Event, EventExt, EventWithCanAct, Metadata, OutOfBoundError};
 
 use crate::py_helper::add_submodule;
 use bot::Bot;

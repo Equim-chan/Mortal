@@ -1,7 +1,7 @@
 use super::{Agent, BatchifiedAgent, InvisibleState};
 use crate::arena::GameResult;
 use crate::chi_type::ChiType;
-use crate::mjai::{Event, EventExt, Metadata};
+use crate::mjai::{Event, EventExt, EventWithCanAct, Metadata};
 use crate::state::PlayerState;
 use std::env;
 use std::ffi::{OsStr, OsString};
@@ -38,7 +38,7 @@ impl AkochanAgent {
         let mut child = Command::new(akochan_exe)
             .arg("pipe")
             .arg(akochan_tactics)
-            .arg(&player_id.to_string())
+            .arg(player_id.to_string())
             .current_dir(akochan_dir)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -90,14 +90,10 @@ impl AkochanAgent {
 
         let start = Instant::now();
         for i in self.event_idx..events.len() {
-            let ev = &events[i];
-
-            let mut v = json::to_value(ev)?;
-            if i < events.len() - 1 {
-                let obj = v.as_object_mut().context("not an object")?;
-                obj.insert("can_act".to_owned(), json::Value::Bool(false));
-            }
-
+            let v = EventWithCanAct {
+                event: events[i].event.clone(),
+                can_act: Some(i == events.len() - 1),
+            };
             writeln!(self.stdin, "{}", json::to_string(&v)?)?;
             self.stdin.flush()?;
         }
@@ -108,12 +104,12 @@ impl AkochanAgent {
             .next()
             .context("failed to read from akochan: unexpected EOF")?
             .context("failed to read from akochan")?;
-        let actions: Vec<Event> =
-            json::from_str(&line).context("failed to parse JSON output of akochan")?;
-        let mut actions_iter = actions.into_iter();
+        let mut actions = json::from_str::<Vec<Event>>(&line)
+            .context("failed to parse JSON output of akochan")?
+            .into_iter();
 
-        let ev = actions_iter.next().context("output is empty")?;
-        if let Some(naki_tx) = actions_iter.next() {
+        let ev = actions.next().context("output is empty")?;
+        if let Some(naki_tx) = actions.next() {
             self.naki_tx = Some(naki_tx);
         }
 

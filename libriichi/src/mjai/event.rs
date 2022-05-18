@@ -153,6 +153,13 @@ pub struct Metadata {
     pub kan_select: Option<Box<Metadata>>,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct EventWithCanAct {
+    #[serde(flatten)]
+    pub event: Event,
+    pub can_act: Option<bool>,
+}
+
 impl Event {
     #[inline]
     #[must_use]

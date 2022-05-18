@@ -1,10 +1,10 @@
+use super::EventWithCanAct;
 use super::{Event, EventExt};
 use crate::agent::{BatchAgent, MortalBatchAgent};
 use crate::state::PlayerState;
 
 use anyhow::{Context, Result};
 use pyo3::prelude::*;
-use serde::Deserialize;
 use serde_json as json;
 
 #[pyclass]
@@ -13,13 +13,6 @@ pub struct Bot {
     agent: MortalBatchAgent,
     state: PlayerState,
     log: Vec<EventExt>,
-}
-
-#[derive(Deserialize)]
-struct EventWithCanAct {
-    #[serde(flatten)]
-    event: Event,
-    can_act: Option<bool>,
 }
 
 #[pymethods]
