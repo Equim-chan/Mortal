@@ -202,7 +202,7 @@ impl BatchAgent for MortalBatchAgent {
             if let Some(tile_id) = only_candidate {
                 let actor = self.player_ids[index];
                 let pai = must_tile!(tile_id);
-                let tsumogiri = state.last_self_tsumo().filter(|&t| t == pai).is_some();
+                let tsumogiri = matches!(state.last_self_tsumo(), Some(t) if t == pai);
                 let ev = Event::Dahai {
                     actor,
                     pai,
@@ -293,7 +293,7 @@ impl BatchAgent for MortalBatchAgent {
                 );
 
                 let pai = must_tile!(action);
-                let tsumogiri = state.last_self_tsumo().filter(|&t| t == pai).is_some();
+                let tsumogiri = matches!(state.last_self_tsumo(), Some(t) if t == pai);
                 Event::Dahai {
                     actor,
                     pai,

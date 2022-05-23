@@ -159,7 +159,7 @@ impl Agent for AkochanAgent {
                 ensure!(cans.can_discard);
                 ensure!(state.discard_candidates()[pai.deaka().as_usize()]);
             }
-            Event::Chi { pai, consumed, .. } => match ChiType::new(&consumed, pai) {
+            Event::Chi { pai, consumed, .. } => match ChiType::new(consumed, pai) {
                 ChiType::Low => ensure!(cans.can_chi_low),
                 ChiType::Mid => ensure!(cans.can_chi_mid),
                 ChiType::High => ensure!(cans.can_chi_high),

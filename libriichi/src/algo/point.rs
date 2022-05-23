@@ -198,14 +198,14 @@ impl Point {
         if let Some(ron) = ron_table[key].get(idx).copied() {
             if is_oya {
                 let tsumo = OYA_TSUMO_POINTS[key][idx];
-                Point {
+                Self {
                     ron: ron * 100,
                     tsumo_oya: 0,
                     tsumo_ko: tsumo * 100,
                 }
             } else {
                 let (tsumo_ko, tsumo_oya) = KODOMO_TSUMO_POINTS[key][idx];
-                Point {
+                Self {
                     ron: ron * 100,
                     tsumo_oya: tsumo_oya * 100,
                     tsumo_ko: tsumo_ko * 100,

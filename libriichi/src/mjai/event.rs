@@ -180,6 +180,7 @@ impl Event {
     }
 }
 
+#[allow(clippy::use_self)]
 impl<const MIN: u8, const MAX: u8> TryFrom<BoundedU8<MIN, MAX>> for u8 {
     type Error = OutOfBoundError;
 

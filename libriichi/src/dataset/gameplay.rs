@@ -370,7 +370,7 @@ impl Gameplay {
                 pai,
                 consumed,
                 ..
-            } if actor == self.player_id => match ChiType::new(&consumed, pai) {
+            } if actor == self.player_id => match ChiType::new(consumed, pai) {
                 ChiType::Low => Some(38),
                 ChiType::Mid => Some(39),
                 ChiType::High => Some(40),

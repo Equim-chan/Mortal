@@ -10,7 +10,7 @@ pub enum ChiType {
 impl ChiType {
     #[inline]
     #[must_use]
-    pub fn new(consumed: &[Tile; 2], tile: Tile) -> Self {
+    pub fn new(consumed: [Tile; 2], tile: Tile) -> Self {
         let a = consumed[0].deaka().as_u8();
         let b = consumed[1].deaka().as_u8();
         let min = a.min(b);

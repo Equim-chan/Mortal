@@ -48,7 +48,7 @@ fn main() -> Result<()> {
 
 fn process_path(path: &Path) -> Result<()> {
     let mut raw_log = String::new();
-    if let Some("gz") = path.extension().and_then(|s| s.to_str()) {
+    if matches!(path.extension(), Some(s) if s.eq_ignore_ascii_case("gz")) {
         let mut gz = GzDecoder::new(File::open(path)?);
         gz.read_to_string(&mut raw_log)?;
     } else {
@@ -98,7 +98,7 @@ fn process_path(path: &Path) -> Result<()> {
                     states[*actor as usize].brief_info(),
                 );
 
-                match ChiType::new(consumed, *pai) {
+                match ChiType::new(*consumed, *pai) {
                     ChiType::Low => {
                         ensure!(
                             cans[*actor as usize].can_chi_low,

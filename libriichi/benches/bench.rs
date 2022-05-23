@@ -25,7 +25,7 @@ fn criterion_benchmark(c: &mut Criterion) {
                 is_ron: true,
             };
             calc.search_yakus().unwrap();
-        })
+        });
     });
 
     let tehai = hand("2344456m 14p 127s 2z 7p").unwrap();
@@ -33,7 +33,7 @@ fn criterion_benchmark(c: &mut Criterion) {
         b.iter(|| {
             let tehai = black_box(tehai);
             let _ = shanten::calc_all(&tehai, 4);
-        })
+        });
     });
 }
 

@@ -121,12 +121,12 @@ impl PlayerState {
             } => {
                 ensure!((target + 1) % 4 == actor, "chi from non-kamicha");
                 ensure!(
-                    self.last_kawa_tile.filter(|&tile| tile == pai).is_some(),
+                    matches!(self.last_kawa_tile, Some(tile) if tile == pai),
                     "chi target is not the last kawa tile",
                 );
                 self.ensure_tiles_in_hand(&consumed)?;
 
-                match ChiType::new(&consumed, pai) {
+                match ChiType::new(consumed, pai) {
                     ChiType::Low => ensure!(cans.can_chi_low, "cannot chi low"),
                     ChiType::Mid => ensure!(cans.can_chi_mid, "cannot chi mid"),
                     ChiType::High => ensure!(cans.can_chi_high, "cannot chi high"),
@@ -140,7 +140,7 @@ impl PlayerState {
             } => {
                 ensure!(target != actor, "pon from itself");
                 ensure!(
-                    self.last_kawa_tile.filter(|&tile| tile == pai).is_some(),
+                    matches!(self.last_kawa_tile, Some(tile) if tile == pai),
                     "pon target is not the last kawa tile",
                 );
                 ensure!(cans.can_pon, "cannot pon");
@@ -155,7 +155,7 @@ impl PlayerState {
             } => {
                 ensure!(target != actor, "daiminkan from itself");
                 ensure!(
-                    self.last_kawa_tile.filter(|&tile| tile == pai).is_some(),
+                    matches!(self.last_kawa_tile, Some(tile) if tile == pai),
                     "daiminkan target is not the last kawa tile",
                 );
                 ensure!(cans.can_daiminkan, "cannot daiminkan");
