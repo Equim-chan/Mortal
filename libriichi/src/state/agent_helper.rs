@@ -212,6 +212,8 @@ impl PlayerState {
         self.rule_based_ryukyoku_slow()
     }
 
+    #[inline(never)]
+    #[cold]
     fn rule_based_ryukyoku_slow(&self) -> bool {
         // Do not ryukyoku if the hand is already <= 2 shanten.
         if shanten::calc_all(&self.arrs.tehai, self.tehai_len_div3) <= 2 {
@@ -264,6 +266,8 @@ impl PlayerState {
         self.rule_based_agari_slow(self.last_cans.can_ron_agari, self.last_cans.target_actor)
     }
 
+    #[inline(never)]
+    #[cold]
     fn rule_based_agari_slow(&self, is_ron: bool, target: u8) -> bool {
         // Agari if it is not yet all-last, or we are oya ourselves, or we are
         // not the last place at all.
