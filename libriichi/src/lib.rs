@@ -32,7 +32,6 @@
     clippy::str_to_string,
     clippy::string_to_string,
     clippy::string_lit_as_bytes,
-    clippy::trailing_empty_array,
     clippy::trivially_copy_pass_by_ref,
     clippy::unicode_not_nfc,
     clippy::unneeded_field_pattern,
@@ -42,9 +41,7 @@
     clippy::mut_mut,
     clippy::nonstandard_macro_braces,
     clippy::borrow_as_ptr,
-    clippy::ptr_as_ptr,
-    clippy::self_named_module_files,
-    clippy::inline_asm_x86_intel_syntax
+    clippy::ptr_as_ptr
 )]
 
 mod arena;

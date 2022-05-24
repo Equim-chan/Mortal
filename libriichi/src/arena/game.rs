@@ -266,9 +266,8 @@ impl BatchGame {
             })
             .collect::<Result<VecDeque<_>>>()?;
 
-        let mut records = Vec::with_capacity(games.len());
-        records.resize_with(games.len(), Default::default);
-        let mut to_remove = Vec::with_capacity(games.len());
+        let mut records = vec![GameResult::default(); games.len()];
+        let mut to_remove = vec![];
         let mut steps = 0; // for stats only
 
         let bar = if self.disable_progress_bar {
@@ -298,11 +297,11 @@ impl BatchGame {
                 if let Some(record) = game.commit(agents)? {
                     records[*game_idx] = record;
                     to_remove.push(idx_for_rm);
-                    bar.inc(1);
                 }
             }
             for idx_for_rm in to_remove.drain(..).rev() {
                 games.remove(idx_for_rm);
+                bar.inc(1);
             }
 
             steps += 1;
