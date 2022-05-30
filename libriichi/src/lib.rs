@@ -6,7 +6,6 @@
     clippy::manual_ok_or,
     clippy::needless_for_each,
     clippy::needless_continue,
-    clippy::unnecessary_wraps,
     clippy::map_unwrap_or,
     clippy::float_cmp,
     clippy::float_cmp_const,

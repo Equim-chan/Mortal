@@ -289,7 +289,7 @@ impl Gameplay {
         // tsumo/dahai -> ryukyoku/hora -> end kyoku -> end game
         events
             .windows(4)
-            .for_each(|wnd| data.extend_from_event_window(&mut ctx, wnd));
+            .for_each(|wnd| data.extend_from_event_window(&mut ctx, wnd.try_into().unwrap()));
 
         data.dones = data.at_kyoku.windows(2).map(|w| w[1] > w[0]).collect();
         data.dones.push(true);
@@ -297,7 +297,7 @@ impl Gameplay {
         Ok(data)
     }
 
-    fn extend_from_event_window(&mut self, ctx: &mut LoaderContext<'_>, wnd: &[Event]) {
+    fn extend_from_event_window(&mut self, ctx: &mut LoaderContext<'_>, wnd: &[Event; 4]) {
         let LoaderContext {
             config,
             invisibles,
