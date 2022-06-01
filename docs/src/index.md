@@ -6,10 +6,11 @@
 
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Equim-chan/Mortal/build-libriichi?label=libriichi)](https://github.com/Equim-chan/Mortal/actions)
 [![GitHub Workflow Status](https://img.shields.io/github/workflow/status/Equim-chan/Mortal/deploy-docs?label=docs)](https://mortal.ekyu.moe)
-[![](https://img.shields.io/github/license/Equim-chan/Mortal)](https://github.com/Equim-chan/Mortal/blob/main/LICENSE)
+[![dependency status](https://deps.rs/repo/github/Equim-chan/Mortal/status.svg)](https://deps.rs/repo/github/Equim-chan/Mortal)
 ![GitHub top language](https://img.shields.io/github/languages/top/Equim-chan/Mortal)
 ![Lines of code](https://img.shields.io/tokei/lines/github/Equim-chan/Mortal)
 ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/Equim-chan/Mortal)
+[![license](https://img.shields.io/github/license/Equim-chan/Mortal)](https://github.com/Equim-chan/Mortal/blob/main/LICENSE)
 
 [![Donate](https://img.shields.io/badge/Donate-%E2%9D%A4%EF%B8%8F-blue?style=social)](donate.md)
 

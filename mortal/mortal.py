@@ -2,14 +2,16 @@ import prelude
 
 import os
 import sys
+import json
 import torch
-from model import Brain, DQN
+from model import Brain, DQN, GRP
 from engine import MortalEngine
 from common import filtered_stripped_lines
 from libriichi.mjai import Bot
+from libriichi.dataset import Grp
 from config import config
 
-usage = '''Usage: python mortal.py <ID>
+USAGE = '''Usage: python mortal.py <ID>
 
 ARGS:
     <ID>    The player ID, an integer within [0, 3].'''
@@ -19,7 +21,7 @@ def main():
         player_id = int(sys.argv[-1])
         assert player_id in range(4)
     except:
-        print(usage, file=sys.stderr)
+        print(USAGE, file=sys.stderr)
         sys.exit(1)
     review_mode = os.environ.get('MORTAL_REVIEW_MODE', '0') == '1'
 
@@ -42,11 +44,32 @@ def main():
     )
     bot = Bot(engine, player_id)
 
+    if review_mode:
+        logs = []
     for line in filtered_stripped_lines(sys.stdin):
+        if review_mode:
+            logs.append(line)
         if reaction := bot.react(line):
             print(reaction, flush=True)
         elif review_mode:
             print('{"type":"none","meta":{"mask_bits":0}}', flush=True)
+
+    if review_mode:
+        grp = GRP(**config['grp']['network'])
+        grp_state = torch.load(config['grp']['state_file'], map_location=torch.device('cpu'))
+        grp.load_state_dict(grp_state['model'])
+
+        ins = Grp.load_log('\n'.join(logs))
+        feature = ins.take_feature()
+        seq = list(map(
+            lambda idx: torch.as_tensor(feature[:idx+1], device=device),
+            range(len(feature)),
+        ))
+
+        with torch.no_grad():
+            logits = grp(seq)
+        matrix = grp.calc_matrix(logits)
+        print(json.dumps(matrix.tolist()), flush=True)
 
 if __name__ == '__main__':
     try:

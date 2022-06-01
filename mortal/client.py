@@ -21,7 +21,7 @@ def main():
     dqn = DQN().to(device)
     train_player = TrainPlayer()
 
-    for i in itertools.count():
+    for _ in itertools.count():
         while True:
             with socket.socket() as conn:
                 conn.connect(remote)

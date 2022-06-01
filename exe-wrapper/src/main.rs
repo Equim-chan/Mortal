@@ -22,26 +22,27 @@ macro_rules! canonicalize {
         } else {
             $path.as_ref()
         };
-        dunce::canonicalize(p).with_context(|| {
+        #[allow(unused_variables)]
+        let $path = dunce::canonicalize(p).with_context(|| {
             format!(
                 "failed to canonicalize {}: \"{}\" (does it exist?)",
                 stringify!($path),
                 $path.display(),
             )
-        })
+        })?;
     }};
 }
 
 fn main() -> Result<()> {
     let exe = env::current_exe()?;
     let exe_dir = exe.parent().context("no parent")?;
-    let exe_dir = canonicalize!(exe_dir)?;
+    canonicalize!(exe_dir);
     let env = exe_dir.join(CONDA_ENV);
 
     let target_path = Path::new(TARGET);
     let target = target_path.file_name().context("no file name")?;
     let target_dir = target_path.parent().context("no parent")?;
-    let target_dir = canonicalize!(target_dir)?;
+    canonicalize!(target_dir);
 
     let mut paths = vec![
         env.join("bin").into_os_string(),
