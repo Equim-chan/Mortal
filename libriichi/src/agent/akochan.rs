@@ -1,6 +1,5 @@
 use super::{Agent, BatchifiedAgent, InvisibleState};
 use crate::arena::GameResult;
-use crate::chi_type::ChiType;
 use crate::mjai::{Event, EventExt, EventWithCanAct, Metadata};
 use crate::state::PlayerState;
 use std::env;
@@ -11,7 +10,7 @@ use std::path::PathBuf;
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 use std::time::{Duration, Instant};
 
-use anyhow::{bail, ensure, Context, Result};
+use anyhow::{ensure, Context, Result};
 use serde_json as json;
 
 pub struct AkochanAgent {
@@ -70,8 +69,30 @@ impl AkochanAgent {
     pub fn new_batched(player_ids: &[u8]) -> Result<BatchifiedAgent<Self>> {
         BatchifiedAgent::new(Self::new, player_ids)
     }
+}
 
-    fn react_inner(&mut self, events: &[EventExt]) -> Result<EventExt> {
+impl Drop for AkochanAgent {
+    fn drop(&mut self) {
+        if let Err(err) = self.child.kill() {
+            log::error!("failed to kill akochan: {err}");
+        }
+        if let Err(err) = self.child.wait() {
+            log::error!("failed to wait akochan: {err}");
+        }
+    }
+}
+
+impl Agent for AkochanAgent {
+    fn name(&self) -> String {
+        "akochan".to_owned()
+    }
+
+    fn react(
+        &mut self,
+        events: &[EventExt],
+        state: &PlayerState,
+        _: Option<InvisibleState>,
+    ) -> Result<EventExt> {
         // handle two-phase actions like Chi, Pon and Riichi
         if let Some(dahai) = self.naki_tx.take() {
             let last = events.last().context("events is empty")?;
@@ -123,71 +144,10 @@ impl AkochanAgent {
             event: ev,
             meta: Some(Metadata {
                 eval_time_ns: Some(eval_time_ns),
+                shanten: Some(state.shanten()),
                 ..Default::default()
             }),
         })
-    }
-}
-
-impl Drop for AkochanAgent {
-    fn drop(&mut self) {
-        if let Err(err) = self.child.kill() {
-            log::error!("failed to kill akochan: {err}");
-        }
-        if let Err(err) = self.child.wait() {
-            log::error!("failed to wait akochan: {err}");
-        }
-    }
-}
-
-impl Agent for AkochanAgent {
-    fn name(&self) -> String {
-        "akochan".to_owned()
-    }
-
-    fn react(
-        &mut self,
-        events: &[EventExt],
-        state: &PlayerState,
-        _: Option<InvisibleState>,
-    ) -> Result<EventExt> {
-        let cans = state.last_cans();
-        let ev = self.react_inner(events)?;
-
-        match ev.event {
-            Event::Dahai { pai, .. } => {
-                ensure!(cans.can_discard);
-                ensure!(state.discard_candidates()[pai.deaka().as_usize()]);
-            }
-            Event::Chi { pai, consumed, .. } => match ChiType::new(consumed, pai) {
-                ChiType::Low => ensure!(cans.can_chi_low),
-                ChiType::Mid => ensure!(cans.can_chi_mid),
-                ChiType::High => ensure!(cans.can_chi_high),
-            },
-            Event::Pon { .. } => ensure!(cans.can_pon),
-            Event::Daiminkan { .. } => ensure!(cans.can_daiminkan),
-            Event::Kakan { .. } => ensure!(cans.can_kakan),
-            Event::Ankan { .. } => ensure!(cans.can_ankan),
-            Event::Reach { .. } => ensure!(cans.can_riichi),
-            Event::Hora {
-                ref actor,
-                ref target,
-                ..
-            } => {
-                if actor == target {
-                    ensure!(cans.can_tsumo_agari);
-                } else {
-                    ensure!(cans.can_ron_agari);
-                }
-            }
-            Event::Ryukyoku { .. } => ensure!(cans.can_ryukyoku),
-            Event::None => {
-                ensure!(cans.can_chi() || cans.can_pon || cans.can_daiminkan || cans.can_ron_agari);
-            }
-            _ => bail!("unexpected response: {:?}", ev.event),
-        }
-
-        Ok(ev)
     }
 
     fn start_game(&mut self) -> Result<()> {

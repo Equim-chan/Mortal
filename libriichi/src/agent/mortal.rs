@@ -131,7 +131,7 @@ impl MortalBatchAgent {
         Ok(())
     }
 
-    fn gen_meta(&self, action_idx: usize) -> Metadata {
+    fn gen_meta(&self, state: &PlayerState, action_idx: usize) -> Metadata {
         let q_values = self.q_values[action_idx];
         let masks = self.masks_recv[action_idx];
         let is_greedy = self.is_greedy[action_idx];
@@ -152,6 +152,7 @@ impl MortalBatchAgent {
             q_values: Some(q_values_compact),
             mask_bits: Some(mask_bits),
             is_greedy: Some(is_greedy),
+            shanten: Some(state.shanten()),
             ..Default::default()
         }
     }
@@ -521,7 +522,7 @@ impl BatchAgent for MortalBatchAgent {
             _ => Event::None,
         };
 
-        let mut meta = self.gen_meta(action_idx);
+        let mut meta = self.gen_meta(state, action_idx);
         let eval_time_ns = Instant::now()
             .checked_duration_since(start)
             .unwrap_or(Duration::ZERO)
@@ -532,7 +533,7 @@ impl BatchAgent for MortalBatchAgent {
 
         meta.eval_time_ns = Some(eval_time_ns);
         meta.batch_size = Some(self.last_batch_size);
-        meta.kan_select = kan_select_idx.map(|kan_idx| Box::new(self.gen_meta(kan_idx)));
+        meta.kan_select = kan_select_idx.map(|kan_idx| Box::new(self.gen_meta(state, kan_idx)));
 
         Ok(EventExt {
             event,

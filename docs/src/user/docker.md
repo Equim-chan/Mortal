@@ -157,6 +157,7 @@ This will output a series of new-line-separated JSONs, each of which represents 
     "mask_bits": 17241923593,
     "is_greedy": true,
     "batch_size": 1,
+    "shanten": 1,
     "eval_time_ns": 30352000
   }
 }
@@ -201,6 +202,7 @@ First, there will be a `none` type action, which means Mortal would pass the 1m 
     "mask_bits": 37383395344384,
     "is_greedy": true,
     "batch_size": 1,
+    "shanten": 1,
     "eval_time_ns": 29667100
   }
 }

@@ -150,6 +150,7 @@ pub struct Metadata {
     pub is_greedy: Option<bool>,
     pub batch_size: Option<usize>,
     pub eval_time_ns: Option<u64>,
+    pub shanten: Option<i8>,
     pub kan_select: Option<Box<Metadata>>,
 }
 
