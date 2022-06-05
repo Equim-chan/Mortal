@@ -35,7 +35,6 @@
     clippy::unicode_not_nfc,
     clippy::unneeded_field_pattern,
     clippy::unnested_or_patterns,
-    clippy::unused_async,
     clippy::useless_let_if_seq,
     clippy::mut_mut,
     clippy::nonstandard_macro_braces,

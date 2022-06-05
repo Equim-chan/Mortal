@@ -297,6 +297,8 @@ impl Gameplay {
         Ok(data)
     }
 
+    // Inlined because its callsite is extremely hot.
+    #[inline(always)]
     fn extend_from_event_window(&mut self, ctx: &mut LoaderContext<'_>, wnd: &[Event; 4]) {
         let LoaderContext {
             config,

@@ -16,7 +16,7 @@ const SEP: &str = ";";
 const SEP: &str = ":";
 
 macro_rules! canonicalize {
-    ($path:ident) => {{
+    ($path:ident) => {
         let p = if $path.as_os_str().is_empty() {
             Path::new(".")
         } else {
@@ -30,7 +30,7 @@ macro_rules! canonicalize {
                 $path.display(),
             )
         })?;
-    }};
+    };
 }
 
 fn main() -> Result<()> {
