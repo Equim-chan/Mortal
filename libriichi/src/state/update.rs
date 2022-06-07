@@ -106,10 +106,10 @@ impl PlayerState {
                 // resets above.
                 self.update_rank();
                 self.add_dora_indicator(dora_marker);
-                tehais[self.player_id as usize].iter().for_each(|&t| {
+                for &t in &tehais[self.player_id as usize] {
                     self.witness_tile(t);
                     self.move_tile(t, MoveType::Tsumo);
-                });
+                }
                 self.update_shanten();
                 self.update_waits_and_furiten();
                 self.pad_kawa_at_start();

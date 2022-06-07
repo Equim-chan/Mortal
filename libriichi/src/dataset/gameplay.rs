@@ -287,9 +287,9 @@ impl Gameplay {
 
         // It is guaranteed that there are at least 4 events.
         // tsumo/dahai -> ryukyoku/hora -> end kyoku -> end game
-        events
-            .windows(4)
-            .for_each(|wnd| data.extend_from_event_window(&mut ctx, wnd.try_into().unwrap()));
+        for wnd in events.windows(4) {
+            data.extend_from_event_window(&mut ctx, wnd.try_into().unwrap());
+        }
 
         data.dones = data.at_kyoku.windows(2).map(|w| w[1] > w[0]).collect();
         data.dones.push(true);

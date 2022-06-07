@@ -164,12 +164,7 @@ impl BoardState {
                     return Ok(poll);
                 }
             };
-            reactions = [
-                EventExt::default(),
-                EventExt::default(),
-                EventExt::default(),
-                EventExt::default(),
-            ];
+            reactions = Default::default();
         }
     }
 
@@ -211,9 +206,9 @@ impl BoardState {
 
     #[inline]
     fn broadcast(&mut self, ev: &Event) {
-        self.player_states.iter_mut().for_each(|s| {
+        for s in &mut self.player_states {
             s.update(ev);
-        });
+        }
     }
 
     fn haipai(&mut self) -> Result<()> {
@@ -534,7 +529,7 @@ impl BoardState {
         }
 
         // Validate reactions
-        reactions.iter().enumerate().try_for_each(|(actor, ev)| {
+        for (actor, ev) in reactions.iter().enumerate() {
             self.player_states[actor]
                 .validate_reaction(&ev.event)
                 .with_context(|| {
@@ -542,8 +537,8 @@ impl BoardState {
                         "invalid action: {ev:?}\nstate:\n{}",
                         self.player_states[actor].brief_info(),
                     )
-                })
-        })?;
+                })?;
+        }
 
         let ev = reactions
             .iter()

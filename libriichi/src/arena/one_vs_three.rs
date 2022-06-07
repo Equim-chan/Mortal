@@ -58,10 +58,10 @@ impl OneVsThree {
             )?;
 
             let mut rankings = [0; 4];
-            results.iter().enumerate().for_each(|(i, result)| {
+            for (i, result) in results.iter().enumerate() {
                 let rank = result.rankings().rank_by_player[i % 4];
                 rankings[rank as usize] += 1;
-            });
+            }
             Ok(rankings)
         })
     }
@@ -84,10 +84,10 @@ impl OneVsThree {
             )?;
 
             let mut rankings = [0; 4];
-            results.iter().enumerate().for_each(|(i, result)| {
+            for (i, result) in results.iter().enumerate() {
                 let rank = result.rankings().rank_by_player[i % 4];
                 rankings[rank as usize] += 1;
-            });
+            }
             Ok(rankings)
         })
     }
@@ -110,10 +110,10 @@ impl OneVsThree {
             )?;
 
             let mut rankings = [0; 4];
-            results.iter().enumerate().for_each(|(i, result)| {
+            for (i, result) in results.iter().enumerate() {
                 let rank = result.rankings().rank_by_player[i % 4];
                 rankings[rank as usize] += 1;
-            });
+            }
             Ok(rankings)
         })
     }

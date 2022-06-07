@@ -289,9 +289,9 @@ impl PlayerState {
         // Calculate the max theoretical score we can achieve through this agari.
         let max_win_point = if self.riichi_accepted[0] {
             let mut tehai_full = self.arrs.tehai;
-            self.ankan_overview[0]
-                .iter()
-                .for_each(|t| tehai_full[t.as_usize()] += 4);
+            for t in &self.ankan_overview[0] {
+                tehai_full[t.as_usize()] += 4;
+            }
 
             let mut tehai_ordered_by_count: Vec<_> = tehai_full
                 .iter()

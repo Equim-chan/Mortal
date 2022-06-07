@@ -133,11 +133,9 @@ impl Grp {
                         }
 
                         let mut rank_by_player = [0; 4];
-                        player_by_rank.into_iter().enumerate().for_each(
-                            |(rank, (player_id, _))| {
-                                rank_by_player[player_id] = rank as u8;
-                            },
-                        );
+                        for (rank, (player_id, _)) in player_by_rank.into_iter().enumerate() {
+                            rank_by_player[player_id] = rank as u8;
+                        }
                         rank_by_player_opt = Some(rank_by_player);
                     }
 

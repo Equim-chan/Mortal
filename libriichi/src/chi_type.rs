@@ -8,7 +8,6 @@ pub enum ChiType {
 }
 
 impl ChiType {
-    #[inline]
     #[must_use]
     pub fn new(consumed: [Tile; 2], tile: Tile) -> Self {
         let a = consumed[0].deaka().as_u8();

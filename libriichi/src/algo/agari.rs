@@ -519,17 +519,17 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
         let mut is_chinitsu_or_honitsu = true;
         let iter_fn = |&m: &u8| {
             let kind = m / 9;
-            if kind < 3 {
-                if let Some(prev_kind) = isou_kind {
-                    if prev_kind != kind {
-                        is_chinitsu_or_honitsu = false;
-                        return false;
-                    }
-                } else {
-                    isou_kind = Some(kind);
+            if kind >= 3 {
+                has_jihai = true;
+                return true;
+            }
+            if let Some(prev_kind) = isou_kind {
+                if prev_kind != kind {
+                    is_chinitsu_or_honitsu = false;
+                    return false;
                 }
             } else {
-                has_jihai = true;
+                isou_kind = Some(kind);
             }
             true
         };
@@ -755,8 +755,8 @@ fn get_tile14_and_key(tiles: &[u8; 34]) -> ([u8; 14], u32) {
     let mut tile14_idx = 0;
     let mut bit_idx = -1;
     let mut prev_in_hand = false;
-    tiles.chunks_exact(9).enumerate().for_each(|(kind, chunk)| {
-        chunk.iter().enumerate().for_each(|(num, &c)| {
+    for (kind, chunk) in tiles.chunks_exact(9).enumerate() {
+        for (num, &c) in chunk.iter().enumerate() {
             if c > 0 {
                 prev_in_hand = true;
                 tile14[tile14_idx] = (kind * 9 + num) as u8;
@@ -784,13 +784,13 @@ fn get_tile14_and_key(tiles: &[u8; 34]) -> ([u8; 14], u32) {
                 bit_idx += 1;
                 prev_in_hand = false;
             }
-        });
+        }
         if prev_in_hand {
             key |= 0b1 << bit_idx;
             bit_idx += 1;
             prev_in_hand = false;
         }
-    });
+    }
 
     tiles
         .iter()

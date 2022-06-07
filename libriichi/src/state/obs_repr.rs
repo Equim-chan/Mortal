@@ -2,7 +2,6 @@ use super::PlayerState;
 use crate::consts::{ACTION_SPACE, OBS_SHAPE};
 use crate::state::item::KawaItem;
 use crate::{tu8, tuz};
-use std::iter;
 
 use ndarray::prelude::*;
 use numpy::{PyArray1, PyArray2};
@@ -46,18 +45,18 @@ impl PlayerState {
         idx += 4;
 
         self.akas_in_hand
-            .iter()
+            .into_iter()
             .enumerate()
-            .filter(|(_, &has_it)| has_it)
+            .filter(|&(_, has_it)| has_it)
             .for_each(|(i, _)| {
                 arr.slice_mut(s![idx + i, ..]).fill(1.);
             });
         idx += 3;
 
-        self.scores.iter().enumerate().for_each(|(i, &score)| {
+        for (i, &score) in self.scores.iter().enumerate() {
             let v = score.clamp(0, 100_000) as f32 / 100_000.;
             arr.slice_mut(s![idx + i, ..]).fill(v);
-        });
+        }
         idx += 4;
 
         let i = self.rank as usize;
@@ -80,7 +79,7 @@ impl PlayerState {
         arr[[idx + 1, self.jikaze.as_usize()]] = 1.;
         idx += 2;
 
-        self.dora_indicators.iter().for_each(|tile| {
+        for tile in self.dora_indicators {
             let tile_id = tile.deaka().as_usize();
             let i = (0..4).find(|&i| arr[[idx + i, tile_id]] == 0.).unwrap();
             arr[[idx + i, tile_id]] = 1.;
@@ -88,16 +87,16 @@ impl PlayerState {
                 let i = tile.as_usize() - 34;
                 arr.slice_mut(s![idx + 4 + i, ..]).fill(1.);
             }
-        });
+        }
         idx += 7;
 
         let mut encode_my_kawa = |idx: usize, k: &KawaItem| {
-            k.kan.iter().for_each(|kan| {
+            for kan in k.kan {
                 // deaka is required, it is possible for it to be an aka
                 // (for example in Daiminkan and Kakan).
                 let tile_id = kan.deaka().as_usize();
                 arr[[idx, tile_id]] = 1.;
-            });
+            }
 
             let sutehai = &k.sutehai;
             let tile_id = sutehai.tile.deaka().as_usize();
@@ -141,63 +140,62 @@ impl PlayerState {
                 arr[[idx + 1, max]] = 1.;
             }
 
-            k.kan.iter().for_each(|kan| {
+            for kan in k.kan {
                 let tile_id = kan.deaka().as_usize();
                 arr[[idx + 2, tile_id]] = 1.;
-            });
+            }
 
-            let sutehai = &k.sutehai;
-            let tile_id = sutehai.tile.deaka().as_usize();
+            let tile_id = k.sutehai.tile.deaka().as_usize();
             arr[[idx + 3, tile_id]] = 1.;
-            if sutehai.tile.is_aka() {
+            if k.sutehai.tile.is_aka() {
                 arr.slice_mut(s![idx + 4, ..]).fill(1.);
             }
-            if sutehai.is_dora {
+            if k.sutehai.is_dora {
                 arr.slice_mut(s![idx + 5, ..]).fill(1.);
             }
-            if sutehai.is_tedashi {
+            if k.sutehai.is_tedashi {
                 arr.slice_mut(s![idx + 6, ..]).fill(1.);
             }
-            if sutehai.is_riichi {
+            if k.sutehai.is_riichi {
                 arr.slice_mut(s![idx + 7, ..]).fill(1.);
             }
         };
 
-        self.kawa[1..].iter().for_each(|player_kawa| {
-            player_kawa.iter().take(6).for_each(|kawa_item| {
+        for player_kawa in &self.kawa[1..] {
+            for kawa_item in player_kawa.iter().take(6) {
                 if let Some(k) = kawa_item {
                     encode_kawa(idx, k);
                 }
                 idx += 8;
-            });
+            }
             idx += (6 - player_kawa.len().min(6)) * 8;
 
-            player_kawa.iter().rev().take(18).for_each(|kawa_item| {
+            for kawa_item in player_kawa.iter().rev().take(18) {
                 if let Some(k) = kawa_item {
                     encode_kawa(idx, k);
                 }
                 idx += 8;
-            });
+            }
             idx += (18 - player_kawa.len().min(18)) * 8;
-        });
+        }
 
         let v = self.tiles_left as f32 / 69.;
         arr.slice_mut(s![idx, ..]).fill(v);
         idx += 1;
 
-        self.doras_owned.iter().for_each(|&count| {
+        for count in self.doras_owned {
             let n = count.min(12) as usize;
             arr.slice_mut(s![idx..idx + n, ..]).fill(1.);
             idx += 12;
-        });
+        }
 
         let doras_unseen = self.dora_indicators.len() as u8 * 4 + 3 - self.doras_seen;
         let n = doras_unseen.min(5 * 4 + 3) as usize;
         arr.slice_mut(s![idx..idx + n, ..]).fill(1.);
         idx += 5 * 4 + 3;
 
-        self.kawa_overview.iter().for_each(|player_kawa_overview| {
-            player_kawa_overview.iter().for_each(|tile| {
+        for player_kawa_overview in &self.kawa_overview {
+            for tile in player_kawa_overview {
                 let tile_id = tile.deaka().as_usize();
                 let i = (0..4).find(|&i| arr[[idx + i, tile_id]] == 0.).unwrap();
                 arr[[idx + i, tile_id]] = 1.;
@@ -205,49 +203,44 @@ impl PlayerState {
                     let i = tile.as_usize() - 34;
                     arr.slice_mut(s![idx + 4 + i, ..]).fill(1.);
                 }
-            });
+            }
             idx += 7;
-        });
+        }
 
-        self.fuuro_overview.iter().for_each(|player_fuuro| {
-            player_fuuro
-                .iter()
-                .chain(iter::repeat(&Default::default()))
-                .take(4)
-                .for_each(|f| {
-                    f.iter().for_each(|tile| {
-                        let tile_id = tile.deaka().as_usize();
-                        let i = (0..4).find(|&i| arr[[idx + i, tile_id]] == 0.).unwrap();
-                        arr[[idx + i, tile_id]] = 1.;
-                        // It is not possible to have more than one aka in a
-                        // fuuro set, at least in tenhou rule, so we simply use
-                        // one channel here.
-                        if tile.is_aka() {
-                            arr.slice_mut(s![idx + 4, ..]).fill(1.);
-                        }
-                    });
-                    idx += 5;
-                });
-        });
+        for player_fuuro in &self.fuuro_overview {
+            for f in player_fuuro {
+                for tile in f {
+                    let tile_id = tile.deaka().as_usize();
+                    let i = (0..4).find(|&i| arr[[idx + i, tile_id]] == 0.).unwrap();
+                    arr[[idx + i, tile_id]] = 1.;
+                    // It is not possible to have more than one aka in a
+                    // fuuro set, at least in tenhou rule, so we simply use
+                    // one channel here.
+                    if tile.is_aka() {
+                        arr.slice_mut(s![idx + 4, ..]).fill(1.);
+                    }
+                }
+                idx += 5;
+            }
+            idx += (4 - player_fuuro.len()) * 5;
+        }
 
-        self.ankan_overview.iter().for_each(|player_ankan| {
-            player_ankan.iter().for_each(|&tile| {
+        for player_ankan in &self.ankan_overview {
+            for tile in player_ankan {
                 let tile_id = tile.as_usize();
                 arr[[idx, tile_id]] = 1.;
-            });
+            }
             idx += 1;
-        });
+        }
 
-        self.riichi_declared
+        self.riichi_declared[1..]
             .iter()
-            .skip(1)
             .enumerate()
             .filter(|(_, &b)| b)
             .for_each(|(i, _)| arr.slice_mut(s![idx + i, ..]).fill(1.));
         idx += 3;
-        self.riichi_accepted
+        self.riichi_accepted[1..]
             .iter()
-            .skip(1)
             .enumerate()
             .filter(|(_, &b)| b)
             .for_each(|(i, _)| arr.slice_mut(s![idx + i, ..]).fill(1.));
@@ -334,28 +327,6 @@ impl PlayerState {
                 .filter(|(_, &c)| c)
                 .for_each(|(t, _)| arr[[idx + 2, t]] = 1.);
 
-            // if self.shanten <= 2 {
-            // let evs = self.tree_search(1);
-            // evs.iter()
-            //     .enumerate()
-            //     .for_each(|(t, ev)| arr[[idx + 3, t]] = ev / 100.);
-            // let mut evs: Vec<_> = self
-            //     .tree_search(1)
-            //     .into_iter()
-            //     .enumerate()
-            //     .filter(|(_, v)| *v > 0.)
-            //     .collect();
-            // evs.sort_unstable_by(|(_, l), (_, r)| r.partial_cmp(l).unwrap());
-            // if let Some((tid, _)) = evs.get(0).copied() {
-            //     arr[[idx + 4, tid as usize]] = 1.;
-            // }
-            // if let Some((tid, _)) = evs.get(1).copied() {
-            //     arr[[idx + 5, tid as usize]] = 1.;
-            // }
-            // if let Some((tid, _)) = evs.get(2).copied() {
-            //     arr[[idx + 6, tid as usize]] = 1.;
-            // }
-
             if self.shanten <= 1 {
                 self.discard_candidates_with_unconditional_tenpai()
                     .iter()
@@ -363,7 +334,6 @@ impl PlayerState {
                     .filter(|(_, &c)| c)
                     .for_each(|(t, _)| arr[[idx + 3, t]] = 1.);
             }
-            // }
 
             if self.riichi_declared[0] {
                 arr.slice_mut(s![idx + 4, ..]).fill(1.);
@@ -416,12 +386,12 @@ impl PlayerState {
         idx += 1;
 
         if cans.can_ankan {
-            self.ankan_candidates.iter().for_each(|tile| {
+            for tile in self.ankan_candidates {
                 arr[[idx, tile.as_usize()]] = 1.;
                 if at_kan_select {
                     mask[tile.as_usize()] = true;
                 }
-            });
+            }
             if !at_kan_select {
                 mask[42] = true;
             }
@@ -429,12 +399,12 @@ impl PlayerState {
         idx += 1;
 
         if cans.can_kakan {
-            self.kakan_candidates.iter().for_each(|tile| {
+            for tile in self.kakan_candidates {
                 arr[[idx, tile.as_usize()]] = 1.;
                 if at_kan_select {
                     mask[tile.as_usize()] = true;
                 }
-            });
+            }
             if !at_kan_select {
                 mask[42] = true;
             }

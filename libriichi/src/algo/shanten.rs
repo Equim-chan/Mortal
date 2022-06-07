@@ -31,13 +31,13 @@ fn read_table(gzipped: &[u8], length: usize) -> Vec<[u8; 10]> {
 
     let mut ret = Vec::with_capacity(length);
     let mut entry = [0; 10];
-    raw.into_iter().enumerate().for_each(|(i, b)| {
+    for (i, b) in raw.into_iter().enumerate() {
         entry[i * 2 % 10] = b & 0b1111;
         entry[i * 2 % 10 + 1] = (b >> 4) & 0b1111;
         if (i + 1) % 5 == 0 {
             ret.push(entry);
         }
-    });
+    }
     assert_eq!(ret.len(), length);
 
     ret

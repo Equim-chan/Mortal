@@ -204,29 +204,29 @@ impl Invisible {
             }
         };
 
-        self.yama[yama_idx..].iter().for_each(|&tile| {
+        for &tile in &self.yama[yama_idx..] {
             encode_tile(idx, tile);
             idx += 2;
-        });
+        }
         // In real life case `self.yama[yama_idx..]` is at most 69 (`yama_idx`
         // is always >= 1), because the dealer always unconditionally deals the
         // first tile from yama. Therefore we do the minus one here.
         idx += (yama_idx - 1) * 2;
 
-        self.rinshan[rinshan_idx..].iter().for_each(|&tile| {
+        for &tile in &self.rinshan[rinshan_idx..] {
             encode_tile(idx, tile);
             idx += 2;
-        });
+        }
         idx += rinshan_idx * 2;
 
-        self.dora_indicators.iter().for_each(|&tile| {
+        for &tile in &self.dora_indicators {
             encode_tile(idx, tile);
             idx += 2;
-        });
-        self.ura_indicators.iter().for_each(|&tile| {
+        }
+        for &tile in &self.ura_indicators {
             encode_tile(idx, tile);
             idx += 2;
-        });
+        }
 
         assert_eq!(idx, ORACLE_OBS_SHAPE.0);
         arr

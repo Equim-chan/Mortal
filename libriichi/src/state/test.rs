@@ -11,26 +11,26 @@ fn waits() {
     ps.tehai_len_div3 = 4;
     ps.update_waits_and_furiten();
     let expected = t![6p, 9p, C];
-    ps.arrs.waits.iter().enumerate().for_each(|(idx, &b)| {
+    for (idx, &b) in ps.arrs.waits.iter().enumerate() {
         if expected.contains(&must_tile!(idx)) {
             assert!(b);
         } else {
             assert!(!b);
         }
-    });
+    }
 
     let mut ps = PlayerState::default();
     ps.arrs.tehai = hand("2344445666678s").unwrap();
     ps.tehai_len_div3 = 4;
     ps.update_waits_and_furiten();
     let expected = t![1s, 2s, 3s, 5s, 7s, 8s, 9s];
-    ps.arrs.waits.iter().enumerate().for_each(|(idx, &b)| {
+    for (idx, &b) in ps.arrs.waits.iter().enumerate() {
         if expected.contains(&must_tile!(idx)) {
             assert!(b);
         } else {
             assert!(!b);
         }
-    });
+    }
 }
 
 #[test]
@@ -584,9 +584,9 @@ fn rule_based_agari_all_last_minogashi() {
     "#.trim().split('\n');
 
     let mut ps = PlayerState::new(1);
-    events.for_each(|ev| {
+    for ev in events {
         ps.update_json(ev).unwrap();
-    });
+    }
 
     assert!(ps.last_cans.can_tsumo_agari);
     let should_hora = ps.rule_based_agari();
@@ -706,9 +706,9 @@ fn kakan_from_hand() {
     "#.trim().split('\n');
 
     let mut ps = PlayerState::new(1);
-    events.for_each(|ev| {
+    for ev in events {
         ps.update_json(ev).unwrap();
-    });
+    }
 
     assert!(ps.last_cans.can_tsumo_agari);
 }
@@ -854,9 +854,9 @@ fn discard_candidates_with_unconditional_tenpai() {
         {"type":"tsumo","actor":1,"pai":"3s"}
     "#.trim().split('\n');
     let mut ps = PlayerState::new(1);
-    events.for_each(|ev| {
+    for ev in events {
         ps.update_json(ev).unwrap();
-    });
+    }
 
     let expected = t![7p, 8p];
     ps.discard_candidates_with_unconditional_tenpai()
@@ -1015,18 +1015,18 @@ fn discard_candidates_with_unconditional_tenpai() {
         {"type":"tsumo","actor":1,"pai":"6s"}
     "#.trim().split('\n');
     let mut ps = PlayerState::new(1);
-    events.for_each(|ev| {
+    for ev in events {
         ps.update_json(ev).unwrap();
-    });
+    }
 
     let expected = t![5p, 8p];
-    ps.arrs.waits.iter().enumerate().for_each(|(idx, &b)| {
+    for (idx, &b) in ps.arrs.waits.iter().enumerate() {
         if expected.contains(&must_tile!(idx)) {
             assert!(b);
         } else {
             assert!(!b);
         }
-    });
+    }
 
     let discard_candidates = ps.discard_candidates_with_unconditional_tenpai();
     assert_eq!(discard_candidates, [false; 34]);
@@ -1189,9 +1189,9 @@ fn double_chankan_ron() {
     "#.trim().split('\n');
 
     let mut ps = PlayerState::new(2);
-    events.for_each(|ev| {
+    for ev in events {
         ps.update_json(ev).unwrap();
-    });
+    }
 
     let mut ps_kakan = ps.clone();
     let cans = ps_kakan

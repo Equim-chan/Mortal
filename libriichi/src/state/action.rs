@@ -193,7 +193,7 @@ impl PlayerState {
     }
 
     fn ensure_tiles_in_hand(&self, tiles: &[Tile]) -> Result<()> {
-        tiles.iter().try_for_each(|&tile| {
+        for &tile in tiles {
             ensure!(
                 self.arrs.tehai[tile.deaka().as_usize()] > 0,
                 "{tile} is not in hand",
@@ -204,7 +204,7 @@ impl PlayerState {
                     "{tile} is not in hand",
                 );
             }
-            Ok(())
-        })
+        }
+        Ok(())
     }
 }
