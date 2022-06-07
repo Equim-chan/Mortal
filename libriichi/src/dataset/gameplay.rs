@@ -445,8 +445,8 @@ impl Gameplay {
         }
     }
 
-    fn add_entry(&mut self, ctx: &LoaderContext<'_>, at_kan: bool, label: usize) {
-        let (feature, mask) = ctx.state.encode_obs(at_kan);
+    fn add_entry(&mut self, ctx: &LoaderContext<'_>, at_kan_select: bool, label: usize) {
+        let (feature, mask) = ctx.state.encode_obs(at_kan_select);
         self.obs.push(feature);
         self.actions.push(label as i64);
         self.masks.push(mask);

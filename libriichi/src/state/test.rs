@@ -1,8 +1,23 @@
-use super::PlayerState;
+use super::{ActionCandidate, PlayerState};
 use crate::hand::{hand, hand_with_aka, tile37_to_vec};
 use crate::mjai::Event;
 use crate::{must_tile, t, tuz};
 use std::convert::TryInto;
+
+// This is not only a helper but it also tests `encode_obs`.
+fn state_from_log(player_id: u8, log: &str) -> PlayerState {
+    let mut ps = PlayerState::new(player_id);
+    for line in log.trim().split('\n') {
+        let cans = ps.update_json(line).unwrap();
+        if cans.can_act() {
+            let _encoded = ps.encode_obs(false);
+            if cans.can_daiminkan || cans.can_kakan || cans.can_ankan {
+                let _encoded = ps.encode_obs(true);
+            }
+        }
+    }
+    ps
+}
 
 #[test]
 fn waits() {
@@ -38,108 +53,119 @@ fn can_chi() {
     let mut ps = PlayerState::new(0);
     ps.arrs.tehai = hand("1111234m").unwrap();
     ps.set_can_chi_from_tile(t!(1m));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (false, false, false),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: false,
+            can_chi_mid: false,
+            can_chi_low: false,
+            ..
+        },
+    ));
     ps.set_can_chi_from_tile(t!(4m));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (false, false, false),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: false,
+            can_chi_mid: false,
+            can_chi_low: false,
+            ..
+        },
+    ));
     ps.set_can_chi_from_tile(t!(2m));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (false, true, true),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: false,
+            can_chi_mid: true,
+            can_chi_low: true,
+            ..
+        },
+    ));
 
     ps.arrs.tehai = hand("6666789999p").unwrap();
     ps.set_can_chi_from_tile(t!(5p));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (false, false, true),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: false,
+            can_chi_mid: false,
+            can_chi_low: true,
+            ..
+        },
+    ));
     ps.set_can_chi_from_tile(t!(7p));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (false, true, true),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: false,
+            can_chi_mid: true,
+            can_chi_low: true,
+            ..
+        },
+    ));
     ps.set_can_chi_from_tile(t!(8p));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (true, true, false),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: true,
+            can_chi_mid: true,
+            can_chi_low: false,
+            ..
+        },
+    ));
 
     ps.arrs.tehai = hand("4556s").unwrap();
     ps.set_can_chi_from_tile(t!(3s));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (false, false, true),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: false,
+            can_chi_mid: false,
+            can_chi_low: true,
+            ..
+        },
+    ));
     ps.set_can_chi_from_tile(t!(4s));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (false, false, true),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: false,
+            can_chi_mid: false,
+            can_chi_low: true,
+            ..
+        },
+    ));
     ps.set_can_chi_from_tile(t!(5s));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (false, false, false),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: false,
+            can_chi_mid: false,
+            can_chi_low: false,
+            ..
+        },
+    ));
     ps.set_can_chi_from_tile(t!(6s));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (true, false, false),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: true,
+            can_chi_mid: false,
+            can_chi_low: false,
+            ..
+        },
+    ));
     ps.set_can_chi_from_tile(t!(7s));
-    assert_eq!(
-        (
-            ps.last_cans.can_chi_high,
-            ps.last_cans.can_chi_mid,
-            ps.last_cans.can_chi_low
-        ),
-        (true, false, false),
-    );
+    assert!(matches!(
+        ps.last_cans,
+        ActionCandidate {
+            can_chi_high: true,
+            can_chi_mid: false,
+            can_chi_low: false,
+            ..
+        },
+    ));
 }
 
 #[test]
@@ -502,7 +528,7 @@ fn dora_count_after_kan() {
 
 #[test]
 fn rule_based_agari_all_last_minogashi() {
-    let events = r#"
+    let log = r#"
         {"type":"start_kyoku","bakaze":"S","dora_marker":"5m","kyoku":4,"honba":0,"kyotaku":0,"oya":3,"scores":[35300,3000,38400,23300],"tehais":[["4m","5mr","8m","1p","3p","3p","5p","2s","5sr","9s","W","P","P"],["2m","3m","5m","7m","7p","9p","4s","5s","5s","6s","7s","7s","E"],["3m","5m","6m","2p","6p","9p","1s","5s","8s","9s","S","S","C"],["1m","4m","3p","4p","5pr","7p","1s","2s","7s","8s","W","N","P"]]}
         {"type":"tsumo","actor":3,"pai":"F"}
         {"type":"dahai","actor":3,"pai":"1m","tsumogiri":false}
@@ -581,12 +607,8 @@ fn rule_based_agari_all_last_minogashi() {
         {"type":"tsumo","actor":0,"pai":"2s"}
         {"type":"dahai","actor":0,"pai":"2s","tsumogiri":true}
         {"type":"tsumo","actor":1,"pai":"8p"}
-    "#.trim().split('\n');
-
-    let mut ps = PlayerState::new(1);
-    for ev in events {
-        ps.update_json(ev).unwrap();
-    }
+    "#;
+    let mut ps = state_from_log(1, log);
 
     assert!(ps.last_cans.can_tsumo_agari);
     let should_hora = ps.rule_based_agari();
@@ -626,7 +648,7 @@ fn get_rank() {
 
 #[test]
 fn kakan_from_hand() {
-    let events = r#"
+    let log = r#"
         {"type":"start_kyoku","bakaze":"S","dora_marker":"6m","kyoku":2,"honba":0,"kyotaku":0,"oya":1,"scores":[16100,36600,16800,30500],"tehais":[["5p","5s","1s","9m","9m","W","E","N","1p","F","9m","3p","6p"],["4s","9s","S","4s","1m","P","N","7s","F","2m","3s","2s","2s"],["6m","8p","8p","2p","8m","N","7p","C","1s","2p","N","9s","9p"],["2m","6s","7p","9s","2m","9s","6m","7s","8m","3m","S","5mr","C"]]}
         {"type":"tsumo","actor":1,"pai":"S"}
         {"type":"dahai","actor":1,"pai":"N","tsumogiri":false}
@@ -703,19 +725,15 @@ fn kakan_from_hand() {
         {"type":"tsumo","actor":1,"pai":"8s"}
         {"type":"kakan","actor":1,"pai":"S","consumed":["S","S","S"]}
         {"type":"tsumo","actor":1,"pai":"4s"}
-    "#.trim().split('\n');
-
-    let mut ps = PlayerState::new(1);
-    for ev in events {
-        ps.update_json(ev).unwrap();
-    }
+    "#;
+    let ps = state_from_log(1, log);
 
     assert!(ps.last_cans.can_tsumo_agari);
 }
 
 #[test]
 fn discard_candidates_with_unconditional_tenpai() {
-    let events = r#"
+    let log = r#"
         {"type":"start_kyoku","bakaze":"S","dora_marker":"2s","kyoku":3,"honba":0,"kyotaku":0,"oya":2,"scores":[25600,15600,21200,37600],"tehais":[["3m","3m","1p","6p","7p","9p","5sr","7s","8s","8s","E","E","W"],["4m","5mr","6m","1p","4p","5p","8p","3s","3s","4s","5s","S","P"],["1m","5m","7m","2p","9p","3s","5s","9s","S","W","N","P","C"],["1m","4m","6m","2p","3p","4p","6p","9p","2s","4s","7s","S","N"]]}
         {"type":"tsumo","actor":2,"pai":"C"}
         {"type":"dahai","actor":2,"pai":"N","tsumogiri":false}
@@ -852,11 +870,8 @@ fn discard_candidates_with_unconditional_tenpai() {
         {"type":"tsumo","actor":0,"pai":"N"}
         {"type":"dahai","actor":0,"pai":"N","tsumogiri":true}
         {"type":"tsumo","actor":1,"pai":"3s"}
-    "#.trim().split('\n');
-    let mut ps = PlayerState::new(1);
-    for ev in events {
-        ps.update_json(ev).unwrap();
-    }
+    "#;
+    let ps = state_from_log(1, log);
 
     let expected = t![7p, 8p];
     ps.discard_candidates_with_unconditional_tenpai()
@@ -870,7 +885,7 @@ fn discard_candidates_with_unconditional_tenpai() {
             }
         });
 
-    let events = r#"
+    let log = r#"
         {"type":"start_kyoku","bakaze":"E","dora_marker":"2p","kyoku":4,"honba":0,"kyotaku":0,"oya":3,"scores":[25000,20100,24000,30900],"tehais":[["1m","1m","4m","5m","5m","1p","4p","6p","7p","4s","5s","6s","S"],["5m","6p","7p","2s","3s","4s","4s","5s","7s","9s","S","C","C"],["2m","3m","6m","7m","9m","9m","1p","6p","1s","6s","9s","P","P"],["5mr","6m","8m","8m","2p","5p","7p","8p","9p","3s","9s","W","N"]]}
         {"type":"tsumo","actor":3,"pai":"C"}
         {"type":"dahai","actor":3,"pai":"9s","tsumogiri":false}
@@ -1013,11 +1028,8 @@ fn discard_candidates_with_unconditional_tenpai() {
         {"type":"tsumo","actor":0,"pai":"1s"}
         {"type":"dahai","actor":0,"pai":"1s","tsumogiri":true}
         {"type":"tsumo","actor":1,"pai":"6s"}
-    "#.trim().split('\n');
-    let mut ps = PlayerState::new(1);
-    for ev in events {
-        ps.update_json(ev).unwrap();
-    }
+    "#;
+    let ps = state_from_log(1, log);
 
     let expected = t![5p, 8p];
     for (idx, &b) in ps.arrs.waits.iter().enumerate() {
@@ -1034,7 +1046,7 @@ fn discard_candidates_with_unconditional_tenpai() {
 
 #[test]
 fn double_chankan_ron() {
-    let events = r#"
+    let log = r#"
         {"type":"start_kyoku","bakaze":"S","dora_marker":"2p","kyoku":2,"honba":0,"kyotaku":0,"oya":1,"scores":[44400,1600,25700,28300],"tehais":[["1m","5m","9m","9m","9m","3p","9p","8s","9s","W","W","N","C"],["7m","8m","3p","6p","8p","1s","1s","3s","6s","9s","E","F","C"],["3m","9m","2p","5p","8p","1s","2s","5s","6s","7s","S","F","C"],["2m","2m","5m","5mr","8m","1p","1p","7p","8p","3s","5s","8s","9s"]]}
         {"type":"tsumo","actor":1,"pai":"P"}
         {"type":"dahai","actor":1,"pai":"F","tsumogiri":false}
@@ -1186,12 +1198,8 @@ fn double_chankan_ron() {
         {"type":"tsumo","actor":2,"pai":"3s"}
         {"type":"dahai","actor":2,"pai":"3s","tsumogiri":true}
         {"type":"tsumo","actor":3,"pai":"2m"}
-    "#.trim().split('\n');
-
-    let mut ps = PlayerState::new(2);
-    for ev in events {
-        ps.update_json(ev).unwrap();
-    }
+    "#;
+    let mut ps = state_from_log(2, log);
 
     let mut ps_kakan = ps.clone();
     let cans = ps_kakan

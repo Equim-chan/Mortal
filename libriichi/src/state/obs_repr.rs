@@ -127,9 +127,8 @@ impl PlayerState {
 
         let mut encode_kawa = |idx: usize, k: &KawaItem| {
             if let Some(cp) = &k.chi_pon {
-                // Aka info of the chi/pon is not encoded in the
-                // kawa detail; they are included in fuuro_overview
-                // instead.
+                // Aka info of the chi/pon is not encoded in the kawa detail;
+                // they are included in fuuro_overview instead.
                 //
                 // This is one-hot.
                 let a = cp.consumed[0].deaka().as_usize();
@@ -213,9 +212,9 @@ impl PlayerState {
                     let tile_id = tile.deaka().as_usize();
                     let i = (0..4).find(|&i| arr[[idx + i, tile_id]] == 0.).unwrap();
                     arr[[idx + i, tile_id]] = 1.;
-                    // It is not possible to have more than one aka in a
-                    // fuuro set, at least in tenhou rule, so we simply use
-                    // one channel here.
+                    // It is not possible to have more than one aka in a fuuro
+                    // set, at least in tenhou rule, so we simply use one
+                    // channel here.
                     if tile.is_aka() {
                         arr.slice_mut(s![idx + 4, ..]).fill(1.);
                     }
