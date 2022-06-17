@@ -41,6 +41,9 @@ features = [
     "anyhow",
 ]
 
+[build-dependencies]
+pyo3-build-config = "0.16"
+
 [dev-dependencies]
 criterion = { version = "0.3", features = ["html_reports"] }
 
