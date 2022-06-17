@@ -61,7 +61,7 @@ class FileDatasetsIter(IterableDataset):
             player_id = game.take_player_id()
             game_size = len(obs)
 
-            if quality < self.quality_threshold:
+            if int(quality) < self.quality_threshold:
                 continue
 
             grp_feature = grp.take_feature()

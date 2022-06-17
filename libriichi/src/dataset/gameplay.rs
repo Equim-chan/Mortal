@@ -59,9 +59,9 @@ pub struct Gameplay {
     pub quality: Quality,
 }
 
+#[pyclass]
 #[derive(Clone, Copy, Derivative)]
 #[derivative(Default)]
-#[repr(u8)]
 pub enum Quality {
     LastPlace,
     #[derivative(Default)]
@@ -231,8 +231,8 @@ impl Gameplay {
         self.player_id
     }
     #[pyo3(text_signature = "($self, /)")]
-    const fn take_quality(&self) -> u8 {
-        self.quality as u8
+    const fn take_quality(&self) -> Quality {
+        self.quality
     }
 }
 
