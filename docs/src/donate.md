@@ -1,4 +1,4 @@
-# Donate
+# Donate❤️
 Writing the code and training the model has cost me far more than I anticipated for a hobby. I would appreciate it if you could make a donation to me.
 
 ## Cryptocurrencies
