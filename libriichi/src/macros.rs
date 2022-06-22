@@ -130,6 +130,10 @@ macro_rules! tu8 {
     ($first:tt, $($left:tt),*) => {
         [$crate::tu8!($first), $($crate::tu8!($left)),*]
     };
+
+    ($($_:tt)*) => {
+        ::std::compile_error!("invalid tile pattern");
+    }
 }
 
 /// Used for making const tile IDs in usize.
