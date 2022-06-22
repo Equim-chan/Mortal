@@ -29,10 +29,9 @@ macro_rules! canonicalize {
 }
 
 fn main() -> Result<()> {
-    // This crate is designed for windows only, but CI runners are in linux, so I'll
-    // just let it pass instead of using `compile_error!` here.
+    // This crate is designed for windows only, but CI runners are in linux.
     #[cfg(not(target_os = "windows"))]
-    bail!("This tool is for Windows only.");
+    eprintln!("This tool is for Windows only.");
 
     let exe = env::current_exe()?;
     let exe_dir = exe.parent().context("no parent")?;
