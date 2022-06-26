@@ -4,9 +4,7 @@
 
 ---
 
-# Online Services
-* [Play with Mortal on Tenhou]()
-* [Online Log Reviewer]()
+* [Online Service](online/index.md)
 
 # Performance
 * [Comparison against Other AIs]()
