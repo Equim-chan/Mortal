@@ -49,6 +49,7 @@ def main():
     for line in filtered_stripped_lines(sys.stdin):
         if review_mode:
             logs.append(line)
+
         if reaction := bot.react(line):
             print(reaction, flush=True)
         elif review_mode:

@@ -6,11 +6,13 @@ on:
       - .github/workflows/libriichi.yml
       - Cargo*
       - libriichi/**
+      - exe-wrapper/**
   pull_request:
     paths:
       - .github/workflows/libriichi.yml
       - Cargo*
       - libriichi/**
+      - exe-wrapper/**
 
 jobs:
   build:

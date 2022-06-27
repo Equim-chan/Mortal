@@ -22,20 +22,14 @@ The development of Mortal is hosted on GitHub at <https://github.com/Equim-chan/
 * [x] A strong mahjong AI that is compatible with Tenhou's standard ranked rule for four-player mahjong.
 * [x] A blazingly fast mahjong emulator written in Rust with a Python interface. Up to 23K hanchans per hour[^env] can be achieved using the Rust emulator combined with Python neural network inference.
 * [x] An easy-to-use mjai interface.
+* [x] Serve as a backend for [mjai-reviewer](https://github.com/Equim-chan/mjai-reviewer) (formerly known as akochan-reviewer).
 * [x] Free and open source.
-
-```admonish note "WIP features"
-* [ ] Serve as a backend for mjai-reviewer (formerly known as akochan-reviewer).
-* [ ] Limited reasoning support.
-```
 
 ## About this doc
 **This doc is work in progress, so most pages are empty right now.**
 
 ## Okay cool now give me the weights!
 Read [this post](https://gist.github.com/Equim-chan/cf3f01735d5d98f1e7be02e94b288c56) for details regarding this topic.
-
-As planned, the trained model will be released after I add Mortal support to [akochan-reviewer](https://github.com/Equim-chan/akochan-reviewer), which will then be renamed to mjai-reviewer.
 
 ## License
 ### Code
