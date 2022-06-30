@@ -10,7 +10,6 @@ use std::io::prelude::*;
 use std::mem;
 
 use anyhow::{bail, ensure, Context, Result};
-use derivative::Derivative;
 use flate2::read::GzDecoder;
 use ndarray::prelude::*;
 use numpy::{PyArray1, PyArray2};
@@ -60,11 +59,10 @@ pub struct Gameplay {
 }
 
 #[pyclass]
-#[derive(Clone, Copy, Derivative)]
-#[derivative(Default)]
+#[derive(Clone, Copy, Default)]
 pub enum Quality {
     LastPlace,
-    #[derivative(Default)]
+    #[default]
     Normal,
     Top300,
     Tenhoui,

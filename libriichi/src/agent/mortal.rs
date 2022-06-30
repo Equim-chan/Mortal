@@ -3,7 +3,6 @@ use crate::consts::ACTION_SPACE;
 use crate::mjai::{Event, EventExt, Metadata};
 use crate::state::PlayerState;
 use crate::{must_tile, tu8};
-use std::cmp::Ordering;
 use std::time::{Duration, Instant};
 
 use anyhow::{ensure, Context, Result};
@@ -283,7 +282,7 @@ impl BatchAgent for MortalBatchAgent {
                 let q_values = self.q_values[action_idx];
                 let mut v: Vec<_> = q_values.into_iter().enumerate().collect();
                 v[43].1 = f32::NEG_INFINITY;
-                v.sort_unstable_by(|(_, l), (_, r)| r.partial_cmp(l).unwrap_or(Ordering::Less));
+                v.sort_unstable_by(|(_, l), (_, r)| r.total_cmp(l));
                 v[0].0
             } else {
                 orig_action

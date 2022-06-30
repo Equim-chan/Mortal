@@ -463,7 +463,7 @@ impl BoardState {
         vec_add_assign(&mut self.kyoku_deltas, &deltas);
         let ura_markers = self.player_states[single_actor as usize]
             .self_riichi_accepted()
-            .then(|| ura_indicators)
+            .then_some(ura_indicators)
             .unwrap_or_default();
 
         let hora = Event::Hora {

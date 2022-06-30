@@ -14,12 +14,11 @@ use serde_with::{serde_as, skip_serializing_none, TryFromInto};
 /// one, and it has some extensions added.
 #[serde_as]
 #[skip_serializing_none]
-#[derive(Debug, Clone, PartialEq, Eq, Derivative, Serialize, Deserialize)]
-#[derivative(Default)]
+#[derive(Debug, Default, Clone, PartialEq, Eq, Derivative, Serialize, Deserialize)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 pub enum Event {
-    #[derivative(Default)]
+    #[default]
     None,
 
     StartGame {
