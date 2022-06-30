@@ -215,9 +215,13 @@ impl BatchAgent for MortalBatchAgent {
         }
 
         let need_kan_select = if cans.can_ankan || cans.can_kakan {
-            let a = state.ankan_candidates();
-            let k = state.kakan_candidates();
-            a.len() + k.len() > 1 || !self.enable_quick_eval
+            if !self.enable_quick_eval {
+                true
+            } else {
+                let a = state.ankan_candidates();
+                let k = state.kakan_candidates();
+                a.len() + k.len() > 1
+            }
         } else {
             false
         };
