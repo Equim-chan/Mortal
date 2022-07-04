@@ -1,4 +1,5 @@
-use riichi::algo::{agari, shanten};
+use riichi::algo::agari::{self, AgariCalculator};
+use riichi::algo::shanten;
 use riichi::hand::hand;
 use riichi::tu8;
 
@@ -12,7 +13,7 @@ fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("agari", |b| {
         b.iter(|| {
             let tehai = black_box(tehai);
-            let calc = agari::AgariCalculator {
+            let calc = AgariCalculator {
                 tehai: &tehai,
                 is_menzen: false,
                 chis: &[],

@@ -302,7 +302,7 @@ impl PlayerState {
 
             // Try possible uradoras one by one, starting from the most valuable one
             let mut tiles_seen = self.tiles_seen;
-            let mut ura_indicators = array_vec!([Tile; 5]);
+            let mut ura_indicators = array_vec!([_; 5]);
             tehai_ordered_by_count
                 .into_iter()
                 .map(|(t, _)| must_tile!(t).prev())

@@ -1,7 +1,8 @@
 use super::action::ActionCandidate;
 use super::item::{ChiPon, KawaItem, Sutehai};
 use super::PlayerState;
-use crate::algo::{agari, shanten};
+use crate::algo::agari::AgariCalculator;
+use crate::algo::shanten;
 use crate::mjai::Event;
 use crate::tile::Tile;
 use crate::{must_tile, tu8};
@@ -153,7 +154,7 @@ impl PlayerState {
                     {
                         self.last_cans.can_tsumo_agari = true;
                     } else {
-                        let agari_calc = agari::AgariCalculator {
+                        let agari_calc = AgariCalculator {
                             tehai: &self.tehai,
                             is_menzen: self.is_menzen,
                             chis: &self.chis,
@@ -274,7 +275,7 @@ impl PlayerState {
                         let mut tehai_with_winning_tile = self.tehai;
                         tehai_with_winning_tile[pai.deaka().as_usize()] += 1;
 
-                        let agari_calc = agari::AgariCalculator {
+                        let agari_calc = AgariCalculator {
                             tehai: &tehai_with_winning_tile,
                             is_menzen: self.is_menzen,
                             chis: &self.chis,
@@ -692,9 +693,7 @@ impl PlayerState {
         self.kawa
             .iter_mut()
             .take(self.oya as usize)
-            .for_each(|kawa| {
-                kawa.push(None);
-            });
+            .for_each(|kawa| kawa.push(None));
     }
 
     pub(super) fn set_can_chi_from_tile(&mut self, tile: Tile) {

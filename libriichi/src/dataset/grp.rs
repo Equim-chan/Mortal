@@ -13,6 +13,7 @@ use numpy::PyArray2;
 use pyo3::prelude::*;
 use rayon::prelude::*;
 use serde_json as json;
+use tinyvec::array_vec;
 
 #[pyclass]
 #[derive(Clone, Default)]
@@ -139,7 +140,7 @@ impl Grp {
                         rank_by_player_opt = Some(rank_by_player);
                     }
 
-                    let mut kyoku_info = Vec::with_capacity(GRP_SIZE);
+                    let mut kyoku_info = array_vec!([_; GRP_SIZE]);
                     let grand_kyoku = match bakaze.as_u8() {
                         tu8!(E) => kyoku - 1,
                         tu8!(S) => 3 + kyoku,
@@ -161,10 +162,8 @@ impl Grp {
 
         let rank_by_player =
             rank_by_player_opt.context("invalid log: no Hora or Ryukyoku after a StartKyoku")?;
-        let feature = Array2::from_shape_vec(
-            (game_info.len(), GRP_SIZE),
-            game_info.into_iter().flatten().collect(),
-        )?;
+        let shape = (game_info.len(), GRP_SIZE);
+        let feature = Array::from_iter(game_info.into_iter().flatten()).into_shape(shape)?;
 
         Ok(Self {
             feature,
