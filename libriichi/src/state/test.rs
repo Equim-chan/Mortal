@@ -21,12 +21,14 @@ fn state_from_log(player_id: u8, log: &str) -> PlayerState {
 
 #[test]
 fn waits() {
-    let mut ps = PlayerState::default();
-    ps.arrs.tehai = hand("456m 78999p 789s 77z").unwrap();
-    ps.tehai_len_div3 = 4;
+    let mut ps = PlayerState {
+        tehai: hand("456m 78999p 789s 77z").unwrap(),
+        tehai_len_div3: 4,
+        ..Default::default()
+    };
     ps.update_waits_and_furiten();
     let expected = t![6p, 9p, C];
-    for (idx, &b) in ps.arrs.waits.iter().enumerate() {
+    for (idx, &b) in ps.waits.iter().enumerate() {
         if expected.contains(&must_tile!(idx)) {
             assert!(b);
         } else {
@@ -34,12 +36,14 @@ fn waits() {
         }
     }
 
-    let mut ps = PlayerState::default();
-    ps.arrs.tehai = hand("2344445666678s").unwrap();
-    ps.tehai_len_div3 = 4;
+    let mut ps = PlayerState {
+        tehai: hand("2344445666678s").unwrap(),
+        tehai_len_div3: 4,
+        ..Default::default()
+    };
     ps.update_waits_and_furiten();
     let expected = t![1s, 2s, 3s, 5s, 7s, 8s, 9s];
-    for (idx, &b) in ps.arrs.waits.iter().enumerate() {
+    for (idx, &b) in ps.waits.iter().enumerate() {
         if expected.contains(&must_tile!(idx)) {
             assert!(b);
         } else {
@@ -51,7 +55,7 @@ fn waits() {
 #[test]
 fn can_chi() {
     let mut ps = PlayerState::new(0);
-    ps.arrs.tehai = hand("1111234m").unwrap();
+    ps.tehai = hand("1111234m").unwrap();
     ps.set_can_chi_from_tile(t!(1m));
     assert!(matches!(
         ps.last_cans,
@@ -83,7 +87,7 @@ fn can_chi() {
         },
     ));
 
-    ps.arrs.tehai = hand("6666789999p").unwrap();
+    ps.tehai = hand("6666789999p").unwrap();
     ps.set_can_chi_from_tile(t!(5p));
     assert!(matches!(
         ps.last_cans,
@@ -115,7 +119,7 @@ fn can_chi() {
         },
     ));
 
-    ps.arrs.tehai = hand("4556s").unwrap();
+    ps.tehai = hand("4556s").unwrap();
     ps.set_can_chi_from_tile(t!(3s));
     assert!(matches!(
         ps.last_cans,
@@ -193,14 +197,14 @@ fn furiten() {
         pai: t!(8s),
     });
     assert!(ps.shanten == 1);
-    assert!(ps.arrs.waits.iter().all(|&b| !b));
+    assert!(ps.waits.iter().all(|&b| !b));
     ps.update(&Event::Dahai {
         actor: 0,
         pai: t!(5s),
         tsumogiri: false,
     });
     assert!(ps.shanten == 0);
-    assert!(ps.arrs.waits[tuz!(1m)] && ps.arrs.waits[tuz!(4m)] && ps.arrs.waits[tuz!(7m)]);
+    assert!(ps.waits[tuz!(1m)] && ps.waits[tuz!(4m)] && ps.waits[tuz!(7m)]);
     assert!(!ps.at_furiten);
 
     ps.update(&Event::Tsumo {
@@ -236,7 +240,7 @@ fn furiten() {
         tsumogiri: false,
     });
     assert!(ps.shanten == 0);
-    assert!(ps.arrs.waits[tuz!(1m)] && ps.arrs.waits[tuz!(4m)] && ps.arrs.waits[tuz!(7m)]);
+    assert!(ps.waits[tuz!(1m)] && ps.waits[tuz!(4m)] && ps.waits[tuz!(7m)]);
     assert!(ps.at_furiten);
     assert!(!cans.can_ron_agari);
 
@@ -331,7 +335,7 @@ fn furiten() {
         actor: 0,
         pai: t!(1m),
     });
-    assert!(ps.arrs.waits[tuz!(1m)] && ps.arrs.waits[tuz!(4m)] && ps.arrs.waits[tuz!(7m)]);
+    assert!(ps.waits[tuz!(1m)] && ps.waits[tuz!(4m)] && ps.waits[tuz!(7m)]);
     assert!(!ps.at_furiten);
     assert!(cans.can_tsumo_agari);
     ps.update(&Event::Dahai {
@@ -368,7 +372,7 @@ fn furiten() {
         pai: t!(7m),
         tsumogiri: true,
     });
-    assert!(ps.arrs.waits[tuz!(1m)] && ps.arrs.waits[tuz!(4m)] && ps.arrs.waits[tuz!(7m)]);
+    assert!(ps.waits[tuz!(1m)] && ps.waits[tuz!(4m)] && ps.waits[tuz!(7m)]);
     assert!(ps.at_furiten);
     assert!(!cans.can_ron_agari);
 
@@ -418,7 +422,7 @@ fn furiten() {
         actor: 0,
         pai: t!(4m),
     });
-    assert!(ps.arrs.waits[0] && ps.arrs.waits[3] && ps.arrs.waits[6]);
+    assert!(ps.waits[0] && ps.waits[3] && ps.waits[6]);
     assert!(ps.at_furiten);
     assert!(cans.can_tsumo_agari);
     assert_eq!(ps.agari_points(false, &[t!(3m)]).unwrap().tsumo_ko, 6000);
@@ -1032,7 +1036,7 @@ fn discard_candidates_with_unconditional_tenpai() {
     let ps = state_from_log(1, log);
 
     let expected = t![5p, 8p];
-    for (idx, &b) in ps.arrs.waits.iter().enumerate() {
+    for (idx, &b) in ps.waits.iter().enumerate() {
         if expected.contains(&must_tile!(idx)) {
             assert!(b);
         } else {

@@ -45,7 +45,14 @@ impl PlayerState {
                 scores,
                 tehais,
             } => {
-                self.arrs.clear();
+                self.tehai.fill(0);
+                self.waits.fill(false);
+                self.dora_factor.fill(0);
+                self.tiles_seen.fill(0);
+                self.keep_shanten_discards.fill(false);
+                self.next_shanten_discards.fill(false);
+                self.forbidden_tiles.fill(false);
+                self.discarded_tiles.fill(false);
 
                 self.bakaze = bakaze;
                 self.honba = honba;
@@ -136,7 +143,7 @@ impl PlayerState {
                     self.update_shanten_discards();
                 }
 
-                if self.arrs.waits[pai.deaka().as_usize()] {
+                if self.waits[pai.deaka().as_usize()] {
                     if self.is_menzen // 門前清自摸和
                         || self.riichi_accepted[0] // 立直
                         || self.tiles_left == 0 // 海底摸月
@@ -147,7 +154,7 @@ impl PlayerState {
                         self.last_cans.can_tsumo_agari = true;
                     } else {
                         let agari_calc = agari::AgariCalculator {
-                            tehai: &self.arrs.tehai,
+                            tehai: &self.tehai,
                             is_menzen: self.is_menzen,
                             chis: &self.chis,
                             pons: &self.pons,
@@ -171,7 +178,7 @@ impl PlayerState {
                     if self.kans_on_board < 4 {
                         // Using Tenhou rule here.
                         self.last_cans.can_ankan = agari::check_ankan_after_riichi(
-                            &self.arrs.tehai,
+                            &self.tehai,
                             self.tehai_len_div3,
                             pai,
                             false,
@@ -184,8 +191,7 @@ impl PlayerState {
                 }
 
                 if self.kans_on_board < 4 {
-                    self.arrs
-                        .tehai
+                    self.tehai
                         .iter()
                         .enumerate()
                         .filter(|(_, &count)| count > 0)
@@ -219,7 +225,7 @@ impl PlayerState {
                     chi_pon: self.intermediate_chi_pon.take(),
                     sutehai: Sutehai {
                         tile: pai,
-                        is_dora: self.arrs.dora_factor[pai.deaka().as_usize()] > 0,
+                        is_dora: self.dora_factor[pai.deaka().as_usize()] > 0,
                         is_tedashi: !tsumogiri,
                         is_riichi: self.riichi_declared[actor_rel]
                             && !self.riichi_accepted[actor_rel],
@@ -228,30 +234,30 @@ impl PlayerState {
                 self.last_kawa_tile = Some(pai);
 
                 if actor_rel == 0 {
-                    self.arrs.forbidden_tiles.fill(false);
+                    self.forbidden_tiles.fill(false);
                     self.move_tile(pai, MoveType::Discard);
 
                     self.at_rinshan = false;
                     self.at_ippatsu = false;
                     self.can_w_riichi = false;
 
-                    self.arrs.discarded_tiles[pai.deaka().as_usize()] = true;
+                    self.discarded_tiles[pai.deaka().as_usize()] = true;
 
                     // Furiten state will be permanent once riichi is accepted,
                     // and of course, the shanten number will be frozen as well,
                     // so the calculations are skipped here.
                     if !self.riichi_accepted[0] {
-                        if self.arrs.next_shanten_discards[pai.deaka().as_usize()] {
+                        if self.next_shanten_discards[pai.deaka().as_usize()] {
                             self.shanten -= 1;
-                        } else if !self.arrs.keep_shanten_discards[pai.deaka().as_usize()] {
+                        } else if !self.keep_shanten_discards[pai.deaka().as_usize()] {
                             self.update_shanten();
                         }
-                        // Update is here because `self.arrs.tiles_seen` has
+                        // Update is here because `self.tiles_seen` has
                         // changed so waits may have been changed, also the
                         // discarded `pai` might be a winning tile (tsumo agari
                         // minogashi) thus furiten status needs to update.
                         self.update_waits_and_furiten();
-                    } else if !self.at_furiten && self.arrs.waits[pai.deaka().as_usize()] {
+                    } else if !self.at_furiten && self.waits[pai.deaka().as_usize()] {
                         // Riichi furiten
                         self.at_furiten = true;
                     }
@@ -260,12 +266,12 @@ impl PlayerState {
                 }
                 self.witness_tile(pai);
 
-                if !self.at_furiten && self.arrs.waits[pai.deaka().as_usize()] {
+                if !self.at_furiten && self.waits[pai.deaka().as_usize()] {
                     if self.riichi_accepted[0] || self.tiles_left == 0 {
                         // 立直 or 河底撈魚
                         self.last_cans.can_ron_agari = true;
                     } else {
-                        let mut tehai_with_winning_tile = self.arrs.tehai;
+                        let mut tehai_with_winning_tile = self.tehai;
                         tehai_with_winning_tile[pai.deaka().as_usize()] += 1;
 
                         let agari_calc = agari::AgariCalculator {
@@ -311,9 +317,9 @@ impl PlayerState {
                 if actor_rel == 3 && !pai.is_jihai() && self.tehai_len_div3 > 0 {
                     self.set_can_chi_from_tile(pai);
                 }
-                self.last_cans.can_pon = self.arrs.tehai[pai.deaka().as_usize()] >= 2;
+                self.last_cans.can_pon = self.tehai[pai.deaka().as_usize()] >= 2;
                 self.last_cans.can_daiminkan =
-                    self.kans_on_board < 4 && self.arrs.tehai[pai.deaka().as_usize()] == 3;
+                    self.kans_on_board < 4 && self.tehai[pai.deaka().as_usize()] == 3;
             }
 
             Event::Chi {
@@ -362,22 +368,22 @@ impl PlayerState {
                 self.chis.push(min.min(deaka_tile_id) as u8);
 
                 // Forbid 喰い替え
-                if self.arrs.tehai[deaka_tile_id] > 0 {
-                    self.arrs.forbidden_tiles[deaka_tile_id] = true;
+                if self.tehai[deaka_tile_id] > 0 {
+                    self.forbidden_tiles[deaka_tile_id] = true;
                 }
                 if deaka_tile_id < min {
                     if max % 9 < 8 {
                         // Like 56s chi 4s, then 7s is not allowed to discard
                         let bigger = max + 1;
-                        if self.arrs.tehai[bigger] > 0 {
-                            self.arrs.forbidden_tiles[bigger] = true;
+                        if self.tehai[bigger] > 0 {
+                            self.forbidden_tiles[bigger] = true;
                         }
                     }
                 } else if deaka_tile_id > max && min % 9 > 0 {
                     // Like 56s chi 7s, then 4s is not allowed to discard
                     let smaller = min - 1;
-                    if self.arrs.tehai[smaller] > 0 {
-                        self.arrs.forbidden_tiles[smaller] = true;
+                    if self.tehai[smaller] > 0 {
+                        self.forbidden_tiles[smaller] = true;
                     }
                 }
 
@@ -427,8 +433,8 @@ impl PlayerState {
                     .for_each(|&t| self.move_tile(t, MoveType::FuuroConsume));
                 self.pons.push(pai.deaka().as_u8());
 
-                if self.arrs.tehai[pai.deaka().as_usize()] > 0 {
-                    self.arrs.forbidden_tiles[pai.deaka().as_usize()] = true;
+                if self.tehai[pai.deaka().as_usize()] > 0 {
+                    self.forbidden_tiles[pai.deaka().as_usize()] = true;
                 }
 
                 // NOTES: this is 3n+2
@@ -497,7 +503,7 @@ impl PlayerState {
                     self.last_kawa_tile = Some(pai); // for getting winning tile in self.agari
 
                     // 槍槓
-                    if !self.at_furiten && self.arrs.waits[pai.deaka().as_usize()] {
+                    if !self.at_furiten && self.waits[pai.deaka().as_usize()] {
                         self.last_cans.can_ron_agari = true;
                         self.to_mark_same_cycle_furiten = Some(());
                         self.chankan_chance = Some(());
@@ -516,9 +522,9 @@ impl PlayerState {
                 // The shanten number and the shape of tenpai (if any) may
                 // be changed after an kakan, because the kan'd tile may
                 // come from the existing hand.
-                if self.arrs.next_shanten_discards[pai.deaka().as_usize()] {
+                if self.next_shanten_discards[pai.deaka().as_usize()] {
                     self.shanten -= 1;
-                } else if !self.arrs.keep_shanten_discards[pai.deaka().as_usize()] {
+                } else if !self.keep_shanten_discards[pai.deaka().as_usize()] {
                     self.update_shanten();
                 }
                 self.update_waits_and_furiten();
@@ -597,8 +603,8 @@ impl PlayerState {
     /// Updates `tiles_seen` and `doras_seen`.
     pub(super) fn witness_tile(&mut self, tile: Tile) {
         let tile_id = tile.deaka().as_usize();
-        self.arrs.tiles_seen[tile_id] += 1;
-        self.doras_seen += self.arrs.dora_factor[tile_id];
+        self.tiles_seen[tile_id] += 1;
+        self.doras_seen += self.dora_factor[tile_id];
         if tile.is_aka() {
             self.doras_seen += 1;
         }
@@ -627,15 +633,15 @@ impl PlayerState {
         let tile_id = tile.deaka().as_usize();
         match move_type {
             MoveType::Tsumo => {
-                self.arrs.tehai[tile_id] += 1;
-                self.doras_owned[0] += self.arrs.dora_factor[tile_id];
+                self.tehai[tile_id] += 1;
+                self.doras_owned[0] += self.dora_factor[tile_id];
             }
             MoveType::Discard => {
-                self.arrs.tehai[tile_id] -= 1;
-                self.doras_owned[0] -= self.arrs.dora_factor[tile_id];
+                self.tehai[tile_id] -= 1;
+                self.doras_owned[0] -= self.dora_factor[tile_id];
             }
             MoveType::FuuroConsume => {
-                self.arrs.tehai[tile_id] -= 1;
+                self.tehai[tile_id] -= 1;
             }
         }
     }
@@ -651,10 +657,10 @@ impl PlayerState {
         self.witness_tile(tile);
 
         let next = tile.next();
-        self.arrs.dora_factor[next.as_usize()] += 1;
+        self.dora_factor[next.as_usize()] += 1;
 
         // Count new dora in my tehai
-        self.doras_owned[0] += self.arrs.tehai[next.as_usize()];
+        self.doras_owned[0] += self.tehai[next.as_usize()];
 
         // Count new dora in everyone's fuuro
         for i in 0..4 {
@@ -670,7 +676,7 @@ impl PlayerState {
         }
 
         // Add `doras_seen` based on `tiles_seen`
-        self.doras_seen += self.arrs.tiles_seen[next.as_usize()];
+        self.doras_seen += self.tiles_seen[next.as_usize()];
     }
 
     pub(super) fn pad_kawa_for_pon_or_daiminkan(&mut self, abs_actor: u8, abs_target: u8) {
@@ -700,10 +706,9 @@ impl PlayerState {
         let literal_num = tile_id % 9 + 1;
 
         // it considered case like 1111234 where you cannot chi 14
-        if literal_num <= 7 && self.arrs.tehai[tile_id + 1] > 0 && self.arrs.tehai[tile_id + 2] > 0
-        {
+        if literal_num <= 7 && self.tehai[tile_id + 1] > 0 && self.tehai[tile_id + 2] > 0 {
             // TODO: check the conditions only when self.shanten == 0?
-            let mut tehai_after = self.arrs.tehai;
+            let mut tehai_after = self.tehai;
             tehai_after[tile_id] = 0;
             tehai_after[tile_id + 1] -= 1;
             tehai_after[tile_id + 2] -= 1;
@@ -714,19 +719,18 @@ impl PlayerState {
         }
 
         if matches!(literal_num, 2..=8)
-            && self.arrs.tehai[tile_id - 1] > 0
-            && self.arrs.tehai[tile_id + 1] > 0
+            && self.tehai[tile_id - 1] > 0
+            && self.tehai[tile_id + 1] > 0
         {
-            let mut tehai_after = self.arrs.tehai;
+            let mut tehai_after = self.tehai;
             tehai_after[tile_id] = 0;
             tehai_after[tile_id - 1] -= 1;
             tehai_after[tile_id + 1] -= 1;
             self.last_cans.can_chi_mid = tehai_after.iter().any(|&t| t > 0);
         }
 
-        if literal_num >= 3 && self.arrs.tehai[tile_id - 2] > 0 && self.arrs.tehai[tile_id - 1] > 0
-        {
-            let mut tehai_after = self.arrs.tehai;
+        if literal_num >= 3 && self.tehai[tile_id - 2] > 0 && self.tehai[tile_id - 1] > 0 {
+            let mut tehai_after = self.tehai;
             tehai_after[tile_id] = 0;
             tehai_after[tile_id - 2] -= 1;
             tehai_after[tile_id - 1] -= 1;
@@ -743,7 +747,7 @@ impl PlayerState {
     /// allow `-1` and it will be written as `0` in order for
     /// `_shanten_discards` to be calculated properly.
     pub(super) fn update_shanten(&mut self) {
-        self.shanten = shanten::calc_all(&self.arrs.tehai, self.tehai_len_div3).max(0);
+        self.shanten = shanten::calc_all(&self.tehai, self.tehai_len_div3).max(0);
         debug_assert!(matches!(self.shanten, 0..=6));
     }
 
@@ -751,29 +755,28 @@ impl PlayerState {
     pub(super) fn update_shanten_discards(&mut self) {
         assert!(self.last_cans.can_discard, "tehai is not 3n+2");
 
-        self.arrs.next_shanten_discards.fill(false);
-        self.arrs.keep_shanten_discards.fill(false);
+        self.next_shanten_discards.fill(false);
+        self.keep_shanten_discards.fill(false);
         self.has_next_shanten_discard = false;
 
         // benchmark result indicates it is too trivial to use rayon here.
         for tile_id in self
-            .arrs
             .tehai
             .iter()
             .enumerate()
             .filter(|(_, &c)| c > 0)
             .map(|(t, _)| t)
         {
-            let mut tehai = self.arrs.tehai;
+            let mut tehai = self.tehai;
             tehai[tile_id] -= 1;
             let shanten_after = shanten::calc_all(&tehai, self.tehai_len_div3);
             match shanten_after.cmp(&self.shanten) {
                 Ordering::Less => {
-                    self.arrs.next_shanten_discards[tile_id] = true;
+                    self.next_shanten_discards[tile_id] = true;
                     self.has_next_shanten_discard = true;
                 }
                 Ordering::Equal => {
-                    self.arrs.keep_shanten_discards[tile_id] = true;
+                    self.keep_shanten_discards[tile_id] = true;
                 }
                 _ => (),
             };
@@ -789,14 +792,14 @@ impl PlayerState {
         // 1. clearing same-cycle furiten
         // 2. the fact that furiten is nonsense if we are no longer tenpai
         self.at_furiten = false;
-        self.arrs.waits.fill(false);
+        self.waits.fill(false);
 
         if self.shanten > 0 {
             return;
         }
 
-        for (t, v) in self.arrs.waits.iter_mut().enumerate() {
-            if self.arrs.tehai[t] == 4 {
+        for (t, v) in self.waits.iter_mut().enumerate() {
+            if self.tehai[t] == 4 {
                 // Cannot wait, not even furiten for the 5th tile.
                 //
                 // However waiting for the 5th tile with 4 of them lying in the
@@ -807,19 +810,19 @@ impl PlayerState {
                 // it is still a valid ryukyoku tenpai in our rule spec.
                 continue;
             }
-            let mut tehai_after = self.arrs.tehai;
+            let mut tehai_after = self.tehai;
             tehai_after[t] += 1;
 
             if shanten::calc_all(&tehai_after, self.tehai_len_div3) == -1 {
                 // furiten is not affected by `tiles_seen`
-                self.at_furiten |= self.arrs.discarded_tiles[t];
-                *v = self.arrs.tiles_seen[t] < 4;
+                self.at_furiten |= self.discarded_tiles[t];
+                *v = self.tiles_seen[t] < 4;
             }
         }
     }
 
     pub(super) fn update_doras_owned(&mut self, actor_rel: usize, tile: Tile) {
-        self.doras_owned[actor_rel] += self.arrs.dora_factor[tile.deaka().as_usize()];
+        self.doras_owned[actor_rel] += self.dora_factor[tile.deaka().as_usize()];
         if tile.is_aka() {
             self.doras_owned[actor_rel] += 1;
         }

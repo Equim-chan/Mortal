@@ -11,11 +11,20 @@ use pyo3::prelude::*;
 use serde_json as json;
 use tinyvec::ArrayVec;
 
-/// The struct is defined here because Default doesn't have impls for big arrays
-/// yet.
+/// `PlayerState` is the core of the lib, which holds all the observable game
+/// state information from a specific seat's perspective with the ability to
+/// identify the legal actions the specified player can make upon an incoming
+/// mjai event, along with some helper functions to build an actual agent.
+/// Notably, `PlayerState` encodes observation features into numpy arrays which
+/// serve as inputs for deep learning model.
+#[pyclass]
+#[pyo3(text_signature = "(player_id)")]
 #[derive(Debug, Clone, Derivative)]
 #[derivative(Default)]
-pub(super) struct BigArrayFields {
+pub struct PlayerState {
+    #[pyo3(get)]
+    pub(super) player_id: u8,
+
     /// Does not include aka.
     #[derivative(Default(value = "[0; 34]"))]
     pub(super) tehai: [u8; 34],
@@ -44,33 +53,6 @@ pub(super) struct BigArrayFields {
     /// Used for furiten check.
     #[derivative(Default(value = "[false; 34]"))]
     pub(super) discarded_tiles: [bool; 34],
-}
-
-impl BigArrayFields {
-    pub(super) fn clear(&mut self) {
-        self.tehai.fill(0);
-        self.waits.fill(false);
-        self.dora_factor.fill(0);
-        self.tiles_seen.fill(0);
-        self.keep_shanten_discards.fill(false);
-        self.next_shanten_discards.fill(false);
-        self.forbidden_tiles.fill(false);
-        self.discarded_tiles.fill(false);
-    }
-}
-
-/// `PlayerState` is the core of the lib, which holds all the observable game
-/// state information from a specific seat's perspective with the ability to
-/// identify the legal actions the specified player can make upon an incoming
-/// mjai event, along with some helper functions to build an actual agent.
-/// Notably, `PlayerState` encodes observation features into numpy arrays which
-/// serve as inputs for deep learning model.
-#[pyclass]
-#[pyo3(text_signature = "(player_id)")]
-#[derive(Debug, Clone, Default)]
-pub struct PlayerState {
-    #[pyo3(get)]
-    pub(super) player_id: u8,
 
     pub(super) bakaze: Tile,
     pub(super) jikaze: Tile,
@@ -146,8 +128,6 @@ pub struct PlayerState {
 
     /// Used in can_riichi.
     pub(super) has_next_shanten_discard: bool,
-
-    pub(super) arrs: BigArrayFields,
 }
 
 #[pymethods]
@@ -186,7 +166,6 @@ impl PlayerState {
     #[must_use]
     pub fn brief_info(&self) -> String {
         let waits = self
-            .arrs
             .waits
             .iter()
             .enumerate()
@@ -247,7 +226,7 @@ kawa:
             self.honba,
             self.jikaze,
             self.scores,
-            tiles_to_string(&self.arrs.tehai, self.akas_in_hand),
+            tiles_to_string(&self.tehai, self.akas_in_hand),
             self.fuuro_overview[0],
             self.ankan_overview[0],
             self.tehai_len_div3,

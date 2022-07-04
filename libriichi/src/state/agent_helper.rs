@@ -43,34 +43,34 @@ impl PlayerState {
             return ret;
         }
 
-        for (i, count) in self.arrs.tehai.iter().copied().enumerate() {
+        for (i, count) in self.tehai.iter().copied().enumerate() {
             if count == 0 {
                 continue;
             }
 
             ret[i] = if self.riichi_declared[0] {
                 if self.shanten == 1 {
-                    self.arrs.next_shanten_discards[i]
+                    self.next_shanten_discards[i]
                 } else {
                     // shanten must be 0 here according to the rule
-                    self.arrs.keep_shanten_discards[i]
+                    self.keep_shanten_discards[i]
                 }
             } else {
-                !self.arrs.forbidden_tiles[i]
+                !self.forbidden_tiles[i]
             };
         }
 
         if ret[tuz!(5m)] && self.akas_in_hand[0] {
             ret[tuz!(5mr)] = true;
-            ret[tuz!(5m)] = self.arrs.tehai[tuz!(5m)] > 1;
+            ret[tuz!(5m)] = self.tehai[tuz!(5m)] > 1;
         }
         if ret[tuz!(5p)] && self.akas_in_hand[1] {
             ret[tuz!(5pr)] = true;
-            ret[tuz!(5p)] = self.arrs.tehai[tuz!(5p)] > 1;
+            ret[tuz!(5p)] = self.tehai[tuz!(5p)] > 1;
         }
         if ret[tuz!(5s)] && self.akas_in_hand[2] {
             ret[tuz!(5sr)] = true;
-            ret[tuz!(5s)] = self.arrs.tehai[tuz!(5s)] > 1;
+            ret[tuz!(5s)] = self.tehai[tuz!(5s)] > 1;
         }
 
         ret
@@ -108,7 +108,7 @@ impl PlayerState {
         }
 
         if let Some(last_self_tsumo) = self.last_self_tsumo {
-            if self.arrs.waits[last_self_tsumo.deaka().as_usize()] {
+            if self.waits[last_self_tsumo.deaka().as_usize()] {
                 // already agari and any discard will result in furiten
                 return ret;
             }
@@ -119,15 +119,15 @@ impl PlayerState {
                 }
                 return ret;
             }
-        } else if shanten::calc_all(&self.arrs.tehai, self.tehai_len_div3) == -1 {
+        } else if shanten::calc_all(&self.tehai, self.tehai_len_div3) == -1 {
             // Ditto but for discard after chi/pon
             return ret;
         }
 
         let tenpai_discards = if self.shanten == 1 {
-            self.arrs.next_shanten_discards
+            self.next_shanten_discards
         } else {
-            self.arrs.keep_shanten_discards
+            self.keep_shanten_discards
         };
 
         // Replace and test
@@ -135,12 +135,12 @@ impl PlayerState {
             .iter()
             .copied()
             .enumerate()
-            .filter(|&(tid, b)| b && !self.arrs.forbidden_tiles[tid])
+            .filter(|&(tid, b)| b && !self.forbidden_tiles[tid])
             .for_each(|(discard, _)| {
-                let mut tehai_3n1 = self.arrs.tehai;
+                let mut tehai_3n1 = self.tehai;
                 tehai_3n1[discard] -= 1;
 
-                for (tsumo, seen) in self.arrs.tiles_seen.iter().copied().enumerate() {
+                for (tsumo, seen) in self.tiles_seen.iter().copied().enumerate() {
                     if tsumo == discard || tehai_3n1[tsumo] == 4 {
                         continue;
                     }
@@ -152,7 +152,7 @@ impl PlayerState {
                     }
 
                     // Furiten
-                    if self.arrs.discarded_tiles[tsumo] {
+                    if self.discarded_tiles[tsumo] {
                         ret[discard] = false;
                         break;
                     }
@@ -180,15 +180,15 @@ impl PlayerState {
 
         if ret[tuz!(5m)] && self.akas_in_hand[0] {
             ret[tuz!(5mr)] = true;
-            ret[tuz!(5m)] = self.arrs.tehai[tuz!(5m)] > 1;
+            ret[tuz!(5m)] = self.tehai[tuz!(5m)] > 1;
         }
         if ret[tuz!(5p)] && self.akas_in_hand[1] {
             ret[tuz!(5pr)] = true;
-            ret[tuz!(5p)] = self.arrs.tehai[tuz!(5p)] > 1;
+            ret[tuz!(5p)] = self.tehai[tuz!(5p)] > 1;
         }
         if ret[tuz!(5s)] && self.akas_in_hand[2] {
             ret[tuz!(5sr)] = true;
-            ret[tuz!(5s)] = self.arrs.tehai[tuz!(5s)] > 1;
+            ret[tuz!(5s)] = self.tehai[tuz!(5s)] > 1;
         }
 
         ret
@@ -199,7 +199,7 @@ impl PlayerState {
     pub fn yaokyuu_kind_count(&self) -> u8 {
         tuz![1m, 9m, 1p, 9p, 1s, 9s, E, S, W, N, P, F, C]
             .iter()
-            .map(|&i| self.arrs.tehai[i].min(1))
+            .map(|&i| self.tehai[i].min(1))
             .sum()
     }
 
@@ -216,7 +216,7 @@ impl PlayerState {
     #[cold]
     fn rule_based_ryukyoku_slow(&self) -> bool {
         // Do not ryukyoku if the hand is already <= 2 shanten.
-        if shanten::calc_all(&self.arrs.tehai, self.tehai_len_div3) <= 2 {
+        if shanten::calc_all(&self.tehai, self.tehai_len_div3) <= 2 {
             return false;
         }
 
@@ -249,7 +249,7 @@ impl PlayerState {
         }
 
         // Do not ryukyoku if we have all the jihai kinds.
-        if self.arrs.tehai[3 * 9..].iter().all(|&c| c > 0) {
+        if self.tehai[3 * 9..].iter().all(|&c| c > 0) {
             return false;
         }
 
@@ -288,7 +288,7 @@ impl PlayerState {
 
         // Calculate the max theoretical score we can achieve through this agari.
         let max_win_point = if self.riichi_accepted[0] {
-            let mut tehai_full = self.arrs.tehai;
+            let mut tehai_full = self.tehai;
             for t in &self.ankan_overview[0] {
                 tehai_full[t.as_usize()] += 4;
             }
@@ -301,7 +301,7 @@ impl PlayerState {
             tehai_ordered_by_count.sort_unstable_by(|(_, l), (_, r)| r.cmp(l));
 
             // Try possible uradoras one by one, starting from the most valuable one
-            let mut tiles_seen = self.arrs.tiles_seen;
+            let mut tiles_seen = self.tiles_seen;
             let mut ura_indicators = array_vec!([Tile; 5]);
             tehai_ordered_by_count
                 .into_iter()
@@ -409,12 +409,12 @@ impl PlayerState {
             .count() as u8
         };
 
-        let mut tehai = self.arrs.tehai;
+        let mut tehai = self.tehai;
         let mut final_doras_owned = self.doras_owned[0];
         if is_ron {
             let tid = winning_tile.deaka().as_usize();
             tehai[tid] += 1;
-            final_doras_owned += self.arrs.dora_factor[tid];
+            final_doras_owned += self.dora_factor[tid];
             if winning_tile.is_aka() {
                 final_doras_owned += 1;
             };

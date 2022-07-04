@@ -15,7 +15,7 @@ impl PlayerState {
     #[inline]
     #[must_use]
     pub const fn tehai(&self) -> [u8; 34] {
-        self.arrs.tehai
+        self.tehai
     }
     #[inline]
     #[must_use]
@@ -52,7 +52,7 @@ impl PlayerState {
     #[inline]
     #[must_use]
     pub const fn waits(&self) -> [bool; 34] {
-        self.arrs.waits
+        self.waits
     }
     #[inline]
     #[must_use]

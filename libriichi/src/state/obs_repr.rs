@@ -33,8 +33,7 @@ impl PlayerState {
         let mut idx = 0;
         let cans = self.last_cans;
 
-        self.arrs
-            .tehai
+        self.tehai
             .iter()
             .enumerate()
             .filter(|(_, &count)| count > 0)
@@ -245,8 +244,7 @@ impl PlayerState {
             .for_each(|(i, _)| arr.slice_mut(s![idx + i, ..]).fill(1.));
         idx += 3;
 
-        self.arrs
-            .waits
+        self.waits
             .iter()
             .enumerate()
             .filter(|(_, &c)| c)
@@ -282,7 +280,7 @@ impl PlayerState {
             if tile.is_aka() {
                 arr.slice_mut(s![idx + 1, ..]).fill(1.);
             }
-            if self.arrs.dora_factor[tile.deaka().as_usize()] > 0 {
+            if self.dora_factor[tile.deaka().as_usize()] > 0 {
                 arr.slice_mut(s![idx + 2, ..]).fill(1.);
             }
 
@@ -313,14 +311,12 @@ impl PlayerState {
                     }
                 });
 
-            self.arrs
-                .keep_shanten_discards
+            self.keep_shanten_discards
                 .iter()
                 .enumerate()
                 .filter(|(_, &c)| c)
                 .for_each(|(t, _)| arr[[idx + 1, t]] = 1.);
-            self.arrs
-                .next_shanten_discards
+            self.next_shanten_discards
                 .iter()
                 .enumerate()
                 .filter(|(_, &c)| c)
