@@ -1,7 +1,7 @@
 use super::action::ActionCandidate;
 use super::item::{ChiPon, KawaItem, Sutehai};
 use super::PlayerState;
-use crate::algo::agari::AgariCalculator;
+use crate::algo::agari::{self, AgariCalculator};
 use crate::algo::shanten;
 use crate::mjai::Event;
 use crate::tile::Tile;
