@@ -163,7 +163,7 @@ def train():
             q_target_mc = gamma ** steps_to_done * kyoku_rewards
             q_target_mc = q_target_mc.to(torch.float32)
 
-            with torch.autocast(device.type, enable_amp):
+            with torch.autocast(device.type, enabled=enable_amp):
                 if online:
                     mu_mortal, _ = mortal(obs)
                     q_out = current_dqn(mu_mortal, masks)
