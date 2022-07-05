@@ -152,6 +152,7 @@ impl MortalBatchAgent {
             mask_bits: Some(mask_bits),
             is_greedy: Some(is_greedy),
             shanten: Some(state.shanten()),
+            at_furiten: Some(state.at_furiten()),
             ..Default::default()
         }
     }
