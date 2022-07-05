@@ -3,7 +3,7 @@
 * [OceanLight](https://github.com/OceanLight)
 
 # Contributors
-_Nobody yet._
+[![Contributors](https://contrib.rocks/image?repo=Equim-chan/Mortal)](https://github.com/Equim-chan/Mortal/graphs/contributors)
 
 # Sponsors
 * KY&DEP ([EDWARDH](https://twitter.com/EDWARDH_Jantama))

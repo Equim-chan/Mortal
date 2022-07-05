@@ -26,7 +26,7 @@ The development of Mortal is hosted on GitHub at <https://github.com/Equim-chan/
 * [x] Free and open source.
 
 ## About this doc
-**This doc is work in progress, so most pages are empty right now.**
+This doc is work in progress, so most pages are empty right now.
 
 ## Okay cool now give me the weights!
 Read [this post](https://gist.github.com/Equim-chan/cf3f01735d5d98f1e7be02e94b288c56) for details regarding this topic.
