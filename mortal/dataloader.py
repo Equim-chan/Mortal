@@ -48,7 +48,7 @@ class FileDatasetsIter(IterableDataset):
         file_list = self.file_list[start_idx:start_idx + self.file_batch_size]
         data = self.loader.load_gz_log_files(file_list)
 
-        for game_idx, game in enumerate(data):
+        for game in data:
             obs = game.take_obs()
             invisible_obs = game.take_invisible_obs()
             actions = game.take_actions()

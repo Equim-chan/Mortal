@@ -3,7 +3,6 @@ from torch import nn
 from torch.nn import functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_sequence
 from typing import *
-from functools import reduce
 from itertools import permutations
 from libriichi.consts import OBS_SHAPE, ORACLE_OBS_SHAPE, ACTION_SPACE, GRP_SIZE
 from common import apply_masks
@@ -143,7 +142,7 @@ class DQN(nn.Module):
         v = self.v_head(latent)
         a = self.a_head(latent)
 
-        a_sum = apply_masks(a, mask, fill=0).sum(-1, keepdim=True)
+        a_sum = apply_masks(a, mask, fill=0.).sum(-1, keepdim=True)
         mask_sum = mask.sum(-1, keepdim=True)
         a_mean = a_sum / mask_sum
         q = apply_masks(v + a - a_mean, mask)

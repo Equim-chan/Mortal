@@ -10,7 +10,7 @@ def train():
     from datetime import datetime
     from os import path
     from glob import glob
-    from torch import nn, optim
+    from torch import optim
     from torch.cuda import amp
     from torch.nn import functional as F
     from torch.distributions import Normal, kl_divergence

@@ -1,11 +1,9 @@
 import prelude
 
 import logging
-import struct
 import random
 import shutil
 import torch
-import time
 import sys
 import os
 from os import path

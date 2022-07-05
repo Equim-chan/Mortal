@@ -9,7 +9,6 @@ import time
 from os import path
 from model import Brain, DQN
 from player import TrainPlayer
-from libriichi.arena import OneVsThree
 from common import send_msg, recv_msg
 from config import config
 
