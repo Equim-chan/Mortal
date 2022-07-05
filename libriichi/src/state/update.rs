@@ -19,21 +19,33 @@ pub(super) enum MoveType {
 }
 
 impl PlayerState {
+    #[inline]
     pub fn update(&mut self, event: &Event) -> ActionCandidate {
-        self.last_cans = ActionCandidate {
-            target_actor: event.actor().unwrap_or(self.player_id),
-            ..Default::default()
-        };
+        self.update_with_skip(event, false)
+    }
 
-        if self.to_mark_same_cycle_furiten.take().is_some() {
-            self.at_furiten = true;
-        }
-        if self.chankan_chance.take().is_some() {
-            self.at_ippatsu = false;
-        }
+    pub fn update_with_skip(&mut self, event: &Event, skip_on_announce: bool) -> ActionCandidate {
+        if !skip_on_announce
+            || !matches!(
+                event,
+                Event::ReachAccepted { .. } | Event::Dora { .. } | Event::Hora { .. }
+            )
+        {
+            self.last_cans = ActionCandidate {
+                target_actor: event.actor().unwrap_or(self.player_id),
+                ..Default::default()
+            };
 
-        self.ankan_candidates.clear();
-        self.kakan_candidates.clear();
+            if self.to_mark_same_cycle_furiten.take().is_some() {
+                self.at_furiten = true;
+            }
+            if self.chankan_chance.take().is_some() {
+                self.at_ippatsu = false;
+            }
+
+            self.ankan_candidates.clear();
+            self.kakan_candidates.clear();
+        }
 
         match *event {
             Event::StartKyoku {

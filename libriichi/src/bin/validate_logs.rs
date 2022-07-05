@@ -224,7 +224,7 @@ fn process_path(path: &Path) -> Result<()> {
         states
             .iter_mut()
             .zip(&mut cans)
-            .for_each(|(s, c)| *c = s.update(ev));
+            .for_each(|(s, c)| *c = s.update_with_skip(ev, true));
     }
 
     Ok(())
