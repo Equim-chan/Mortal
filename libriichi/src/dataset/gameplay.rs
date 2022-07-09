@@ -4,7 +4,6 @@ use super::Grp;
 use crate::chi_type::ChiType;
 use crate::mjai::Event;
 use crate::state::PlayerState;
-use std::convert::identity;
 use std::fs::File;
 use std::io::prelude::*;
 use std::mem;
@@ -16,12 +15,14 @@ use numpy::{PyArray1, PyArray2};
 use pyo3::prelude::*;
 use rayon::prelude::*;
 use serde_json as json;
+use tinyvec::ArrayVec;
 
 #[pyclass]
 #[pyo3(text_signature = "(
     *,
     oracle = True,
     player_name = None,
+    excludes = None,
     trust_seed = False,
     always_include_kyoku_select = True,
 )")]
@@ -31,6 +32,8 @@ pub struct GameplayLoader {
     oracle: bool,
     #[pyo3(get, set)]
     player_name: Option<String>,
+    #[pyo3(get, set)]
+    excludes: Option<Vec<String>>,
     #[pyo3(get, set)]
     trust_seed: bool,
     #[pyo3(get, set)]
@@ -48,13 +51,15 @@ pub struct Gameplay {
     pub at_kyoku: Vec<u8>,
     pub dones: Vec<bool>,
     pub apply_gamma: Vec<bool>,
+    pub at_turns: Vec<u8>,
+    pub shantens: Vec<i8>,
 
     // one per kyoku
     pub grp: Grp,
-    pub has_houjuu_while_not_waiting: Vec<bool>,
 
     // one per game
     pub player_id: u8,
+    pub player_name: String,
     pub quality: Quality,
 }
 
@@ -88,18 +93,21 @@ impl GameplayLoader {
         "*",
         oracle = "true",
         player_name = "None",
+        excludes = "None",
         trust_seed = "false",
         always_include_kyoku_select = "true"
     )]
     const fn new(
         oracle: bool,
         player_name: Option<String>,
+        excludes: Option<Vec<String>>,
         trust_seed: bool,
         always_include_kyoku_select: bool,
     ) -> Self {
         Self {
             oracle,
             player_name,
+            excludes,
             trust_seed,
             always_include_kyoku_select,
         }
@@ -153,22 +161,28 @@ impl GameplayLoader {
     pub fn load_events(&self, events: &[Event]) -> Result<Vec<Gameplay>> {
         let invisibles = self.oracle.then(|| Invisible::new(events, self.trust_seed));
 
-        let idxs = if let Some(player_name) = &self.player_name {
-            match &events[0] {
-                Event::StartGame { names, .. } => names
-                    .iter()
-                    .enumerate()
-                    .filter(|(_, name)| name.as_str() == player_name)
-                    .map(|(i, _)| i as u8)
-                    .collect(),
-                _ => bail!("the first event is not StartGame, got {:?}", events[0]),
-            }
-        } else {
-            vec![0, 1, 2, 3]
+        let idxs: ArrayVec<[u8; 4]> = match &events[0] {
+            Event::StartGame { names, .. } => names
+                .iter()
+                .enumerate()
+                .filter(|(_, name)| {
+                    if let Some(player_name) = &self.player_name {
+                        return player_name == name.as_str();
+                    }
+                    if let Some(ex) = &self.excludes {
+                        if ex.contains(name) {
+                            return false;
+                        }
+                    }
+                    true
+                })
+                .map(|(i, _)| i as u8)
+                .collect(),
+            _ => bail!("the first event is not StartGame, got {:?}", events[0]),
         };
 
         idxs.into_par_iter()
-            .map(|player_id| {
+            .map(|&player_id| {
                 Gameplay::load_events_by_player(self, events, player_id, invisibles.as_deref())
             })
             .collect()
@@ -214,14 +228,18 @@ impl Gameplay {
     fn take_apply_gamma(&mut self) -> Vec<bool> {
         mem::take(&mut self.apply_gamma)
     }
+    #[pyo3(text_signature = "($self, /)")]
+    fn take_at_turns(&mut self) -> Vec<u8> {
+        mem::take(&mut self.at_turns)
+    }
+    #[pyo3(text_signature = "($self, /)")]
+    fn take_shantens(&mut self) -> Vec<i8> {
+        mem::take(&mut self.shantens)
+    }
 
     #[pyo3(text_signature = "($self, /)")]
     fn take_grp(&mut self) -> Grp {
         mem::take(&mut self.grp)
-    }
-    #[pyo3(text_signature = "($self, /)")]
-    fn take_has_houjuu_while_not_waiting(&mut self) -> Vec<bool> {
-        mem::take(&mut self.has_houjuu_while_not_waiting)
     }
 
     #[pyo3(text_signature = "($self, /)")]
@@ -242,7 +260,6 @@ impl Gameplay {
         invisibles: Option<&[Invisible]>,
     ) -> Result<Self> {
         let grp = Grp::load_events(events)?;
-        let has_houjuu_while_not_waiting = vec![false; grp.len()];
 
         let quality = if let Some(Event::StartGame { names, .. }) = events.get(0) {
             let name = names[player_id as usize].as_str();
@@ -262,7 +279,6 @@ impl Gameplay {
 
         let mut data = Self {
             grp,
-            has_houjuu_while_not_waiting,
             player_id,
             quality,
             ..Default::default()
@@ -316,8 +332,14 @@ impl Gameplay {
             &wnd[1]
         };
 
-        if matches!(cur, Event::EndKyoku) {
-            *kyoku_idx += 1;
+        match cur {
+            Event::StartGame { names, .. } => {
+                self.player_name = names[self.player_id as usize].clone();
+            }
+            Event::EndKyoku => {
+                *kyoku_idx += 1;
+            }
+            _ => (),
         }
 
         if invisibles.is_some() {
@@ -347,16 +369,6 @@ impl Gameplay {
         }
 
         let cans = state.update(cur);
-
-        if !self.has_houjuu_while_not_waiting[*kyoku_idx]
-            && matches!(next, Event::Hora { actor, target, .. } if *actor != self.player_id && *target == self.player_id)
-            && (state.shanten() > 0
-                || state.at_furiten()
-                || !state.waits().into_iter().any(identity))
-        {
-            self.has_houjuu_while_not_waiting[*kyoku_idx] = true;
-        };
-
         if !cans.can_act() {
             return;
         }
@@ -451,6 +463,8 @@ impl Gameplay {
         self.at_kyoku.push(ctx.kyoku_idx as u8);
         // only discard and kan will discount
         self.apply_gamma.push(label <= 37);
+        self.at_turns.push(ctx.state.at_turn());
+        self.shantens.push(ctx.state.shanten());
 
         if let Some(invisibles) = ctx.invisibles {
             let invisible_obs = invisibles[ctx.kyoku_idx].encode(

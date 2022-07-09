@@ -46,6 +46,11 @@ impl PlayerState {
 
     #[inline]
     #[must_use]
+    pub const fn at_turn(&self) -> u8 {
+        self.at_turn
+    }
+    #[inline]
+    #[must_use]
     pub const fn shanten(&self) -> i8 {
         self.shanten
     }

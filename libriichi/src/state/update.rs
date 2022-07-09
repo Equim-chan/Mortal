@@ -108,6 +108,7 @@ impl PlayerState {
                 self.tehai_len_div3 = 4;
                 self.has_next_shanten_discard = false;
                 self.tiles_left = 70;
+                self.at_turn = 0;
 
                 self.kawa.iter_mut().for_each(|k| k.clear());
                 self.kawa_overview.iter_mut().for_each(|k| k.clear());
@@ -140,6 +141,7 @@ impl PlayerState {
                 if actor != self.player_id {
                     return self.last_cans;
                 }
+                self.at_turn += 1;
 
                 self.last_cans.can_discard = true;
                 self.last_self_tsumo = Some(pai);

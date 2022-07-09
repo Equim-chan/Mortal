@@ -84,6 +84,7 @@ pub struct PlayerState {
     pub(super) riichi_declared: [bool; 4],
     pub(super) riichi_accepted: [bool; 4],
 
+    pub(super) at_turn: u8,
     pub(super) tiles_left: u8,
     pub(super) intermediate_kan: ArrayVec<[Tile; 4]>,
     pub(super) intermediate_chi_pon: Option<ChiPon>,
@@ -201,6 +202,7 @@ impl PlayerState {
             r#"player (abs): {}
 oya (rel): {}
 kyoku: {}{}-{}
+turn: {}
 jikaze: {}
 score (rel): {:?}
 tehai: {}
@@ -224,6 +226,7 @@ kawa:
             self.bakaze,
             self.kyoku + 1,
             self.honba,
+            self.at_turn,
             self.jikaze,
             self.scores,
             tiles_to_string(&self.tehai, self.akas_in_hand),
