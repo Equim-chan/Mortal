@@ -18,7 +18,7 @@ The Docker image does not contain any model file of Model, therefore it must be 
 ## Example
 We are going to use Mortal to evaluate the next move for the scene shown in _Figure 1_.
 
-![](../assets/docker_1.png)
+![](../assets/docker-1.png)
 <p class="caption">Figure 1</p>
 
 First things first, we need to identify the POV's player ID. A player ID is an immutable number that identifies a specific player throughout one game. The rule is simple, the player sitting at the East at E1 is 0, and his shimocha (right) will be 1, toimen (across) will be 2, kamicha (left) will be 3. This works exactly the same as the `tw` parameter in Tenhou's log URL.
@@ -171,7 +171,7 @@ The field `meta` is not defined in mjai and is completely optional. In Mortal, t
 
 Don't shut down the process yet. Now let's go one turn further. The player discarded 9p, passed a 1m pon, and here it comes the next scene:
 
-![](../assets/docker_2.png)
+![](../assets/docker-2.png)
 <p class="caption">Figure 2</p>
 
 The mjai events the player perceived since _Figure 1_ are:
