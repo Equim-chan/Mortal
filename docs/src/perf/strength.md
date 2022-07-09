@@ -5,7 +5,7 @@ The Mortal snapshot used in this is `22040703`.
 The simulation uses a duplicate mahjong setting as follows
 
 | Table | East start (0) | South start (1) | West start (2) | North start (3) |
-|---|---|---|---|---|
+|:---:|:---:|:---:|:---:|:---:|
 | 1 | Player A | Player B | Player B | Player B |
 | 2 | Player B | Player A | Player B | Player B |
 | 3 | Player B | Player B | Player A | Player B |
@@ -15,12 +15,12 @@ In this setting, every 4 games are initialized with same random seed. The emulat
 
 The emulator is implemented in [`libriichi::arena`](https://github.com/Equim-chan/Mortal/tree/main/libriichi/src/arena).
 
-## 3 Mortal vs 1 akochan
+## Mortal vs akochan
 Player A is akochan and Player B is Mortal.
 
 ### akochan with jun_pt = [90, 45, 0, -135]
 |  | Mortal | akochan |
-|---|---|---|
+|---:|:---|:---|
 | Games | 70296 | 23432 |
 | Rounds | 750504 | 250168 |
 | Rounds as dealer | 188838 | 61330 |
@@ -82,7 +82,7 @@ Player A is akochan and Player B is Mortal.
 
 ### akochan with jun_pt = [90, 30, -30, -90]
 |  | Mortal | akochan |
-|---|---|---|
+|---:|:---|:---|
 | Games | 73164 | 24388 |
 | Rounds | 779958 | 259986 |
 | Rounds as dealer | 196050 | 63936 |
@@ -144,8 +144,6 @@ Player A is akochan and Player B is Mortal.
 
 
 ## Tenhou
-Tenhou does not allow AI to play in ranked lobby without their permission, therefore I only compared how closely Mortal's decisions matched those of other verified AIs that had previously played in Tenhou tokujou.
-
-I also sampled some tokujou and houou games to check against Mortal.
+Tenhou does not allow AI to play in ranked lobby without their permission, therefore I only compared how closely Mortal's decisions matched those of other verified AIs that had previously played in Tenhou tokujou. I also sampled some tokujou and houou games to check against Mortal.
 
 [![](../assets/match-rate.png)](../assets/match-rate.png)
