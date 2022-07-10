@@ -12,7 +12,7 @@ from config import config
 
 class TestPlayer:
     def __init__(self):
-        device = config['baseline']['device']
+        device = torch.device(config['baseline']['device'])
 
         stable_mortal = Brain(False, **config['resnet']).eval()
         stable_dqn = DQN().eval()
@@ -60,7 +60,7 @@ class TestPlayer:
 
 class TrainPlayer:
     def __init__(self):
-        device = config['baseline']['device']
+        device = torch.device(config['baseline']['device'])
 
         stable_mortal = Brain(False, **config['resnet']).eval()
         stable_dqn = DQN().eval()
