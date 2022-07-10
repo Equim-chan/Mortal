@@ -29,15 +29,15 @@ use tinyvec::ArrayVec;
 #[derive(Debug, Clone, Default)]
 pub struct GameplayLoader {
     #[pyo3(get, set)]
-    oracle: bool,
+    pub oracle: bool,
     #[pyo3(get, set)]
-    player_name: Option<String>,
+    pub player_name: Option<String>,
     #[pyo3(get, set)]
-    excludes: Option<Vec<String>>,
+    pub excludes: Vec<String>,
     #[pyo3(get, set)]
-    trust_seed: bool,
+    pub trust_seed: bool,
     #[pyo3(get, set)]
-    always_include_kyoku_select: bool,
+    pub always_include_kyoku_select: bool,
 }
 
 #[pyclass]
@@ -97,13 +97,14 @@ impl GameplayLoader {
         trust_seed = "false",
         always_include_kyoku_select = "true"
     )]
-    const fn new(
+    fn new(
         oracle: bool,
         player_name: Option<String>,
         excludes: Option<Vec<String>>,
         trust_seed: bool,
         always_include_kyoku_select: bool,
     ) -> Self {
+        let excludes = excludes.unwrap_or_default();
         Self {
             oracle,
             player_name,
@@ -169,12 +170,7 @@ impl GameplayLoader {
                     if let Some(player_name) = &self.player_name {
                         return player_name == name.as_str();
                     }
-                    if let Some(ex) = &self.excludes {
-                        if ex.contains(name) {
-                            return false;
-                        }
-                    }
-                    true
+                    !self.excludes.contains(name)
                 })
                 .map(|(i, _)| i as u8)
                 .collect(),

@@ -15,20 +15,20 @@ class FileDatasetsIter(IterableDataset):
         file_batch_size = 20, # hint: around 650 instances per file
         quality_threshold = 0,
         player_name = None,
-        # n_steps = 1,
+        excludes = None,
     ):
         super().__init__()
         self.file_list = file_list
         self.pts = pts
         self.file_batch_size = file_batch_size
-        self.quality_threshold = quality_threshold
+        self.quality_threshold = int(quality_threshold)
         self.player_name = player_name
-        # self.n_steps = n_steps
+        self.excludes = excludes
         self.buffer = []
         self.iterator = None
 
     def build_iter(self):
-        self.loader = GameplayLoader(oracle=True, player_name=self.player_name)
+        self.loader = GameplayLoader(oracle=True, player_name=self.player_name, excludes=self.excludes)
 
         # do not put it in __init__, it won't work on Windows
         grp = GRP(**config['grp']['network'])
@@ -75,13 +75,6 @@ class FileDatasetsIter(IterableDataset):
                     steps_to_done[i] = steps_to_done[i + 1] + int(apply_gamma[i])
 
             for i in range(game_size):
-                # n = self.n_steps
-                # for forward in range(self.n_steps):
-                #     if dones[i + forward]:
-                #         n = forward
-                #         break
-                # # n is within [0, n_steps]
-
                 entry = (
                     obs[i],
                     invisible_obs[i],
@@ -89,10 +82,6 @@ class FileDatasetsIter(IterableDataset):
                     masks[i],
                     steps_to_done[i],
                     kyoku_rewards[at_kyoku[i]],
-                    # obs[i + n],
-                    # invisible_obs[i + n],
-                    # masks[i + n],
-                    # steps_to_done[i + n],
                 )
                 self.buffer.append(entry)
 
