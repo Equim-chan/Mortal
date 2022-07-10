@@ -49,6 +49,10 @@ class FileDatasetsIter(IterableDataset):
         data = self.loader.load_gz_log_files(file_list)
 
         for game in data:
+            quality = game.take_quality()
+            if int(quality) < self.quality_threshold:
+                continue
+
             obs = game.take_obs()
             invisible_obs = game.take_invisible_obs()
             actions = game.take_actions()
@@ -57,12 +61,8 @@ class FileDatasetsIter(IterableDataset):
             dones = game.take_dones()
             apply_gamma = game.take_apply_gamma()
             grp = game.take_grp()
-            quality = game.take_quality()
             player_id = game.take_player_id()
             game_size = len(obs)
-
-            if int(quality) < self.quality_threshold:
-                continue
 
             grp_feature = grp.take_feature()
             rank_by_player = grp.take_rank_by_player()
