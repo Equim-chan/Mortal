@@ -24,7 +24,7 @@ use tinyvec::ArrayVec;
     player_name = None,
     excludes = None,
     trust_seed = False,
-    always_include_kyoku_select = True,
+    always_include_kan_select = True,
 )")]
 #[derive(Debug, Clone, Default)]
 pub struct GameplayLoader {
@@ -37,7 +37,7 @@ pub struct GameplayLoader {
     #[pyo3(get, set)]
     pub trust_seed: bool,
     #[pyo3(get, set)]
-    pub always_include_kyoku_select: bool,
+    pub always_include_kan_select: bool,
 }
 
 #[pyclass]
@@ -95,14 +95,14 @@ impl GameplayLoader {
         player_name = "None",
         excludes = "None",
         trust_seed = "false",
-        always_include_kyoku_select = "true"
+        always_include_kan_select = "true"
     )]
     fn new(
         oracle: bool,
         player_name: Option<String>,
         excludes: Option<Vec<String>>,
         trust_seed: bool,
-        always_include_kyoku_select: bool,
+        always_include_kan_select: bool,
     ) -> Self {
         let excludes = excludes.unwrap_or_default();
         Self {
@@ -110,7 +110,7 @@ impl GameplayLoader {
             player_name,
             excludes,
             trust_seed,
-            always_include_kyoku_select,
+            always_include_kan_select,
         }
     }
 
@@ -385,19 +385,19 @@ impl Gameplay {
             },
             Event::Pon { actor, .. } if actor == self.player_id => Some(41),
             Event::Daiminkan { actor, pai, .. } if actor == self.player_id => {
-                if config.always_include_kyoku_select {
+                if config.always_include_kan_select {
                     kan_select = Some(pai.deaka().as_usize());
                 }
                 Some(42)
             }
             Event::Kakan { pai, .. } => {
-                if config.always_include_kyoku_select || state.kakan_candidates().len() > 1 {
+                if config.always_include_kan_select || state.kakan_candidates().len() > 1 {
                     kan_select = Some(pai.deaka().as_usize());
                 }
                 Some(42)
             }
             Event::Ankan { consumed, .. } => {
-                if config.always_include_kyoku_select || state.ankan_candidates().len() > 1 {
+                if config.always_include_kan_select || state.ankan_candidates().len() > 1 {
                     kan_select = Some(consumed[0].deaka().as_usize());
                 }
                 Some(42)

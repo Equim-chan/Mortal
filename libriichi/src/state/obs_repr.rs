@@ -11,13 +11,13 @@ use pyo3::prelude::*;
 impl PlayerState {
     /// Returns `(obs, mask)`
     #[pyo3(name = "encode_obs")]
-    #[pyo3(text_signature = "($self, at_kan)")]
+    #[pyo3(text_signature = "($self, at_kan_select)")]
     fn encode_obs_py<'py>(
         &self,
-        at_kan: bool,
+        at_kan_select: bool,
         py: Python<'py>,
     ) -> (&'py PyArray2<f32>, &'py PyArray1<bool>) {
-        let (obs, mask) = self.encode_obs(at_kan);
+        let (obs, mask) = self.encode_obs(at_kan_select);
         let obs = PyArray2::from_owned_array(py, obs);
         let mask = PyArray1::from_owned_array(py, mask);
         (obs, mask)
