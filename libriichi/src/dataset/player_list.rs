@@ -23,6 +23,7 @@ pub static TOP300_2K_GAMES: Lazy<BoomHashMap<String, ()>> = Lazy::new(|| {
 });
 
 pub const TENHOUI: &[&str] = &[
+    "じょにおん！！",
     "わっしょい君2号",
     "火時計を押せ！",
     "いばらぎ",
