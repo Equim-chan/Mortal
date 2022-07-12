@@ -8,5 +8,7 @@ __pycache__
 *.so
 *.pth
 
-# TODO: this is temporary
+.ipynb_checkpoints
+*.ipynb
+
 /_draft
