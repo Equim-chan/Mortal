@@ -6,17 +6,17 @@ The simulation uses a duplicate mahjong setting as follows
 
 | Table | East start (0) | South start (1) | West start (2) | North start (3) |
 |:---:|:---:|:---:|:---:|:---:|
-| 1 | Player A | Player B | Player B | Player B |
-| 2 | Player B | Player A | Player B | Player B |
-| 3 | Player B | Player B | Player A | Player B |
-| 4 | Player B | Player B | Player B | Player A |
+| 1 | Challenger | Champion | Champion | Champion |
+| 2 | Champion | Challenger | Champion | Champion |
+| 3 | Champion | Champion | Challenger | Champion |
+| 4 | Champion | Champion | Champion | Challenger |
 
 In this setting, every 4 games are initialized with same random seed. The emulator guarantees that with the same (seed, kyoku, honba) tuple, the yama, haipai, dora/ura indicators and rinshan tiles are deterministic and reproducible.
 
 The emulator is implemented in [`libriichi::arena`](https://github.com/Equim-chan/Mortal/tree/main/libriichi/src/arena).
 
 ## Mortal vs akochan
-Player A is akochan and Player B is Mortal.
+Challenger is akochan and Champion is Mortal.
 
 ### akochan with jun_pt = [90, 45, 0, -135]
 |  | Mortal | akochan |
