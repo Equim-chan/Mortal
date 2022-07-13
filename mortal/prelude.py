@@ -4,6 +4,8 @@ import warnings
 import torch
 import numpy as np
 
+sys.stdin.reconfigure(encoding='utf-8')
+
 logging.basicConfig(
     stream = sys.stderr,
     level = logging.INFO,
