@@ -1,4 +1,4 @@
-//! Updated at 2021/12/31 03:20 JST
+//! Updated at 2022/07/13 20:55 JST
 //!
 //! Source:
 //! * <https://tenhou.net/ranking.html>
@@ -11,7 +11,7 @@ use once_cell::sync::Lazy;
 use std::io::prelude::*;
 
 pub static TOP300_2K_GAMES: Lazy<BoomHashMap<String, ()>> = Lazy::new(|| {
-    let mut gz = GzDecoder::new(&include_bytes!("data/top300_2kgames.txt.gz")[..]);
+    let mut gz = GzDecoder::new(&include_bytes!("data/top300_2k_games.txt.gz")[..]);
     let mut raw = String::new();
     gz.read_to_string(&mut raw).unwrap();
 
