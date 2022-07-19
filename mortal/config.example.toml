@@ -100,6 +100,7 @@ enable_amp = true
 enable_rule_based_agari_guard = true
 
 [1v3.akochan]
+all = false
 enabled = false
 dir = '/path/to/akochan'
 tactics = '/path/to/tactics.json'
@@ -119,6 +120,7 @@ tensorboard_dir = 'grp_v2/log'
 batch_size = 512
 save_every = 2000
 val_steps = 400
+train_batch = 20000
 
 [grp.dataset]
 train_globs = [

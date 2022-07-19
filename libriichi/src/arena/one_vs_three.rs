@@ -117,6 +117,31 @@ impl OneVsThree {
             Ok(rankings)
         })
     }
+
+    /// Returns the rankings of the challenger (akochan in this case).
+    #[pyo3(text_signature = "($self, seed_start, seed_count)")]
+    pub fn ako_vs_ako(
+        &self,
+        seed_start: (u64, u64),
+        seed_count: u64,
+        py: Python<'_>,
+    ) -> Result<[i32; 4]> {
+        py.allow_threads(move || {
+            let results = self.run_batch(
+                AkochanAgent::new_batched,
+                AkochanAgent::new_batched,
+                seed_start,
+                seed_count,
+            )?;
+
+            let mut rankings = [0; 4];
+            for (i, result) in results.iter().enumerate() {
+                let rank = result.rankings().rank_by_player[i % 4];
+                rankings[rank as usize] += 1;
+            }
+            Ok(rankings)
+        })
+    }
 }
 
 impl OneVsThree {
