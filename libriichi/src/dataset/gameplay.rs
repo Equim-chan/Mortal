@@ -174,8 +174,7 @@ impl GameplayLoader {
                 })
                 .map(|(i, _)| i as u8)
                 .collect(),
-            None => bail!("the event file is empty"),
-            _ => bail!("the first event is not StartGame, got {:?}", events[0]),
+            _ => bail!("empty or invalid game log"),
         };
 
         idxs.into_par_iter()
