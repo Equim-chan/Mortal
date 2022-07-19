@@ -162,8 +162,8 @@ impl GameplayLoader {
     pub fn load_events(&self, events: &[Event]) -> Result<Vec<Gameplay>> {
         let invisibles = self.oracle.then(|| Invisible::new(events, self.trust_seed));
 
-        let idxs: ArrayVec<[u8; 4]> = match &events[0] {
-            Event::StartGame { names, .. } => names
+        let idxs: ArrayVec<[u8; 4]> = match events.first() {
+            Some(Event::StartGame { names, .. }) => names
                 .iter()
                 .enumerate()
                 .filter(|(_, name)| {
@@ -174,7 +174,7 @@ impl GameplayLoader {
                 })
                 .map(|(i, _)| i as u8)
                 .collect(),
-            _ => bail!("the first event is not StartGame, got {:?}", events[0]),
+            _ => bail!("empty or invalid game log"),
         };
 
         idxs.into_par_iter()

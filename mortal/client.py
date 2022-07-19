@@ -14,7 +14,7 @@ from config import config
 
 def main():
     remote = (config['online']['remote']['host'], config['online']['remote']['port'])
-    device = config['control']['device']
+    device = torch.device(config['control']['device'])
     oracle = Brain(True, **config['resnet']).to(device).eval()
     mortal = Brain(False, **config['resnet']).to(device).eval()
     dqn = DQN().to(device)

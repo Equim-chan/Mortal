@@ -19,6 +19,7 @@ class MortalEngine:
         boltzmann_temp = 1,
     ):
         self.device = device or torch.device('cpu')
+        assert isinstance(self.device, torch.device)
         self.brain = brain.to(self.device).eval()
         self.dqn = dqn.to(self.device).eval()
         self.is_oracle = is_oracle
