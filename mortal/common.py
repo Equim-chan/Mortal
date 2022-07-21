@@ -11,6 +11,14 @@ def apply_masks(actions, masks, fill: float = -1e9):
     fill = torch.tensor(fill, dtype=actions.dtype, device=actions.device)
     return torch.where(masks, actions, fill)
 
+@torch.jit.script
+def normal_kl_div(mu_p, logsig_p, mu_q, logsig_q):
+    # KL(N(\mu_p, \sigma_p) \| N(\mu_q, \sigma_q)) = \log \frac{\sigma_q}{\sigma_p} + \frac{\sigma_p^2 + (\mu_p - \mu_q)^2}{2 \sigma_q^2} - \frac{1}{2}
+    return logsig_q - logsig_p + \
+        ((2 * logsig_p).exp() + (mu_p - mu_q) ** 2) / \
+        (2 * (2 * logsig_q).exp()) - \
+        0.5
+
 def hard_update(src, dst):
     dst.load_state_dict(src.state_dict())
 

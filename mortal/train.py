@@ -13,11 +13,11 @@ def train():
     from torch import optim
     from torch.cuda import amp
     from torch.nn import functional as F
-    from torch.distributions import Normal, kl_divergence
+    from torch.distributions import Normal
     from torch.utils.data import DataLoader
     from torch.utils.tensorboard import SummaryWriter
     from tqdm.auto import tqdm
-    from common import submit_param, parameter_count, drain
+    from common import normal_kl_div, submit_param, parameter_count, drain
     from player import TestPlayer
     from dataloader import FileDatasetsIter, worker_init_fn
     from model import Brain, DQN
@@ -184,7 +184,7 @@ def train():
 
                     mu_mortal, logsig_mortal = mortal(obs)
                     dist_mortal = Normal(mu_mortal, logsig_mortal.exp())
-                    kld_loss = kl_divergence(dist, dist_mortal).sum(-1).mean()
+                    kld_loss = normal_kl_div(mu, logsig, mu_mortal, logsig_mortal).sum(-1).mean()
                     beta_loss = log_beta * (log10_kld_target - kld_loss.detach().clamp(1e-9).log10())
 
                     loss = sum((
