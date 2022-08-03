@@ -5,6 +5,7 @@ use std::env;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
+use std::time::Duration;
 
 use anyhow::{ensure, Context, Result};
 use flate2::read::GzDecoder;
@@ -19,12 +20,10 @@ fn main() -> Result<()> {
     let args: Vec<_> = env::args().collect();
     let dir = args.get(1).context(USAGE)?;
 
-    let bar = ProgressBar::new_spinner().with_style(
-        ProgressStyle::default_spinner()
-            .template("{spinner:.cyan} [{elapsed_precise}] {pos} ({per_sec})")
-            .tick_chars(".oOo"),
-    );
-    bar.enable_steady_tick(150);
+    const TEMPLATE: &str = "{spinner:.cyan} [{elapsed_precise}] {pos} ({per_sec})";
+    let bar = ProgressBar::new_spinner()
+        .with_style(ProgressStyle::with_template(TEMPLATE)?.tick_chars(".oOo"));
+    bar.enable_steady_tick(Duration::from_millis(150));
 
     glob(&format!("{dir}/**/*.json"))?
         .chain(glob(&format!("{dir}/**/*.json.gz"))?)

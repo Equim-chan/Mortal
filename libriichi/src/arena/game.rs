@@ -4,6 +4,7 @@ use crate::agent::BatchAgent;
 use crate::mjai::EventExt;
 use std::collections::VecDeque;
 use std::mem;
+use std::time::Duration;
 
 use anyhow::{ensure, Result};
 use indicatif::{ProgressBar, ProgressStyle};
@@ -275,13 +276,13 @@ impl BatchGame {
         } else {
             ProgressBar::new(games.len() as u64)
         };
+        const TEMPLATE: &str = "{spinner:.cyan} steps: {msg}\n[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%";
         bar.set_style(
-            ProgressStyle::default_bar()
-                .template("{spinner:.cyan} steps: {msg}\n[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%")
+            ProgressStyle::with_template(TEMPLATE)?
                 .tick_chars(".oOo")
                 .progress_chars("#-"),
         );
-        bar.enable_steady_tick(150);
+        bar.enable_steady_tick(Duration::from_millis(150));
 
         while !games.is_empty() {
             for (_, game) in &mut games {

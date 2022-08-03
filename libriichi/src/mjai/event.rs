@@ -25,10 +25,7 @@ pub enum Event {
         #[serde(default)]
         names: [String; 4],
 
-        // See https://github.com/jonasbb/serde_with/issues/185 for the reason
-        // for the serde(default).
         /// Consists of (nonce, key).
-        #[serde(default)]
         seed: Option<(u64, u64)>,
     },
     StartKyoku {
@@ -110,13 +107,11 @@ pub enum Event {
         actor: u8,
         #[serde_as(deserialize_as = "TryFromInto<Actor>")]
         target: u8,
-        #[serde(default)]
+
         deltas: Option<[i32; 4]>,
-        #[serde(default)]
         ura_markers: Option<Vec<Tile>>,
     },
     Ryukyoku {
-        #[serde(default)]
         deltas: Option<[i32; 4]>,
     },
 
@@ -178,6 +173,15 @@ impl Event {
             | Self::Hora { actor, .. } => Some(actor),
             _ => None,
         }
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn is_in_game_announce(&self) -> bool {
+        matches!(
+            self,
+            Event::ReachAccepted { .. } | Event::Dora { .. } | Event::Hora { .. }
+        )
     }
 }
 

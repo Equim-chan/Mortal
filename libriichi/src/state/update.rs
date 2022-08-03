@@ -25,12 +25,7 @@ impl PlayerState {
     }
 
     pub fn update_with_skip(&mut self, event: &Event, skip_on_announce: bool) -> ActionCandidate {
-        if !skip_on_announce
-            || !matches!(
-                event,
-                Event::ReachAccepted { .. } | Event::Dora { .. } | Event::Hora { .. }
-            )
-        {
+        if !skip_on_announce || !event.is_in_game_announce() {
             self.last_cans = ActionCandidate {
                 target_actor: event.actor().unwrap_or(self.player_id),
                 ..Default::default()
@@ -160,11 +155,10 @@ impl PlayerState {
 
                 if self.waits[pai.deaka().as_usize()] {
                     if self.is_menzen // 門前清自摸和
-                        || self.riichi_accepted[0] // 立直
-                        || self.tiles_left == 0 // 海底摸月
-                        || self.at_rinshan // 嶺上開花
-                        || self.can_w_riichi
-                    // 天地和
+                        || /* 立直 */ self.riichi_accepted[0]
+                        || /* 海底摸月 */ self.tiles_left == 0
+                        || /* 嶺上開花 */ self.at_rinshan
+                        || /* 天地和 */ self.can_w_riichi
                     {
                         self.last_cans.can_tsumo_agari = true;
                     } else {

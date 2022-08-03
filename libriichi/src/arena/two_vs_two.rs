@@ -5,6 +5,7 @@ use std::fs::{self, File};
 use std::io::prelude::*;
 use std::iter;
 use std::path::PathBuf;
+use std::time::Duration;
 
 use anyhow::Result;
 use flate2::read::GzEncoder;
@@ -210,13 +211,13 @@ impl TwoVsTwo {
             } else {
                 ProgressBar::new(seed_count * 4)
             };
+            const TEMPLATE: &str = "{spinner:.cyan} steps: {msg}\n[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%";
             bar.set_style(
-                ProgressStyle::default_bar()
-                    .template("{spinner:.cyan} [{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%")
+                ProgressStyle::with_template(TEMPLATE)?
                     .tick_chars(".oOo")
                     .progress_chars("#-"),
             );
-            bar.enable_steady_tick(150);
+            bar.enable_steady_tick(Duration::from_millis(150));
 
             results
                 .par_iter()
