@@ -52,16 +52,34 @@ impl ActionCandidate {
     #[getter]
     #[inline]
     #[must_use]
+    pub const fn can_kan(&self) -> bool {
+        self.can_daiminkan || self.can_kakan || self.can_ankan
+    }
+
+    #[getter]
+    #[inline]
+    #[must_use]
+    pub const fn can_agari(&self) -> bool {
+        self.can_tsumo_agari || self.can_ron_agari
+    }
+
+    #[getter]
+    #[inline]
+    #[must_use]
+    pub const fn can_pass(&self) -> bool {
+        self.can_chi() || self.can_pon || self.can_daiminkan || self.can_ron_agari
+    }
+
+    #[getter]
+    #[inline]
+    #[must_use]
     pub const fn can_act(&self) -> bool {
         self.can_discard
             || self.can_chi()
             || self.can_pon
-            || self.can_daiminkan
-            || self.can_kakan
-            || self.can_ankan
+            || self.can_kan()
             || self.can_riichi
-            || self.can_tsumo_agari
-            || self.can_ron_agari
+            || self.can_agari()
             || self.can_ryukyoku
     }
 

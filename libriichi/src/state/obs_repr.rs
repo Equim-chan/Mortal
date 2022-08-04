@@ -270,7 +270,7 @@ impl PlayerState {
         }
         idx += 1;
 
-        if cans.can_chi() || cans.can_pon || cans.can_daiminkan || cans.can_ron_agari {
+        if cans.can_pass() {
             let tile = self
                 .last_kawa_tile
                 .expect("building chi/pon/daiminkan/ron feature without any kawa tile");
@@ -406,7 +406,7 @@ impl PlayerState {
         }
         idx += 1;
 
-        if cans.can_tsumo_agari || cans.can_ron_agari {
+        if cans.can_agari() {
             arr.slice_mut(s![idx, ..]).fill(1.);
             if !at_kan_select {
                 mask[43] = true;

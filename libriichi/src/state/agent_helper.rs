@@ -260,7 +260,7 @@ impl PlayerState {
     #[inline]
     #[must_use]
     pub fn rule_based_agari(&self) -> bool {
-        if !self.last_cans.can_ron_agari && !self.last_cans.can_tsumo_agari {
+        if !self.last_cans.can_agari() {
             return false;
         }
         self.rule_based_agari_slow(self.last_cans.can_ron_agari, self.last_cans.target_actor)

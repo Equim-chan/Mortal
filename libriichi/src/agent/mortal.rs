@@ -499,9 +499,9 @@ impl BatchAgent for MortalBatchAgent {
 
             43 => {
                 ensure!(
-                    cans.can_tsumo_agari || cans.can_ron_agari,
+                    cans.can_agari(),
                     "failed hora check: {}",
-                    state.brief_info()
+                    state.brief_info(),
                 );
 
                 Event::Hora {
