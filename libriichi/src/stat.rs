@@ -437,9 +437,7 @@ impl Stat {
         scores.sort_by_key(|(_, s)| -s);
         let rank = scores
             .into_iter()
-            .enumerate()
-            .find(|(_, (id, _))| *id as u8 == player_id)
-            .map(|(r, _)| r)
+            .position(|(id, _)| id as u8 == player_id)
             .unwrap();
         match rank {
             0 => stat.rank_1 = 1,

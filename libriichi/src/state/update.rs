@@ -851,9 +851,7 @@ impl PlayerState {
         scores_abs.sort_by_key(|(_, s)| -s);
         scores_abs
             .into_iter()
-            .enumerate()
-            .find(|(_, (id, _))| *id as u8 == self.player_id)
-            .map(|(r, _)| r)
+            .position(|(id, _)| id as u8 == self.player_id)
             .unwrap() as u8
     }
 }
