@@ -56,7 +56,7 @@ pub struct PlayerState {
 
     pub(super) bakaze: Tile,
     pub(super) jikaze: Tile,
-    /// Counts from 1, same as mjai.
+    /// Counts from 0 unlike mjai.
     pub(super) kyoku: u8,
     pub(super) honba: u8,
     pub(super) kyotaku: u8,
