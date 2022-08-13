@@ -173,6 +173,8 @@ def train():
                     loss = dqn_loss / opt_step_every
                 else:
                     mu, logsig = current_oracle(obs, invisible_obs)
+                    if torch.isnan(mu).any() or torch.count_nonzero(logsig.exp()) < torch.numel(logsig):
+                        continue
                     dist = Normal(mu, logsig.exp())
                     latent = dist.rsample()
 
