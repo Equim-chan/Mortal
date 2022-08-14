@@ -51,7 +51,7 @@ class MortalEngine:
 
         mu, logsig = self.brain(obs, invisible_obs)
         if self.stochastic_latent:
-            latent = Normal(mu, logsig.exp()).sample()
+            latent = Normal(mu, logsig.exp() + 1e-6).sample()
         else:
             latent = mu
         q_out = self.dqn(latent, masks)

@@ -173,7 +173,7 @@ def train():
                     loss = dqn_loss / opt_step_every
                 else:
                     mu, logsig = current_oracle(obs, invisible_obs)
-                    dist = Normal(mu, logsig.exp())
+                    dist = Normal(mu, logsig.exp() + 1e-6)
                     latent = dist.rsample()
 
                     q_out = current_dqn(latent, masks)
@@ -183,7 +183,7 @@ def train():
                     cql_loss = q_out.logsumexp(-1).mean() - q.mean()
 
                     mu_mortal, logsig_mortal = mortal(obs)
-                    dist_mortal = Normal(mu_mortal, logsig_mortal.exp())
+                    dist_mortal = Normal(mu_mortal, logsig_mortal.exp() + 1e-6)
                     kld_loss = normal_kl_div(mu, logsig, mu_mortal, logsig_mortal).sum(-1).mean()
                     beta_loss = log_beta * (log10_kld_target - kld_loss.detach().clamp(1e-9).log10())
 
