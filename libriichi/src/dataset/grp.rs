@@ -2,6 +2,7 @@ use crate::consts::GRP_SIZE;
 use crate::mjai::Event;
 use crate::tu8;
 use crate::vec_ops::vec_add_assign;
+use std::array;
 use std::fs::File;
 use std::io::prelude::*;
 use std::mem;
@@ -125,8 +126,7 @@ impl Grp {
                         vec_add_assign(&mut final_scores, &final_deltas);
 
                         // (player_id, score)
-                        let mut player_by_rank: Vec<_> =
-                            final_scores.into_iter().enumerate().collect();
+                        let mut player_by_rank: [_; 4] = array::from_fn(|i| (i, final_scores[i]));
                         player_by_rank.sort_by_key(|(_, s)| -s);
 
                         if kyotaku > 0 {

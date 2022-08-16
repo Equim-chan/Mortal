@@ -2,6 +2,7 @@ use crate::algo::point::Point;
 use crate::mjai::Event;
 use crate::py_helper::add_submodule;
 use crate::vec_ops::vec_add_assign;
+use std::array;
 use std::fmt;
 use std::fs::File;
 use std::io::prelude::*;
@@ -433,7 +434,7 @@ impl Stat {
             stat.tobi = 1;
         }
 
-        let mut scores: Vec<_> = cur_scores.into_iter().enumerate().collect();
+        let mut scores: [_; 4] = array::from_fn(|id| (id, cur_scores[id]));
         scores.sort_by_key(|(_, s)| -s);
         let rank = scores
             .into_iter()

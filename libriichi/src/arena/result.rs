@@ -1,4 +1,5 @@
 use crate::mjai::{Event, EventExt};
+use std::array;
 
 use anyhow::Result;
 use serde_json as json;
@@ -38,19 +39,15 @@ pub enum KyokuEndState {
 
 impl GameResult {
     pub fn rankings(&self) -> Rankings {
-        let mut v: Vec<_> = self.scores.iter().copied().enumerate().collect();
-        v.sort_by_key(|(_, s)| -s);
-
         let mut player_by_rank = [0; 4];
         let mut rank_by_player = [0; 4];
-        player_by_rank
-            .iter_mut()
-            .zip(v)
-            .for_each(|(l, (player, _))| *l = player as u8);
-        player_by_rank
-            .iter()
-            .enumerate()
-            .for_each(|(rank, &player)| rank_by_player[player as usize] = rank as u8);
+
+        let mut v: [_; 4] = array::from_fn(|id| (id, self.scores[id]));
+        v.sort_by_key(|(_, s)| -s);
+        for (rank, (id, _)) in v.into_iter().enumerate() {
+            player_by_rank[rank] = id as u8;
+            rank_by_player[id] = rank as u8;
+        }
 
         Rankings {
             player_by_rank,

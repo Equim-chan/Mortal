@@ -689,12 +689,12 @@ impl BoardState {
         let mut arr = Array2::zeros(ORACLE_OBS_SHAPE);
         let mut idx = 0;
 
-        (0..4)
+        self.player_states
+            .iter()
             .cycle()
             .skip(perspective as usize + 1)
             .take(3)
-            .for_each(|i| {
-                let state = &self.player_states[i];
+            .for_each(|state| {
                 state
                     .tehai()
                     .iter()

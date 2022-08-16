@@ -5,7 +5,8 @@ use crate::algo::agari::{self, AgariCalculator};
 use crate::algo::shanten;
 use crate::mjai::Event;
 use crate::tile::Tile;
-use crate::{must_tile, tu8};
+use crate::{must_tile, tu8, tuz};
+use std::array;
 use std::cmp::Ordering;
 use std::mem;
 
@@ -348,10 +349,10 @@ impl PlayerState {
                 });
 
                 if actor_rel != 0 {
-                    consumed.iter().for_each(|&t| self.witness_tile(t));
+                    consumed.into_iter().for_each(|t| self.witness_tile(t));
                     result
-                        .iter()
-                        .for_each(|&t| self.update_doras_owned(actor_rel, t));
+                        .into_iter()
+                        .for_each(|t| self.update_doras_owned(actor_rel, t));
                     self.can_w_riichi = false;
                     self.at_ippatsu = false;
                     return self.last_cans;
@@ -366,8 +367,8 @@ impl PlayerState {
 
                 self.update_doras_owned(0, pai);
                 consumed
-                    .iter()
-                    .for_each(|&t| self.move_tile(t, MoveType::FuuroConsume));
+                    .into_iter()
+                    .for_each(|t| self.move_tile(t, MoveType::FuuroConsume));
 
                 let a = consumed[0].deaka().as_usize();
                 let b = consumed[1].deaka().as_usize();
@@ -420,10 +421,10 @@ impl PlayerState {
                 self.pad_kawa_for_pon_or_daiminkan(actor, target);
 
                 if actor_rel != 0 {
-                    consumed.iter().for_each(|&t| self.witness_tile(t));
+                    consumed.into_iter().for_each(|t| self.witness_tile(t));
                     result
-                        .iter()
-                        .for_each(|&t| self.update_doras_owned(actor_rel, t));
+                        .into_iter()
+                        .for_each(|t| self.update_doras_owned(actor_rel, t));
                     self.can_w_riichi = false;
                     self.at_ippatsu = false;
                     return self.last_cans;
@@ -438,8 +439,8 @@ impl PlayerState {
 
                 self.update_doras_owned(0, pai);
                 consumed
-                    .iter()
-                    .for_each(|&t| self.move_tile(t, MoveType::FuuroConsume));
+                    .into_iter()
+                    .for_each(|t| self.move_tile(t, MoveType::FuuroConsume));
                 self.pons.push(pai.deaka().as_u8());
 
                 if self.tehai[pai.deaka().as_usize()] > 0 {
@@ -468,10 +469,10 @@ impl PlayerState {
                 self.kans_on_board += 1;
 
                 if actor_rel != 0 {
-                    consumed.iter().for_each(|&t| self.witness_tile(t));
+                    consumed.into_iter().for_each(|t| self.witness_tile(t));
                     result
-                        .iter()
-                        .for_each(|&t| self.update_doras_owned(actor_rel, t));
+                        .into_iter()
+                        .for_each(|t| self.update_doras_owned(actor_rel, t));
                     self.can_w_riichi = false;
                     self.at_ippatsu = false;
                     return self.last_cans;
@@ -483,8 +484,8 @@ impl PlayerState {
 
                 self.update_doras_owned(0, pai);
                 consumed
-                    .iter()
-                    .for_each(|&t| self.move_tile(t, MoveType::FuuroConsume));
+                    .into_iter()
+                    .for_each(|t| self.move_tile(t, MoveType::FuuroConsume));
                 self.minkans.push(pai.deaka().as_u8());
 
                 // The shanten number and the shape of tenpai (if any) may be
@@ -560,8 +561,8 @@ impl PlayerState {
                 self.at_rinshan = true;
                 self.tehai_len_div3 -= 1;
                 consumed
-                    .iter()
-                    .for_each(|&t| self.move_tile(t, MoveType::FuuroConsume));
+                    .into_iter()
+                    .for_each(|t| self.move_tile(t, MoveType::FuuroConsume));
                 self.ankans.push(tile.as_u8());
 
                 if !self.riichi_accepted[0] {
@@ -623,7 +624,7 @@ impl PlayerState {
     /// `tiles_seen` or `doras_seen`.
     pub(super) fn move_tile(&mut self, tile: Tile, move_type: MoveType) {
         if tile.is_aka() {
-            let aka_id = tile.as_usize() - 34;
+            let aka_id = tile.as_usize() - tuz!(5mr);
             match move_type {
                 MoveType::Tsumo => {
                     self.akas_in_hand[aka_id] = true;
@@ -836,18 +837,12 @@ impl PlayerState {
     }
 
     pub(super) fn update_rank(&mut self) {
-        self.rank = self.get_rank(&self.scores);
+        self.rank = self.get_rank(self.scores);
     }
 
-    pub(super) fn get_rank(&self, score_rel: &[i32; 4]) -> u8 {
-        let mut scores_abs: Vec<_> = score_rel
-            .iter()
-            .chain(score_rel)
-            .skip(self.rel(0))
-            .take(4)
-            .copied()
-            .enumerate()
-            .collect();
+    pub(super) fn get_rank(&self, mut scores_rel: [i32; 4]) -> u8 {
+        scores_rel.rotate_right(self.player_id as usize);
+        let mut scores_abs: [_; 4] = array::from_fn(|id| (id, scores_rel[id]));
         scores_abs.sort_by_key(|(_, s)| -s);
         scores_abs
             .into_iter()

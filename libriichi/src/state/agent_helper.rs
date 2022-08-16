@@ -239,7 +239,7 @@ impl PlayerState {
             scores[0] = 12000 + self.kyotaku as i32 * 1000 + self.honba as i32 * 300;
             scores[self.oya as usize] = -6000 - self.honba as i32 * 300;
             vec_add_assign(&mut scores, &self.scores);
-            return self.get_rank(&scores) < 3;
+            return self.get_rank(scores) < 3;
         }
 
         // Do not ryukyoku if we have >= 10 yaokyuu tiles.
@@ -353,7 +353,7 @@ impl PlayerState {
 
         // Agari if the best post-hora situation in theory will make us avoid
         // taking the last place.
-        self.get_rank(&exp_scores) < 3
+        self.get_rank(exp_scores) < 3
     }
 
     /// Err is returned if the hand cannot agari, or cannot retrieve the winning

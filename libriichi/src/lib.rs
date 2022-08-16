@@ -41,6 +41,7 @@
     clippy::borrow_as_ptr,
     clippy::ptr_as_ptr
 )]
+#![allow(clippy::borrow_deref_ref)] // FIXME: pyo3 code makes it complains
 
 mod arena;
 mod consts;

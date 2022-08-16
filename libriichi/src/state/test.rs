@@ -626,27 +626,27 @@ fn rule_based_agari_all_last_minogashi() {
 #[test]
 fn get_rank() {
     let ps = PlayerState::new(0);
-    let rank = ps.get_rank(&[20000, 25000, 25000, 30000]);
+    let rank = ps.get_rank([20000, 25000, 25000, 30000]);
     assert_eq!(rank, 3);
 
     let ps = PlayerState::new(3);
-    let rank = ps.get_rank(&[25000, 25000, 25000, 25000]);
+    let rank = ps.get_rank([25000, 25000, 25000, 25000]);
     assert_eq!(rank, 3);
 
     let ps = PlayerState::new(1);
-    let rank = ps.get_rank(&[25000, 30000, 20000, 25000]);
+    let rank = ps.get_rank([25000, 30000, 20000, 25000]);
     assert_eq!(rank, 2);
 
     let ps = PlayerState::new(1);
-    let rank = ps.get_rank(&[32000, 32000, 18000, 18000]);
+    let rank = ps.get_rank([32000, 32000, 18000, 18000]);
     assert_eq!(rank, 0);
 
     let ps = PlayerState::new(2);
-    let rank = ps.get_rank(&[32000, 18000, 18000, 32000]);
+    let rank = ps.get_rank([32000, 18000, 18000, 32000]);
     assert_eq!(rank, 1);
 
     let ps = PlayerState::new(2);
-    let rank = ps.get_rank(&[5, 2, 5, 3]);
+    let rank = ps.get_rank([5, 2, 5, 3]);
     assert_eq!(rank, 1);
 }
 
