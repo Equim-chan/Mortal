@@ -1,5 +1,7 @@
 # Donate❤️
-Writing the code and training the model has cost me far more than I anticipated for a hobby. I would appreciate it if you could make a donation to me.
+Mortal is a free software provided under the [GNU Affero General Public License](https://github.com/Equim-chan/Mortal/blob/main/LICENSE).
+
+Mortal was not born in a company or lab, but was essentially made by an individual developer out of pure interest. Writing the code and training the model has cost me far more time and money than I anticipated for a hobby. It would be my pleasure if you would like to honor my efforts.
 
 ## Buy Me a Coffee (recommended)
 <a href="https://www.buymeacoffee.com/equim" target="_blank" rel="noopener"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
