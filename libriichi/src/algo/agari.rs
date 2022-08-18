@@ -11,7 +11,6 @@ use super::shanten;
 use crate::tile::Tile;
 use crate::{matches_tu8, must_tile, tu8};
 use std::cmp::Ordering;
-use std::io::prelude::*;
 use std::iter;
 
 use boomphf::hashmap::BoomHashMap;
@@ -24,7 +23,7 @@ const AGARI_TABLE_SIZE: usize = 9_362;
 static AGARI_TABLE: Lazy<BoomHashMap<u32, Vec<Div>>> = Lazy::new(|| {
     let mut raw = GzDecoder::new(&include_bytes!("data/agari.bin.gz")[..]);
 
-    let (keys, values) = (0..AGARI_TABLE_SIZE)
+    let (keys, values): (Vec<_>, Vec<_>) = (0..AGARI_TABLE_SIZE)
         .map(|_| {
             let key = raw.read_u32::<LittleEndian>().unwrap();
             let v_size = raw.read_u8().unwrap();
@@ -36,10 +35,16 @@ static AGARI_TABLE: Lazy<BoomHashMap<u32, Vec<Div>>> = Lazy::new(|| {
         })
         .unzip();
 
-    // Ensure there is no data left to read.
-    let mut dummy = vec![0];
-    let size = raw.read(&mut dummy).unwrap();
-    assert_eq!(size, 0);
+    if cfg!(debug_assertions) {
+        // Ensure there is no duplicated keys.
+        let mut k = keys.clone();
+        k.sort_unstable();
+        k.dedup();
+        assert_eq!(k.len(), keys.len());
+
+        // Ensure there is no data left to read.
+        raw.read_u8().unwrap_err();
+    }
 
     BoomHashMap::new(keys, values)
 });
@@ -750,17 +755,17 @@ pub fn ensure_init() {
 
 fn get_tile14_and_key(tiles: &[u8; 34]) -> ([u8; 14], u32) {
     let mut tile14 = [0; 14];
+    let mut tile14_iter = tile14.iter_mut();
     let mut key = 0;
 
-    let mut tile14_idx = 0;
+    // let mut tile14_idx = 0;
     let mut bit_idx = -1;
-    let mut prev_in_hand = false;
+    let mut prev_in_hand = None;
     for (kind, chunk) in tiles.chunks_exact(9).enumerate() {
-        for (num, &c) in chunk.iter().enumerate() {
+        for (num, c) in chunk.iter().copied().enumerate() {
             if c > 0 {
-                prev_in_hand = true;
-                tile14[tile14_idx] = (kind * 9 + num) as u8;
-                tile14_idx += 1;
+                prev_in_hand = Some(());
+                *tile14_iter.next().unwrap() = (kind * 9 + num) as u8;
                 bit_idx += 1;
 
                 match c {
@@ -779,16 +784,14 @@ fn get_tile14_and_key(tiles: &[u8; 34]) -> ([u8; 14], u32) {
                     // 1
                     _ => (),
                 }
-            } else if prev_in_hand {
+            } else if prev_in_hand.take().is_some() {
                 key |= 0b1 << bit_idx;
                 bit_idx += 1;
-                prev_in_hand = false;
             }
         }
-        if prev_in_hand {
+        if prev_in_hand.take().is_some() {
             key |= 0b1 << bit_idx;
             bit_idx += 1;
-            prev_in_hand = false;
         }
     }
 
@@ -798,8 +801,7 @@ fn get_tile14_and_key(tiles: &[u8; 34]) -> ([u8; 14], u32) {
         .skip(3 * 9)
         .filter(|(_, &c)| c > 0)
         .for_each(|(tile_id, &c)| {
-            tile14[tile14_idx] = tile_id as u8;
-            tile14_idx += 1;
+            *tile14_iter.next().unwrap() = tile_id as u8;
             bit_idx += 1;
 
             match c {
