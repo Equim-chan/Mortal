@@ -5,6 +5,7 @@ def train():
     import sys
     import os
     import gc
+    import random
     import torch
     import numpy as np
     from datetime import datetime
@@ -122,6 +123,7 @@ def train():
                     file_list.extend(glob(pat, recursive=True))
                 file_list.sort(reverse=True)
                 torch.save({'file_list': file_list}, file_index)
+        random.shuffle(file_list)
         logging.info(f'file list size: {len(file_list):,}')
 
         before_next_test_play = (test_every - steps % test_every) % test_every

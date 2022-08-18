@@ -136,8 +136,5 @@ val_globs = [
 file_index = '/path/to/grp_file_index.pth'
 file_batch_size = 50
 
-train_num_workers = 1
-val_num_workers = 1
-
 [grp.optim]
 lr = 1e-5
