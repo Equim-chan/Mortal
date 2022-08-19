@@ -129,7 +129,7 @@ def train():
         before_next_test_play = (test_every - steps % test_every) % test_every
         est = ''
         if not online:
-            approx_percent = steps * batch_size / (len(file_list) * 650) * 100
+            approx_percent = steps * batch_size / (len(file_list) * 660) * 100
             est = f' est. {approx_percent:6.3f}%'
         logging.info(f'total steps: {steps:,} (~{before_next_test_play:,}){est}')
 
@@ -240,7 +240,7 @@ def train():
                 before_next_test_play = (test_every - steps % test_every) % test_every
                 est = ''
                 if not online:
-                    approx_percent = steps * batch_size / (len(file_list) * 650) * 100
+                    approx_percent = steps * batch_size / (len(file_list) * 660) * 100
                     est = f' est. {approx_percent:6.3f}%'
                 logging.info(f'total steps: {steps:,} (~{before_next_test_play:,}){est}')
 

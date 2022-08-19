@@ -12,7 +12,7 @@ class FileDatasetsIter(IterableDataset):
         self,
         file_list,
         pts,
-        file_batch_size = 20, # hint: around 650 instances per file
+        file_batch_size = 20, # hint: around 660 instances per file
         quality_threshold = 0,
         player_name = None,
         excludes = None,
