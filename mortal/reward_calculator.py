@@ -9,7 +9,7 @@ class RewardCalculator:
             self.grp = grp.to(self.device).eval()
             self.uniform_init = uniform_init
 
-            self.pts = pts or [3, 1, -1, -3]
+            pts = pts or [3, 1, -1, -3]
             self.pts = torch.tensor(pts, dtype=torch.float64, device=self.device)
 
     def calc_delta_grp(self, player_id, grp_feature, rank_by_player, final_scores):
