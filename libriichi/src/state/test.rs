@@ -3,6 +3,7 @@ use crate::hand::{hand, hand_with_aka, tile37_to_vec};
 use crate::mjai::Event;
 use crate::{must_tile, t, tuz};
 use std::convert::TryInto;
+use std::mem;
 
 // This is not only a helper but it also tests `encode_obs`.
 fn state_from_log(player_id: u8, log: &str) -> PlayerState {
@@ -617,6 +618,11 @@ fn rule_based_agari_all_last_minogashi() {
     assert!(ps.last_cans.can_tsumo_agari);
     let should_hora = ps.rule_based_agari();
     assert!(!should_hora);
+
+    let orig_scores = mem::replace(&mut ps.scores, [9000, 30000, 30000, 30000]);
+    let should_hora = ps.rule_based_agari();
+    assert!(should_hora);
+    ps.scores = orig_scores;
 
     ps.add_dora_indicator(t!(5m));
     let should_hora = ps.rule_based_agari();

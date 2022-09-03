@@ -280,7 +280,8 @@ impl PlayerState {
                 return true;
             }
         } else if self.scores.iter().all(|&s| s < 30000) {
-            // Agari if 西入 is possible.
+            // Agari if 西入 is possible. Note that this condition is sound but
+            // not complete.
             return true;
         }
 
@@ -349,6 +350,15 @@ impl PlayerState {
                         *s -= max_win_point.tsumo_ko + self.honba as i32 * 100;
                     }
                 });
+        }
+
+        // The prerequisite `!(self.bakaze == t!(W) && self.kyoku == 3)` has
+        // already been checked at the beginning.
+        //
+        // Agari if 西入 or keeping 西入 is possible. This condition is sound
+        // and complete.
+        if exp_scores.iter().all(|&s| s < 30000) {
+            return true;
         }
 
         // Agari if the best post-hora situation in theory will make us avoid
