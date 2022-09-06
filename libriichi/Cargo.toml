@@ -27,7 +27,6 @@ flate2 = "1"
 sha3 = "0.10"
 glob = "0.3"
 derivative = "2"
-static_assertions = "1"
 indicatif = { version = "0.17", features = ["rayon"] }
 tinyvec = { version = "1", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }

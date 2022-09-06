@@ -6,9 +6,9 @@ use std::str::FromStr;
 use boomphf::hashmap::BoomHashMap;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use static_assertions::const_assert_eq;
 
-const MJAI_PAI_STRINGS: &[&str] = &[
+const MJAI_PAI_STRINGS_LEN: usize = 3 * 9 + 4 + 3 + 3 + 1;
+const MJAI_PAI_STRINGS: [&str; MJAI_PAI_STRINGS_LEN] = [
     "1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m", // m
     "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", // p
     "1s", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", // s
@@ -16,11 +16,10 @@ const MJAI_PAI_STRINGS: &[&str] = &[
     "5mr", "5pr", "5sr", // a
     "?",   // unknown
 ];
-const_assert_eq!(MJAI_PAI_STRINGS.len(), 3 * 9 + 4 + 3 + 3 + 1);
 
 static MJAI_PAI_STRINGS_MAP: Lazy<BoomHashMap<&'static str, Tile>> = Lazy::new(|| {
     let mut values = vec![];
-    for id in 0..MJAI_PAI_STRINGS.len() {
+    for id in 0..MJAI_PAI_STRINGS_LEN {
         values.push(Tile::try_from(id).unwrap());
     }
     BoomHashMap::new(MJAI_PAI_STRINGS.to_vec(), values)
@@ -30,7 +29,7 @@ static MJAI_PAI_STRINGS_MAP: Lazy<BoomHashMap<&'static str, Tile>> = Lazy::new(|
 pub struct Tile(u8);
 
 impl Tile {
-    const MAX: usize = MJAI_PAI_STRINGS.len() - 1;
+    const MAX: usize = MJAI_PAI_STRINGS_LEN - 1;
 
     /// # Safety
     /// Calling this method with an out-of-bounds tile ID is undefined behavior.
