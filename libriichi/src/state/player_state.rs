@@ -72,11 +72,11 @@ pub struct PlayerState {
     /// 24 is the theoretical max size of kawa.
     ///
     /// Reference: <https://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q1020002370>
-    pub(super) kawa: [ArrayVec<[Option<KawaItem>; 24]>; 4],
+    pub(super) kawa: [ArrayVec<[Option<KawaItem>; 32]>; 4],
 
     /// Using 34-D arrays here may be more efficient, but I don't want to mess up
     /// with aka doras.
-    pub(super) kawa_overview: [ArrayVec<[Tile; 24]>; 4],
+    pub(super) kawa_overview: [ArrayVec<[Tile; 32]>; 4],
     pub(super) fuuro_overview: [ArrayVec<[ArrayVec<[Tile; 4]>; 4]>; 4],
     /// In this field all `Tile` are deaka'd.
     pub(super) ankan_overview: [ArrayVec<[Tile; 4]>; 4],
