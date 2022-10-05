@@ -19,4 +19,7 @@ dummy = np.array([])
 dummy.setflags(write=False)
 torch.as_tensor(dummy)
 
+# "distutils Version classes are deprecated"
+import torch.utils.tensorboard
+
 warnings.simplefilter('default')

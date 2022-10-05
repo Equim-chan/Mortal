@@ -137,7 +137,7 @@ impl TwoVsTwo {
         }
 
         log::info!(
-            "seed: [{}, {}) w/ {}, start {} groups, {} hanchans",
+            "seed: [{}, {}) w/ {:#x}, start {} groups, {} hanchans",
             seed_start.0,
             seed_start.0 + seed_count,
             seed_start.1,
@@ -174,21 +174,20 @@ impl TwoVsTwo {
 
         let mut challenger_idx = 0;
         let mut champion_idx = 0;
-        let mut make_idx_group = |agent_idxs: [usize; 4]| {
-            let mut idx_group = [Index::default(); 4];
-            for (agent_idx, idx_item) in agent_idxs.into_iter().zip(&mut idx_group) {
+        let mut make_idx_group = |agent_idxs: [_; 4]| {
+            agent_idxs.map(|agent_idx| {
                 let player_id_idx = if agent_idx == 0 {
                     &mut challenger_idx
                 } else {
                     &mut champion_idx
                 };
-                *idx_item = Index {
+                let ret = Index {
                     agent_idx,
                     player_id_idx: *player_id_idx,
                 };
                 *player_id_idx += 1;
-            }
-            idx_group
+                ret
+            })
         };
         let indexes: Vec<_> = (0..seed_count)
             .flat_map(|_| {
@@ -211,12 +210,8 @@ impl TwoVsTwo {
             } else {
                 ProgressBar::new(seed_count * 4)
             };
-            const TEMPLATE: &str = "{spinner:.cyan} steps: {msg}\n[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%";
-            bar.set_style(
-                ProgressStyle::with_template(TEMPLATE)?
-                    .tick_chars(".oOo")
-                    .progress_chars("#-"),
-            );
+            const TEMPLATE: &str = "[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%";
+            bar.set_style(ProgressStyle::with_template(TEMPLATE)?.progress_chars("#-"));
             bar.enable_steady_tick(Duration::from_millis(150));
 
             results
@@ -269,7 +264,7 @@ impl TwoVsTwo {
         }
 
         log::info!(
-            "seed: {} w/ {}, split: {}, start 1 hanchan",
+            "seed: {} w/ {:#x}, split: {}, start 1 hanchan",
             seed.0,
             seed.1,
             split

@@ -107,6 +107,7 @@ impl PlayerState {
                 self.at_turn = 0;
 
                 self.kawa.iter_mut().for_each(|k| k.clear());
+                self.last_tedashis.fill(None);
                 self.kawa_overview.iter_mut().for_each(|k| k.clear());
                 self.fuuro_overview.iter_mut().for_each(|k| k.clear());
                 self.ankan_overview.iter_mut().for_each(|k| k.clear());
@@ -115,6 +116,7 @@ impl PlayerState {
 
                 self.riichi_declared.fill(false);
                 self.riichi_accepted.fill(false);
+                self.riichi_sutehais.fill(None);
 
                 self.last_self_tsumo = None;
                 self.last_kawa_tile = None;
@@ -141,7 +143,6 @@ impl PlayerState {
 
                 self.last_cans.can_discard = true;
                 self.last_self_tsumo = Some(pai);
-                self.last_kawa_tile = None; // for building ankan/daiminkan features
                 self.witness_tile(pai);
                 self.move_tile(pai, MoveType::Tsumo);
 
@@ -229,19 +230,29 @@ impl PlayerState {
                 tsumogiri,
             } => {
                 let actor_rel = self.rel(actor);
-                self.kawa_overview[actor_rel].push(pai);
-                self.kawa[actor_rel].push(Some(KawaItem {
+
+                let is_riichi = self.riichi_declared[actor_rel] && !self.riichi_accepted[actor_rel];
+                let sutehai = Sutehai {
+                    tile: pai,
+                    is_dora: self.dora_factor[pai.deaka().as_usize()] > 0,
+                    is_tedashi: !tsumogiri,
+                    is_riichi,
+                };
+                let kawa_item = KawaItem {
                     kan: mem::take(&mut self.intermediate_kan),
                     chi_pon: self.intermediate_chi_pon.take(),
-                    sutehai: Sutehai {
-                        tile: pai,
-                        is_dora: self.dora_factor[pai.deaka().as_usize()] > 0,
-                        is_tedashi: !tsumogiri,
-                        is_riichi: self.riichi_declared[actor_rel]
-                            && !self.riichi_accepted[actor_rel],
-                    },
-                }));
+                    sutehai,
+                };
+                self.kawa[actor_rel].push(Some(kawa_item));
+                self.kawa_overview[actor_rel].push(pai);
                 self.last_kawa_tile = Some(pai);
+
+                if !tsumogiri {
+                    self.last_tedashis[actor_rel] = Some(sutehai);
+                }
+                if is_riichi {
+                    self.riichi_sutehais[actor_rel] = Some(sutehai);
+                }
 
                 if actor_rel == 0 {
                     self.forbidden_tiles.fill(false);

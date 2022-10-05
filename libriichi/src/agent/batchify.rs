@@ -55,8 +55,8 @@ where
     }
 
     #[inline]
-    fn need_oracle_obs(&self) -> bool {
-        self.inner[0].need_oracle_obs()
+    fn oracle_obs_version(&self) -> Option<u32> {
+        self.inner[0].oracle_obs_version()
     }
 
     #[inline]

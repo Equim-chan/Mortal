@@ -7,7 +7,6 @@ def train():
     import gc
     import random
     import torch
-    import numpy as np
     from datetime import datetime
     from os import path
     from glob import glob
@@ -15,11 +14,10 @@ def train():
     from torch.cuda import amp
     from torch.nn import functional as F
     from torch.nn.utils import clip_grad_norm_
-    from torch.distributions import Normal
     from torch.utils.data import DataLoader
     from torch.utils.tensorboard import SummaryWriter
     from tqdm.auto import tqdm
-    from common import normal_kl_div, submit_param, parameter_count, drain, filtered_stripped_lines
+    from common import submit_param, parameter_count, drain, filtered_stripped_lines
     from player import TestPlayer
     from dataloader import FileDatasetsIter, worker_init_fn
     from model import Brain, DQN
@@ -33,9 +31,6 @@ def train():
     save_every = config['control']['save_every']
     test_every = config['control']['test_every']
     test_games = config['test_play']['games']
-    log10_kld_target = np.log10(config['vlog']['kld_target'])
-    free_bits_threshold = config['vlog']['free_bits_threshold']
-    free_bits_weight = config['vlog']['free_bits_weight']
     min_q_weight = config['cql']['min_q_weight']
     assert save_every % opt_step_every == 0
     assert test_every % save_every == 0
@@ -51,22 +46,16 @@ def train():
     max_grad_norm = config['optim']['max_grad_norm']
 
     mortal = Brain(version=version, **config['resnet']).to(device)
-    current_oracle = Brain(is_oracle=True, version=version, **config['resnet']).to(device)
     current_dqn = DQN(version=version).to(device)
-    log_beta = torch.tensor(config['vlog']['beta_init'], dtype=torch.float32, device=device).log().requires_grad_(True)
 
     logging.info(f'mortal params: {parameter_count(mortal):,}')
-    logging.info(f'oracle params: {parameter_count(current_oracle):,}')
     logging.info(f'dqn params: {parameter_count(current_dqn):,}')
 
     mortal.freeze_bn(config['freeze_bn']['mortal'])
-    current_oracle.freeze_bn(config['freeze_bn']['oracle'])
 
     optimizer = optim.AdamW([
         {'params': mortal.parameters()},
-        {'params': current_oracle.parameters()},
         {'params': current_dqn.parameters()},
-        {'params': [log_beta]},
     ])
     scaler = amp.GradScaler(enabled=enable_amp)
     test_player = TestPlayer()
@@ -78,17 +67,13 @@ def train():
         timestamp = datetime.fromtimestamp(state['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
         logging.info(f'loaded: {timestamp}')
         mortal.load_state_dict(state['mortal'])
-        current_oracle.load_state_dict(state['current_oracle'])
         current_dqn.load_state_dict(state['current_dqn'])
-        log_beta.detach().copy_(state['log_beta'])
         optimizer.load_state_dict(state['optimizer'])
         scaler.load_state_dict(state['scaler'])
         steps = state['steps']
 
     optimizer.param_groups[0]['lr'] = config['optim']['mortal_lr']
-    optimizer.param_groups[1]['lr'] = config['optim']['oracle_lr']
-    optimizer.param_groups[2]['lr'] = config['optim']['dqn_lr']
-    optimizer.param_groups[3]['lr'] = config['optim']['beta_lr']
+    optimizer.param_groups[1]['lr'] = config['optim']['dqn_lr']
     optimizer.zero_grad(set_to_none=True)
 
     if device.type == 'cuda':
@@ -97,18 +82,13 @@ def train():
         logging.info(f'device: {device}')
 
     if online:
-        submit_param(current_oracle, mortal, current_dqn)
+        submit_param(None, mortal, current_dqn)
         logging.info('param has been submitted')
 
     writer = SummaryWriter(config['control']['tensorboard_dir'])
     stats = {
         'dqn_loss': 0,
         'cql_loss': 0,
-        'kld_loss': 0,
-        'free_bits_loss': 0,
-        'beta_loss': 0,
-        'mortal_entropy': 0,
-        'oracle_entropy': 0,
     }
     all_q = torch.zeros((save_every, batch_size), device=device, dtype=torch.float32)
     all_q_target = torch.zeros((save_every, batch_size), device=device, dtype=torch.float32)
@@ -165,9 +145,9 @@ def train():
         ))
 
         pb = tqdm(total=save_every, desc='TRAIN', unit='batch', dynamic_ncols=True, ascii=True)
-        for obs, invisible_obs, actions, masks, steps_to_done, kyoku_rewards, _ in data_loader:
+        for obs, _, actions, masks, steps_to_done, kyoku_rewards, _ in data_loader:
             obs = obs.to(dtype=torch.float32, device=device)
-            invisible_obs = invisible_obs.to(dtype=torch.float32, device=device)
+            # invisible_obs = invisible_obs.to(dtype=torch.float32, device=device)
             actions = actions.to(dtype=torch.int64, device=device)
             masks = masks.to(dtype=torch.bool, device=device)
             steps_to_done = steps_to_done.to(dtype=torch.int64, device=device)
@@ -178,20 +158,10 @@ def train():
             q_target_mc = q_target_mc.to(torch.float32)
 
             with torch.autocast(device.type, enabled=enable_amp):
-                mu, logsig = current_oracle(obs, invisible_obs)
-                dist = Normal(mu, logsig.exp() + 1e-6)
-                latent = dist.rsample()
-
-                q_out = current_dqn(latent, masks)
+                phi = mortal(obs)
+                q_out = current_dqn(phi, masks)
                 q = q_out[range(batch_size), actions]
                 dqn_loss = 0.5 * F.mse_loss(q, q_target_mc)
-
-                mu_mortal, logsig_mortal = mortal(obs)
-                dist_mortal = Normal(mu_mortal, logsig_mortal.exp() + 1e-6)
-                kld = normal_kl_div(mu, logsig, mu_mortal, logsig_mortal)
-                kld_loss = kld.sum(-1).mean()
-                free_bits_loss = kld.clamp(free_bits_threshold).sum(-1).mean()
-                beta_loss = log_beta * (log10_kld_target - kld_loss.detach().log10())
 
                 cql_loss = 0
                 if not online:
@@ -200,9 +170,6 @@ def train():
                 loss = sum((
                     dqn_loss,
                     cql_loss * min_q_weight,
-                    kld_loss * log_beta.detach().exp(),
-                    free_bits_loss * free_bits_weight,
-                    beta_loss,
                 )) / opt_step_every
             scaler.scale(loss).backward()
 
@@ -210,11 +177,6 @@ def train():
                 stats['dqn_loss'] += dqn_loss
                 if not online:
                     stats['cql_loss'] += cql_loss
-                stats['kld_loss'] += kld_loss
-                stats['free_bits_loss'] += free_bits_loss - 512 * free_bits_threshold
-                stats['beta_loss'] += beta_loss
-                stats['mortal_entropy'] += dist_mortal.entropy().sum(-1).mean()
-                stats['oracle_entropy'] += dist.entropy().sum(-1).mean()
                 all_q[idx] = q
                 all_q_target[idx] = q_target_mc
 
@@ -240,12 +202,6 @@ def train():
                 writer.add_scalar('loss/dqn_loss', stats['dqn_loss'] / save_every, steps)
                 if not online:
                     writer.add_scalar('loss/cql_loss', stats['cql_loss'] / save_every, steps)
-                writer.add_scalar('loss/kld_loss', stats['kld_loss'] / save_every, steps)
-                writer.add_scalar('loss/free_bits_loss', stats['free_bits_loss'] / save_every, steps)
-                writer.add_scalar('loss/beta_loss', stats['beta_loss'] / save_every, steps)
-                writer.add_scalar('vlog/beta', log_beta.detach().exp(), steps)
-                writer.add_scalar('vlog/mortal_entropy', stats['mortal_entropy'] / save_every, steps)
-                writer.add_scalar('vlog/oracle_entropy', stats['oracle_entropy'] / save_every, steps)
                 writer.add_histogram('q_predicted', all_q_1d, steps)
                 writer.add_histogram('q_target', all_q_target_1d, steps)
                 writer.flush()
@@ -259,9 +215,7 @@ def train():
 
                 state = {
                     'mortal': mortal.state_dict(),
-                    'current_oracle': current_oracle.state_dict(),
                     'current_dqn': current_dqn.state_dict(),
-                    'log_beta': log_beta,
                     'optimizer': optimizer.state_dict(),
                     'scaler': scaler.state_dict(),
                     'steps': steps,
@@ -271,7 +225,7 @@ def train():
                 torch.save(state, state_file)
 
                 if online:
-                    submit_param(current_oracle, mortal, current_dqn)
+                    submit_param(None, mortal, current_dqn)
                     logging.info('param has been submitted')
 
                 if steps % test_every == 0:
@@ -334,7 +288,7 @@ def train():
         pb.close()
 
         if online:
-            submit_param(current_oracle, mortal, current_dqn)
+            submit_param(None, mortal, current_dqn)
             logging.info('param has been submitted')
 
     while True:

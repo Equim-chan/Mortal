@@ -10,31 +10,36 @@ from config import config
 class FileDatasetsIter(IterableDataset):
     def __init__(
         self,
+        version,
         file_list,
         pts,
         file_batch_size = 20, # hint: around 660 instances per file
-        quality_threshold = 0,
-        player_name = None,
+        player_names = None,
         excludes = None,
     ):
         super().__init__()
+        self.version = version
         self.file_list = file_list
         self.pts = pts
         self.file_batch_size = file_batch_size
-        self.quality_threshold = int(quality_threshold)
-        self.player_name = player_name
+        self.player_names = player_names
         self.excludes = excludes
         self.buffer = []
         self.iterator = None
 
     def build_iter(self):
-        self.loader = GameplayLoader(oracle=True, player_name=self.player_name, excludes=self.excludes)
+        self.loader = GameplayLoader(
+            version = self.version,
+            oracle = True,
+            player_names = self.player_names,
+            excludes = self.excludes,
+        )
 
         # do not put it in __init__, it won't work on Windows
-        grp = GRP(**config['grp']['network'])
+        self.grp = GRP(**config['grp']['network'])
         grp_state = torch.load(config['grp']['state_file'], map_location=torch.device('cpu'))
-        grp.load_state_dict(grp_state['model'])
-        self.reward_calc = RewardCalculator(grp, self.pts)
+        self.grp.load_state_dict(grp_state['model'])
+        self.reward_calc = RewardCalculator(self.grp, self.pts)
 
         random.shuffle(self.file_list)
         for start_idx in range(0, len(self.file_list), self.file_batch_size):
@@ -49,10 +54,6 @@ class FileDatasetsIter(IterableDataset):
         data = self.loader.load_gz_log_files(file_list)
 
         for game in data:
-            quality = game.take_quality()
-            if int(quality) < self.quality_threshold:
-                continue
-
             obs = game.take_obs()
             invisible_obs = game.take_invisible_obs()
             actions = game.take_actions()
@@ -66,8 +67,12 @@ class FileDatasetsIter(IterableDataset):
 
             grp_feature = grp.take_feature()
             rank_by_player = grp.take_rank_by_player()
+            kyoku_rewards = self.reward_calc.calc_delta_pt(player_id, grp_feature, rank_by_player)
+
             final_scores = grp.take_final_scores()
-            kyoku_rewards = self.reward_calc(player_id, grp_feature, rank_by_player, final_scores)
+            scores_seq = np.concatenate((grp_feature[:, 3:] * 1e5, [final_scores]))
+            rank_by_player_seq = scores_seq.argsort(-1, kind='stable').argsort(-1, kind='stable')
+            next_rank_by_player_label = self.grp.get_label(torch.as_tensor(rank_by_player_seq, device=torch.device('cpu')))
 
             steps_to_done = np.zeros(game_size, dtype=np.int64)
             for i in reversed(range(game_size)):
@@ -82,6 +87,7 @@ class FileDatasetsIter(IterableDataset):
                     masks[i],
                     steps_to_done[i],
                     kyoku_rewards[at_kyoku[i]],
+                    next_rank_by_player_label[at_kyoku[i] + 1],
                 )
                 self.buffer.append(entry)
 

@@ -11,9 +11,10 @@ pub(super) struct KawaItem {
     pub(super) sutehai: Sutehai,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Copy, Serialize)]
 pub(super) struct Sutehai {
     pub(super) tile: Tile,
+    // only for normal dora, aka is not included
     pub(super) is_dora: bool,
     pub(super) is_tedashi: bool,
     pub(super) is_riichi: bool,

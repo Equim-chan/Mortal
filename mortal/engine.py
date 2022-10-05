@@ -9,6 +9,7 @@ class MortalEngine:
         brain,
         dqn,
         is_oracle,
+        version,
         device = None,
         stochastic_latent = False,
         enable_amp = False,
@@ -23,6 +24,7 @@ class MortalEngine:
         self.brain = brain.to(self.device).eval()
         self.dqn = dqn.to(self.device).eval()
         self.is_oracle = is_oracle
+        self.version = version
         self.stochastic_latent = stochastic_latent
 
         self.enable_amp = enable_amp
@@ -43,18 +45,22 @@ class MortalEngine:
     def _react_batch(self, obs, masks, invisible_obs):
         obs = torch.as_tensor(np.stack(obs, axis=0), device=self.device)
         masks = torch.as_tensor(np.stack(masks, axis=0), device=self.device)
+        invisible_obs = None
         if self.is_oracle:
             invisible_obs = torch.as_tensor(np.stack(invisible_obs, axis=0), device=self.device)
-        else:
-            invisible_obs = None
         batch_size = obs.shape[0]
 
-        mu, logsig = self.brain(obs, invisible_obs)
-        if self.stochastic_latent:
-            latent = Normal(mu, logsig.exp() + 1e-6).sample()
-        else:
-            latent = mu
-        q_out = self.dqn(latent, masks)
+        match self.version:
+            case 1:
+                mu, logsig = self.brain(obs, invisible_obs)
+                if self.stochastic_latent:
+                    latent = Normal(mu, logsig.exp() + 1e-6).sample()
+                else:
+                    latent = mu
+                q_out = self.dqn(latent, masks)
+            case 2:
+                phi = self.brain(obs)
+                q_out = self.dqn(phi, masks)
 
         if self.boltzmann_epsilon > 0:
             is_greedy = torch.rand(batch_size, device=self.device) >= self.boltzmann_epsilon

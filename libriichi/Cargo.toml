@@ -28,7 +28,7 @@ sha3 = "0.10"
 glob = "0.3"
 derivative = "2"
 indicatif = { version = "0.17", features = ["rayon"] }
-tinyvec = { version = "1", features = ["serde"] }
+tinyvec = { version = "1", features = ["alloc", "serde"] }
 serde = { version = "1", features = ["derive"] }
 mimalloc = { version = "0.1", default-features = false, optional = true }
 
@@ -44,7 +44,7 @@ features = [
 pyo3-build-config = "0.17"
 
 [dev-dependencies]
-criterion = { version = "0.3", features = ["html_reports"] }
+criterion = { version = "0.4", features = ["html_reports"] }
 
 [[bench]]
 name = "bench"

@@ -115,7 +115,7 @@ class Handler(BaseRequestHandler):
         with dir_lock:
             overflow = buffer_size >= capacity
             with param_lock:
-                has_param = oracle_param is not None and mortal_param is not None and dqn_param is not None
+                has_param = mortal_param is not None and dqn_param is not None
         if not has_param or overflow:
             self.send_msg({'status': 'empty param or log overflow'})
             return
@@ -123,7 +123,6 @@ class Handler(BaseRequestHandler):
         with param_lock:
             res = {
                 'status': 'ok',
-                'oracle': oracle_param,
                 'mortal': mortal_param,
                 'dqn': dqn_param,
             }

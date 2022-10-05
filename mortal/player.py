@@ -12,21 +12,28 @@ from config import config
 
 class TestPlayer:
     def __init__(self):
-        device = torch.device(config['baseline']['device'])
+        baseline_cfg = config['baseline']['test']
+        device = torch.device(baseline_cfg['device'])
 
-        stable_mortal = Brain(False, **config['resnet']).eval()
-        stable_dqn = DQN().eval()
-        state = torch.load(config['baseline']['state_file'], map_location=torch.device('cpu'))
+        state = torch.load(baseline_cfg['state_file'], map_location=torch.device('cpu'))
+        cfg = state['config']
+        version = cfg['control'].get('version', 1)
+        conv_channels = cfg['resnet']['conv_channels']
+        num_blocks = cfg['resnet']['num_blocks']
+        stable_mortal = Brain(version=version, conv_channels=conv_channels, num_blocks=num_blocks).eval()
+        stable_dqn = DQN(version=version).eval()
         stable_mortal.load_state_dict(state['mortal'])
         stable_dqn.load_state_dict(state['current_dqn'])
         self.baseline_engine = MortalEngine(
             stable_mortal,
             stable_dqn,
             is_oracle = False,
+            version = version,
             device = device,
             enable_amp = True,
             name = 'baseline',
         )
+        self.chal_version = config['control']['version']
         self.log_dir = path.abspath(config['test_play']['log_dir'])
 
     def test_play(self, seed_count, mortal, dqn, device):
@@ -35,6 +42,7 @@ class TestPlayer:
             mortal,
             dqn,
             is_oracle = False,
+            version = self.chal_version,
             device = device,
             enable_amp = True,
             name = 'mortal',
@@ -60,17 +68,23 @@ class TestPlayer:
 
 class TrainPlayer:
     def __init__(self):
-        device = torch.device(config['baseline']['device'])
+        baseline_cfg = config['baseline']['train']
+        device = torch.device(baseline_cfg['device'])
 
-        stable_mortal = Brain(False, **config['resnet']).eval()
-        stable_dqn = DQN().eval()
-        state = torch.load(config['baseline']['state_file'], map_location=torch.device('cpu'))
+        state = torch.load(baseline_cfg['state_file'], map_location=torch.device('cpu'))
+        cfg = state['config']
+        version = cfg['control'].get('version', 1)
+        conv_channels = cfg['resnet']['conv_channels']
+        num_blocks = cfg['resnet']['num_blocks']
+        stable_mortal = Brain(version=version, conv_channels=conv_channels, num_blocks=num_blocks).eval()
+        stable_dqn = DQN(version=version).eval()
         stable_mortal.load_state_dict(state['mortal'])
         stable_dqn.load_state_dict(state['current_dqn'])
         self.baseline_engine = MortalEngine(
             stable_mortal,
             stable_dqn,
             is_oracle = False,
+            version = version,
             device = device,
             enable_amp = True,
             name = 'baseline',
@@ -78,6 +92,7 @@ class TrainPlayer:
 
         profile = os.environ.get('TRAIN_PLAY_PROFILE', 'default')
         cfg = config['train_play'][profile]
+        self.chal_version = config['control']['version']
         self.log_dir = path.abspath(cfg['log_dir'])
         self.train_key = secrets.randbits(64)
         self.train_seed = 10000
@@ -85,18 +100,19 @@ class TrainPlayer:
         self.seed_count = cfg['games'] // 4
         self.boltzmann_epsilon = cfg['boltzmann_epsilon']
         self.boltzmann_temp = cfg['boltzmann_temp']
+        self.stochastic_latent = cfg['stochastic_latent']
 
         self.repeats = cfg['repeats']
         self.repeat_counter = 0
 
     def train_play(self, oracle, mortal, dqn, device):
         torch.backends.cudnn.benchmark = False
-
         engine_chal = MortalEngine(
             mortal,
             dqn,
             is_oracle = False,
-            stochastic_latent = False,
+            version = self.chal_version,
+            stochastic_latent = self.stochastic_latent,
             boltzmann_epsilon = self.boltzmann_epsilon,
             boltzmann_temp = self.boltzmann_temp,
             device = device,

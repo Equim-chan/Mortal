@@ -23,15 +23,20 @@ def main():
         os.environ['AKOCHAN_DIR'] = cfg['akochan']['dir']
         os.environ['AKOCHAN_TACTICS'] = cfg['akochan']['tactics']
     else:
-        mortal = Brain(False, **config['resnet']).eval()
-        dqn = DQN().eval()
         state = torch.load(cfg['champion']['state_file'], map_location=torch.device('cpu'))
+        cham_cfg = state['config']
+        version = cham_cfg['control'].get('version', 1)
+        conv_channels = cham_cfg['resnet']['conv_channels']
+        num_blocks = cham_cfg['resnet']['num_blocks']
+        mortal = Brain(version=version, conv_channels=conv_channels, num_blocks=num_blocks).eval()
+        dqn = DQN(version=version).eval()
         mortal.load_state_dict(state['mortal'])
         dqn.load_state_dict(state['current_dqn'])
         engine_cham = MortalEngine(
             mortal,
             dqn,
             is_oracle = False,
+            version = version,
             stochastic_latent = cfg['champion']['stochastic_latent'],
             device = torch.device(cfg['champion']['device']),
             enable_amp = cfg['champion']['enable_amp'],
@@ -39,15 +44,20 @@ def main():
             name = cfg['champion']['name'],
         )
 
-    mortal = Brain(False, **config['resnet']).eval()
-    dqn = DQN().eval()
     state = torch.load(cfg['challenger']['state_file'], map_location=torch.device('cpu'))
+    chal_cfg = state['config']
+    version = chal_cfg['control'].get('version', 1)
+    conv_channels = chal_cfg['resnet']['conv_channels']
+    num_blocks = chal_cfg['resnet']['num_blocks']
+    mortal = Brain(version=version, conv_channels=conv_channels, num_blocks=num_blocks).eval()
+    dqn = DQN(version=version).eval()
     mortal.load_state_dict(state['mortal'])
     dqn.load_state_dict(state['current_dqn'])
     engine_chal = MortalEngine(
         mortal,
         dqn,
         is_oracle = False,
+        version = version,
         stochastic_latent = cfg['challenger']['stochastic_latent'],
         device = torch.device(cfg['challenger']['device']),
         enable_amp = cfg['challenger']['enable_amp'],

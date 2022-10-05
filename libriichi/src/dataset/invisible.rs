@@ -1,5 +1,5 @@
 use crate::arena::Board;
-use crate::consts::ORACLE_OBS_SHAPE;
+use crate::consts::oracle_obs_shape;
 use crate::mjai::Event;
 use crate::state::PlayerState;
 use crate::tile::Tile;
@@ -152,8 +152,10 @@ impl Invisible {
         opponent_states: &[PlayerState; 3],
         yama_idx: usize,
         rinshan_idx: usize,
+        version: u32,
     ) -> Array2<f32> {
-        let mut arr = Array2::zeros(ORACLE_OBS_SHAPE);
+        let shape = oracle_obs_shape(version);
+        let mut arr = Array2::zeros(shape);
         let mut idx = 0;
 
         for state in opponent_states {
@@ -179,8 +181,21 @@ impl Invisible {
             idx += 3;
 
             let n = state.shanten() as usize;
-            arr.slice_mut(s![idx..idx + n, ..]).fill(1.);
-            idx += 6;
+            match version {
+                1 => {
+                    arr.slice_mut(s![idx..idx + n, ..]).fill(1.);
+                    idx += 6;
+                }
+                2 => {
+                    arr.slice_mut(s![idx + n, ..]).fill(1.);
+                    idx += 7;
+
+                    let v = n as f32 / 6.;
+                    arr.slice_mut(s![idx, ..]).fill(v);
+                    idx += 1;
+                }
+                _ => unreachable!(),
+            }
 
             state
                 .waits()
@@ -228,7 +243,7 @@ impl Invisible {
             idx += 2;
         }
 
-        assert_eq!(idx, ORACLE_OBS_SHAPE.0);
+        assert_eq!(idx, shape.0);
         arr
     }
 }
