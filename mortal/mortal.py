@@ -29,7 +29,7 @@ def main():
     device = torch.device('cpu')
     state = torch.load(config['control']['state_file'], map_location=torch.device('cpu'))
     cfg = state['config']
-    version = cfg['control']['version']
+    version = cfg['control'].get('version', 1)
     num_blocks = cfg['resnet']['num_blocks']
     conv_channels = cfg['resnet']['conv_channels']
     time = datetime.fromtimestamp(state['timestamp'], tz=timezone.utc).strftime('%y%m%d%H')
