@@ -22,9 +22,9 @@ def main():
     # oracle = Brain(version=version, is_oracle=True, num_blocks=num_blocks, conv_channels=conv_channels).to(device).eval()
     mortal = Brain(version=version, num_blocks=num_blocks, conv_channels=conv_channels).to(device).eval()
     dqn = DQN(version=version).to(device)
-    train_player = TrainPlayer()
 
     while True:
+        train_player = TrainPlayer()
         while True:
             with socket.socket() as conn:
                 conn.connect(remote)
