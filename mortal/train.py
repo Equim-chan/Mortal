@@ -178,32 +178,40 @@ def train():
             q_target_mc = q_target_mc.to(torch.float32)
 
             with torch.autocast(device.type, enabled=enable_amp):
-                mu, logsig = current_oracle(obs, invisible_obs)
-                dist = Normal(mu, logsig.exp() + 1e-6)
-                latent = dist.rsample()
+                match version:
+                    case 1:
+                        mu, logsig = current_oracle(obs, invisible_obs)
+                        dist = Normal(mu, logsig.exp() + 1e-6)
+                        latent = dist.rsample()
 
-                q_out = current_dqn(latent, masks)
-                q = q_out[range(batch_size), actions]
-                dqn_loss = 0.5 * F.mse_loss(q, q_target_mc)
+                        q_out = current_dqn(latent, masks)
+                        q = q_out[range(batch_size), actions]
+                        dqn_loss = 0.5 * F.mse_loss(q, q_target_mc)
 
-                mu_mortal, logsig_mortal = mortal(obs)
-                dist_mortal = Normal(mu_mortal, logsig_mortal.exp() + 1e-6)
-                kld = normal_kl_div(mu, logsig, mu_mortal, logsig_mortal)
-                kld_loss = kld.sum(-1).mean()
-                free_bits_loss = kld.clamp(free_bits_threshold).sum(-1).mean()
-                beta_loss = log_beta * (log10_kld_target - kld_loss.detach().log10())
+                        mu_mortal, logsig_mortal = mortal(obs)
+                        dist_mortal = Normal(mu_mortal, logsig_mortal.exp() + 1e-6)
+                        kld = normal_kl_div(mu, logsig, mu_mortal, logsig_mortal)
+                        kld_loss = kld.sum(-1).mean()
+                        free_bits_loss = kld.clamp(free_bits_threshold).sum(-1).mean()
+                        beta_loss = log_beta * (log10_kld_target - kld_loss.detach().log10())
 
-                cql_loss = 0
-                if not online:
-                    cql_loss = q_out.logsumexp(-1).mean() - q.mean()
+                        cql_loss = 0
+                        if not online:
+                            cql_loss = q_out.logsumexp(-1).mean() - q.mean()
 
-                loss = sum((
-                    dqn_loss,
-                    cql_loss * min_q_weight,
-                    kld_loss * log_beta.detach().exp(),
-                    free_bits_loss * free_bits_weight,
-                    beta_loss,
-                )) / opt_step_every
+                        loss = sum((
+                            dqn_loss,
+                            cql_loss * min_q_weight,
+                            kld_loss * log_beta.detach().exp(),
+                            free_bits_loss * free_bits_weight,
+                            beta_loss,
+                        )) / opt_step_every
+                    case 2:
+                        latent = current_oracle(obs, invisible_obs)
+                        q_out = current_dqn(latent, masks)
+                        q = q_out[range(batch_size), actions]
+                        dqn_loss = 0.5 * F.mse_loss(q, q_target_mc)
+                        loss = dqn_loss / opt_step_every
             scaler.scale(loss).backward()
 
             with torch.no_grad():
