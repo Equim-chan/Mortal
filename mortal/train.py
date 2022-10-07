@@ -218,11 +218,12 @@ def train():
                 stats['dqn_loss'] += dqn_loss
                 if not online:
                     stats['cql_loss'] += cql_loss
-                stats['kld_loss'] += kld_loss
-                stats['free_bits_loss'] += free_bits_loss - 512 * free_bits_threshold
-                stats['beta_loss'] += beta_loss
-                stats['mortal_entropy'] += dist_mortal.entropy().sum(-1).mean()
-                stats['oracle_entropy'] += dist.entropy().sum(-1).mean()
+                if version == 1:
+                    stats['kld_loss'] += kld_loss
+                    stats['free_bits_loss'] += free_bits_loss - 512 * free_bits_threshold
+                    stats['beta_loss'] += beta_loss
+                    stats['mortal_entropy'] += dist_mortal.entropy().sum(-1).mean()
+                    stats['oracle_entropy'] += dist.entropy().sum(-1).mean()
                 all_q[idx] = q
                 all_q_target[idx] = q_target_mc
 
