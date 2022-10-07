@@ -1,4 +1,7 @@
 [control]
+version = 2
+online = false
+
 state_file = '/path/to/mortal.pth'
 tensorboard_dir = '/path/to/dir'
 
@@ -11,8 +14,6 @@ opt_step_every = 1
 
 save_every = 400
 test_every = 20000
-
-online = false
 
 # using env `TRAIN_PLAY_PROFILE`
 [train_play.default]
@@ -31,7 +32,7 @@ globs = ['/path/to/dataset/**/*.json.gz']
 file_index = '/path/to/file_index.pth'
 file_batch_size = 15
 num_workers = 1
-quality_threshold = 0
+player_names_files = []
 
 [env]
 gamma = 1
@@ -40,8 +41,6 @@ pts = [3.0, 1.5, 0.0, -4.5]
 [resnet]
 conv_channels = 192
 num_blocks = 40
-enable_bn = true
-bn_momentum = 0.99
 
 [cql]
 min_q_weight = 5
@@ -49,6 +48,8 @@ min_q_weight = 5
 [vlog]
 beta_init = 1e-4
 kld_target = 50
+free_bits_threshold = 0.5
+free_bits_weight = 1e-3
 
 [freeze_bn]
 mortal = true
@@ -60,7 +61,13 @@ oracle_lr = 1e-4
 dqn_lr = 1e-4
 beta_lr = 5e-4
 
-[baseline]
+max_grad_norm = 1.0
+
+[baseline.train]
+device = 'cuda:0'
+state_file = '/path/to/baseline.pth'
+
+[baseline.test]
 device = 'cuda:0'
 state_file = '/path/to/baseline.pth'
 

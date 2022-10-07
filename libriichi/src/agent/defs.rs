@@ -13,8 +13,8 @@ pub type InvisibleState = Array2<f32>;
 /// The caller SHOULD call `react` only when `cans.can_act()` holds.
 pub trait Agent {
     fn name(&self) -> String;
-    fn need_oracle_obs(&self) -> bool {
-        false
+    fn oracle_obs_version(&self) -> Option<u32> {
+        None
     }
 
     fn react(
@@ -38,8 +38,8 @@ pub trait Agent {
 
 pub trait BatchAgent {
     fn name(&self) -> String;
-    fn need_oracle_obs(&self) -> bool {
-        false
+    fn oracle_obs_version(&self) -> Option<u32> {
+        None
     }
 
     fn set_scene(

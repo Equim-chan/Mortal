@@ -1,5 +1,5 @@
 use super::action::ActionCandidate;
-use super::item::{ChiPon, KawaItem};
+use super::item::{ChiPon, KawaItem, Sutehai};
 use crate::hand::tiles_to_string;
 use crate::must_tile;
 use crate::tile::Tile;
@@ -9,7 +9,7 @@ use anyhow::Result;
 use derivative::Derivative;
 use pyo3::prelude::*;
 use serde_json as json;
-use tinyvec::ArrayVec;
+use tinyvec::{ArrayVec, TinyVec};
 
 /// `PlayerState` is the core of the lib, which holds all the observable game
 /// state information from a specific seat's perspective with the ability to
@@ -69,10 +69,15 @@ pub struct PlayerState {
     pub(super) is_all_last: bool,
     pub(super) dora_indicators: ArrayVec<[Tile; 5]>,
 
-    /// 24 is the theoretical max size of kawa.
+    /// 24 is the theoretical max size of kawa, however, since None is included
+    /// in the kawa, in some very rare cases (about one in a million hanchans),
+    /// the size can exceed 24.
     ///
-    /// Reference: <https://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q1020002370>
-    pub(super) kawa: [ArrayVec<[Option<KawaItem>; 32]>; 4],
+    /// Reference:
+    /// <https://detail.chiebukuro.yahoo.co.jp/qa/question_detail/q1020002370>
+    pub(super) kawa: [TinyVec<[Option<KawaItem>; 24]>; 4],
+    pub(super) last_tedashis: [Option<Sutehai>; 4],
+    pub(super) riichi_sutehais: [Option<Sutehai>; 4],
 
     /// Using 34-D arrays here may be more efficient, but I don't want to mess up
     /// with aka doras.

@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import torch
+from datetime import datetime, timezone
 from model import Brain, DQN, GRP
 from engine import MortalEngine
 from common import filtered_stripped_lines
@@ -26,15 +27,23 @@ def main():
     review_mode = os.environ.get('MORTAL_REVIEW_MODE', '0') == '1'
 
     device = torch.device('cpu')
-    mortal = Brain(False, **config['resnet']).eval()
-    dqn = DQN().eval()
     state = torch.load(config['control']['state_file'], map_location=torch.device('cpu'))
+    cfg = state['config']
+    version = cfg['control'].get('version', 1)
+    num_blocks = cfg['resnet']['num_blocks']
+    conv_channels = cfg['resnet']['conv_channels']
+    time = datetime.fromtimestamp(state['timestamp'], tz=timezone.utc).strftime('%y%m%d%H')
+    tag = f'mortal{version}-b{num_blocks}c{conv_channels}-t{time}'
+
+    mortal = Brain(version=version, num_blocks=num_blocks, conv_channels=conv_channels).eval()
+    dqn = DQN(version=version).eval()
     mortal.load_state_dict(state['mortal'])
     dqn.load_state_dict(state['current_dqn'])
 
     engine = MortalEngine(
         mortal,
         dqn,
+        version = version,
         is_oracle = False,
         device = device,
         enable_amp = False,
@@ -70,7 +79,11 @@ def main():
         with torch.no_grad():
             logits = grp(seq)
         matrix = grp.calc_matrix(logits)
-        print(json.dumps(matrix.tolist()), flush=True)
+        extra_data = {
+            'model_tag': tag,
+            'phi_matrix': matrix.tolist(),
+        }
+        print(json.dumps(extra_data), flush=True)
 
 if __name__ == '__main__':
     try:

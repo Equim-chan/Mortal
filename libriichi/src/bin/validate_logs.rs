@@ -1,13 +1,15 @@
 use riichi::chi_type::ChiType;
 use riichi::mjai::Event;
 use riichi::state::{ActionCandidate, PlayerState};
+use std::convert::identity;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
+use std::panic::catch_unwind;
 use std::path::Path;
 use std::time::Duration;
 
-use anyhow::{ensure, Context, Result};
+use anyhow::{anyhow, ensure, Context, Result};
 use flate2::read::GzDecoder;
 use glob::glob;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -22,7 +24,7 @@ fn main() -> Result<()> {
 
     const TEMPLATE: &str = "{spinner:.cyan} [{elapsed_precise}] {pos} ({per_sec})";
     let bar = ProgressBar::new_spinner()
-        .with_style(ProgressStyle::with_template(TEMPLATE)?.tick_chars(".oOo"));
+        .with_style(ProgressStyle::with_template(TEMPLATE)?.tick_chars(".oO°Oo "));
     bar.enable_steady_tick(Duration::from_millis(150));
 
     glob(&format!("{dir}/**/*.json"))?
@@ -32,7 +34,18 @@ fn main() -> Result<()> {
             bar.inc(1);
             let path = path?;
 
-            let result = process_path(&path).with_context(|| format!("in log {}", path.display()));
+            let result = catch_unwind(|| process_path(&path))
+                .map_err(|pnc| {
+                    if let Some(v) = pnc.downcast_ref::<String>() {
+                        anyhow!("{v}")
+                    } else if let Some(v) = pnc.downcast_ref::<&str>() {
+                        anyhow!("{v}")
+                    } else {
+                        anyhow!("Non-string panic")
+                    }
+                })
+                .and_then(identity)
+                .with_context(|| format!("error in log {}", path.display()));
             if let Err(err) = result {
                 println!("\n{err:?}");
             }
@@ -73,14 +86,14 @@ fn process_path(path: &Path) -> Result<()> {
             Event::Dahai { actor, pai, .. } => {
                 ensure!(
                     cans[*actor as usize].can_discard,
-                    "fails can_discard at line {line}\nstate:\n{}",
+                    "fails can_discard at line {line}\naction: {ev:?}\nstate:\n{}",
                     states[*actor as usize].brief_info(),
                 );
 
                 let discard_candidates = states[*actor as usize].discard_candidates_aka();
                 ensure!(
                     discard_candidates[pai.as_usize()],
-                    "fails discard_candidates at line {line}\nstate:\n{}",
+                    "fails discard_candidates at line {line}\naction: {ev:?}\nstate:\n{}",
                     states[*actor as usize].brief_info(),
                 );
             }
@@ -92,7 +105,7 @@ fn process_path(path: &Path) -> Result<()> {
             } => {
                 ensure!(
                     (target + 1) % 4 == *actor,
-                    "chi from non-kamicha at line {}\nstate:\n{}",
+                    "chi from non-kamicha at line {}\naction: {ev:?}\nstate:\n{}",
                     line,
                     states[*actor as usize].brief_info(),
                 );
@@ -101,7 +114,7 @@ fn process_path(path: &Path) -> Result<()> {
                     ChiType::Low => {
                         ensure!(
                             cans[*actor as usize].can_chi_low,
-                            "fails can_chi_low at line {}\nstate:\n{}",
+                            "fails can_chi_low at line {}\naction: {ev:?}\nstate:\n{}",
                             line,
                             states[*actor as usize].brief_info(),
                         );
@@ -109,7 +122,7 @@ fn process_path(path: &Path) -> Result<()> {
                     ChiType::Mid => {
                         ensure!(
                             cans[*actor as usize].can_chi_mid,
-                            "fails can_chi_mid at line {}\nstate:\n{}",
+                            "fails can_chi_mid at line {}\naction: {ev:?}\nstate:\n{}",
                             line,
                             states[*actor as usize].brief_info(),
                         );
@@ -117,7 +130,7 @@ fn process_path(path: &Path) -> Result<()> {
                     ChiType::High => {
                         ensure!(
                             cans[*actor as usize].can_chi_high,
-                            "fails can_chi_high at line {}\nstate:\n{}",
+                            "fails can_chi_high at line {}\naction: {ev:?}\nstate:\n{}",
                             line,
                             states[*actor as usize].brief_info(),
                         );
@@ -127,49 +140,49 @@ fn process_path(path: &Path) -> Result<()> {
             Event::Pon { actor, .. } => {
                 ensure!(
                     cans[*actor as usize].can_pon,
-                    "fails can_pon at line {line}\nstate:\n{}",
+                    "fails can_pon at line {line}\naction: {ev:?}\nstate:\n{}",
                     states[*actor as usize].brief_info(),
                 );
             }
             Event::Daiminkan { actor, .. } => {
                 ensure!(
                     cans[*actor as usize].can_daiminkan,
-                    "fails can_daiminkan at line {line}\nstate:\n{}",
+                    "fails can_daiminkan at line {line}\naction: {ev:?}\nstate:\n{}",
                     states[*actor as usize].brief_info(),
                 );
             }
             Event::Ankan { actor, consumed } => {
                 ensure!(
                     cans[*actor as usize].can_ankan,
-                    "fails can_ankan at line {line}\nstate:\n{}",
+                    "fails can_ankan at line {line}\naction: {ev:?}\nstate:\n{}",
                     states[*actor as usize].brief_info(),
                 );
 
                 let ankan_candidates = states[*actor as usize].ankan_candidates();
                 ensure!(
                     ankan_candidates.contains(&consumed[0].deaka()),
-                    "fails ankan_candidates at line {line}\nstate:\n{}",
+                    "fails ankan_candidates at line {line}\naction: {ev:?}\nstate:\n{}",
                     states[*actor as usize].brief_info(),
                 );
             }
             Event::Kakan { actor, pai, .. } => {
                 ensure!(
                     cans[*actor as usize].can_kakan,
-                    "fails can_kakan at line {line}\nstate:\n{}",
+                    "fails can_kakan at line {line}\naction: {ev:?}\nstate:\n{}",
                     states[*actor as usize].brief_info(),
                 );
 
                 let kakan_candidates = states[*actor as usize].kakan_candidates();
                 ensure!(
                     kakan_candidates.contains(&pai.deaka()),
-                    "fails kakan_candidates at line {line}\nstate:\n{}",
+                    "fails kakan_candidates at line {line}\naction: {ev:?}\nstate:\n{}",
                     states[*actor as usize].brief_info(),
                 );
             }
             Event::Reach { actor } => {
                 ensure!(
                     cans[*actor as usize].can_riichi,
-                    "fails can_riichi at line {line}\nstate:\n{}",
+                    "fails can_riichi at line {line}\naction: {ev:?}\nstate:\n{}",
                     states[*actor as usize].brief_info(),
                 );
             }
@@ -183,13 +196,13 @@ fn process_path(path: &Path) -> Result<()> {
                 if is_ron {
                     ensure!(
                         cans[*actor as usize].can_ron_agari,
-                        "fails can_ron_agari at line {line}\nstate:\n{}",
+                        "fails can_ron_agari at line {line}\naction: {ev:?}\nstate:\n{}",
                         states[*actor as usize].brief_info(),
                     );
                 } else {
                     ensure!(
                         cans[*actor as usize].can_tsumo_agari,
-                        "fails can_tsumo_agari at line {line}\nstate:\n{}",
+                        "fails can_tsumo_agari at line {line}\naction: {ev:?}\nstate:\n{}",
                         states[*actor as usize].brief_info(),
                     );
                 }
@@ -204,7 +217,7 @@ fn process_path(path: &Path) -> Result<()> {
                     .agari_points(is_ron, ura)
                     .with_context(|| {
                         format!(
-                            "failed to get agari points at line {line}\nstate:\n{}",
+                            "failed to get agari points at line {line}\naction: {ev:?}\nstate:\n{}",
                             states[*actor as usize].brief_info()
                         )
                     })?;

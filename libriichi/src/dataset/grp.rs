@@ -51,11 +51,11 @@ impl Grp {
         PyArray2::from_owned_array(py, mem::take(&mut self.feature))
     }
     #[pyo3(text_signature = "($self, /)")]
-    pub fn take_rank_by_player(&mut self) -> [u8; 4] {
+    pub const fn take_rank_by_player(&self) -> [u8; 4] {
         self.rank_by_player
     }
     #[pyo3(text_signature = "($self, /)")]
-    pub fn take_final_scores(&mut self) -> [i32; 4] {
+    pub const fn take_final_scores(&self) -> [i32; 4] {
         self.final_scores
     }
 }

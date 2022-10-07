@@ -1,5 +1,4 @@
 use super::invisible::Invisible;
-use super::player_list::{TENHOUI, TOP300_2K_GAMES};
 use super::Grp;
 use crate::chi_type::ChiType;
 use crate::mjai::Event;
@@ -8,7 +7,9 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::mem;
 
-use anyhow::{bail, ensure, Context, Result};
+use anyhow::{bail, Context, Result};
+use boomphf::hashmap::BoomHashMap;
+use derivative::Derivative;
 use flate2::read::GzDecoder;
 use ndarray::prelude::*;
 use numpy::{PyArray1, PyArray2};
@@ -19,25 +20,34 @@ use tinyvec::ArrayVec;
 
 #[pyclass]
 #[pyo3(text_signature = "(
+    version,
     *,
     oracle = True,
-    player_name = None,
+    player_names = None,
     excludes = None,
     trust_seed = False,
     always_include_kan_select = True,
 )")]
-#[derive(Debug, Clone, Default)]
+#[derive(Derivative)]
+#[derivative(Debug)]
 pub struct GameplayLoader {
-    #[pyo3(get, set)]
-    pub oracle: bool,
-    #[pyo3(get, set)]
-    pub player_name: Option<String>,
-    #[pyo3(get, set)]
-    pub excludes: Vec<String>,
-    #[pyo3(get, set)]
-    pub trust_seed: bool,
-    #[pyo3(get, set)]
-    pub always_include_kan_select: bool,
+    #[pyo3(get)]
+    version: u32,
+    #[pyo3(get)]
+    oracle: bool,
+    #[pyo3(get)]
+    player_names: Vec<String>,
+    #[pyo3(get)]
+    excludes: Vec<String>,
+    #[pyo3(get)]
+    trust_seed: bool,
+    #[pyo3(get)]
+    always_include_kan_select: bool,
+
+    #[derivative(Debug = "ignore")]
+    player_names_set: BoomHashMap<String, ()>,
+    #[derivative(Debug = "ignore")]
+    excludes_set: BoomHashMap<String, ()>,
 }
 
 #[pyclass]
@@ -54,23 +64,10 @@ pub struct Gameplay {
     pub at_turns: Vec<u8>,
     pub shantens: Vec<i8>,
 
-    // one per kyoku
-    pub grp: Grp,
-
     // one per game
+    pub grp: Grp, // actually per kyoku
     pub player_id: u8,
     pub player_name: String,
-    pub quality: Quality,
-}
-
-#[pyclass]
-#[derive(Clone, Copy, Default)]
-pub enum Quality {
-    LastPlace,
-    #[default]
-    Normal,
-    Top300,
-    Tenhoui,
 }
 
 struct LoaderContext<'a> {
@@ -92,25 +89,38 @@ impl GameplayLoader {
     #[args(
         "*",
         oracle = "true",
-        player_name = "None",
+        player_names = "None",
         excludes = "None",
         trust_seed = "false",
         always_include_kan_select = "true"
     )]
     fn new(
+        version: u32,
         oracle: bool,
-        player_name: Option<String>,
+        player_names: Option<Vec<String>>,
         excludes: Option<Vec<String>>,
         trust_seed: bool,
         always_include_kan_select: bool,
     ) -> Self {
-        let excludes = excludes.unwrap_or_default();
+        let mut player_names = player_names.unwrap_or_default();
+        player_names.sort_unstable();
+        player_names.dedup();
+        let player_names_set = BoomHashMap::new(player_names.clone(), vec![(); player_names.len()]);
+
+        let mut excludes = excludes.unwrap_or_default();
+        excludes.sort_unstable();
+        excludes.dedup();
+        let excludes_set = BoomHashMap::new(excludes.clone(), vec![(); excludes.len()]);
+
         Self {
+            version,
             oracle,
-            player_name,
+            player_names,
             excludes,
             trust_seed,
             always_include_kan_select,
+            player_names_set,
+            excludes_set,
         }
     }
 
@@ -162,15 +172,18 @@ impl GameplayLoader {
     pub fn load_events(&self, events: &[Event]) -> Result<Vec<Gameplay>> {
         let invisibles = self.oracle.then(|| Invisible::new(events, self.trust_seed));
 
-        let idxs: ArrayVec<[u8; 4]> = match events.first() {
-            Some(Event::StartGame { names, .. }) => names
+        let idxs: ArrayVec<[u8; 4]> = match events {
+            [Event::StartGame { names, .. }, ..] => names
                 .iter()
                 .enumerate()
                 .filter(|(_, name)| {
-                    if let Some(player_name) = &self.player_name {
-                        return player_name == name.as_str();
+                    if !self.player_names_set.is_empty() {
+                        return self.player_names_set.get_key_id(*name).is_some();
                     }
-                    !self.excludes.contains(name)
+                    if !self.excludes_set.is_empty() {
+                        return self.excludes_set.get_key_id(*name).is_none();
+                    }
+                    true
                 })
                 .map(|(i, _)| i as u8)
                 .collect(),
@@ -242,10 +255,6 @@ impl Gameplay {
     const fn take_player_id(&self) -> u8 {
         self.player_id
     }
-    #[pyo3(text_signature = "($self, /)")]
-    const fn take_quality(&self) -> Quality {
-        self.quality
-    }
 }
 
 impl Gameplay {
@@ -257,26 +266,9 @@ impl Gameplay {
     ) -> Result<Self> {
         let grp = Grp::load_events(events)?;
 
-        let quality = if let Some(Event::StartGame { names, .. }) = events.get(0) {
-            let name = names[player_id as usize].as_str();
-            ensure!(!name.is_empty(), "player name is empty");
-            if TENHOUI.contains(&name) {
-                Quality::Tenhoui
-            } else if TOP300_2K_GAMES.get_key_id(name).is_some() {
-                Quality::Top300
-            } else if grp.rank_by_player[player_id as usize] == 3 {
-                Quality::LastPlace
-            } else {
-                Quality::Normal
-            }
-        } else {
-            bail!("first event is not start_game");
-        };
-
         let mut data = Self {
             grp,
             player_id,
-            quality,
             ..Default::default()
         };
 
@@ -452,7 +444,7 @@ impl Gameplay {
     }
 
     fn add_entry(&mut self, ctx: &LoaderContext<'_>, at_kan_select: bool, label: usize) {
-        let (feature, mask) = ctx.state.encode_obs(at_kan_select);
+        let (feature, mask) = ctx.state.encode_obs(ctx.config.version, at_kan_select);
         self.obs.push(feature);
         self.actions.push(label as i64);
         self.masks.push(mask);
@@ -467,6 +459,7 @@ impl Gameplay {
                 &ctx.opponent_states,
                 ctx.yama_idx,
                 ctx.rinshan_idx,
+                ctx.config.version,
             );
             self.invisible_obs.push(invisible_obs);
         }

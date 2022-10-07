@@ -3,6 +3,7 @@ import socket
 import struct
 import time
 from typing import *
+from collections import OrderedDict
 from io import BytesIO
 from config import config
 
@@ -13,7 +14,7 @@ def apply_masks(actions, masks, fill: float = -1e9):
 
 @torch.jit.script
 def normal_kl_div(mu_p, logsig_p, mu_q, logsig_q):
-    # KL(N(\mu_p, \sigma_p) \| N(\mu_q, \sigma_q)) = \log \frac{\sigma_q}{\sigma_p} + \frac{\sigma_p^2 + (\mu_p - \mu_q)^2}{2 \sigma_q^2} - \frac{1}{2}
+    # KL(N(\mu_p, \sigma_p^2) \| N(\mu_q, \sigma_q^2)) = \log \frac{\sigma_q}{\sigma_p} + \frac{\sigma_p^2 + (\mu_p - \mu_q)^2}{2 \sigma_q^2} - \frac{1}{2}
     return logsig_q - logsig_p + \
         ((2 * logsig_p).exp() + (mu_p - mu_q) ** 2) / \
         (2 * (2 * logsig_q).exp()) - \
@@ -27,6 +28,17 @@ def parameter_count(module):
 
 def filtered_stripped_lines(lines):
     return filter(lambda l: l, map(lambda l: l.strip(), lines))
+
+def iter_grads(parameters, take=False):
+    for p in parameters:
+        if p.grad is not None:
+            if take:
+                # Set to zero instead of None to preserve the layout and make it
+                # easier to assign back later
+                yield p.grad.clone()
+                p.grad.zero_()
+            else:
+                yield p.grad
 
 def drain():
     remote = (config['online']['remote']['host'], config['online']['remote']['port'])
@@ -46,7 +58,7 @@ def submit_param(oracle, mortal, dqn):
         conn.connect(remote)
         send_msg(conn, {
             'type': 'submit_param',
-            'oracle': oracle.state_dict(),
+            'oracle': None if oracle is None else oracle.state_dict(),
             'mortal': mortal.state_dict(),
             'dqn': dqn.state_dict(),
         })

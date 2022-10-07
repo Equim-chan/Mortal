@@ -3,10 +3,9 @@
 mod gameplay;
 mod grp;
 mod invisible;
-mod player_list;
 
 use crate::py_helper::add_submodule;
-pub use gameplay::{Gameplay, GameplayLoader, Quality};
+pub use gameplay::{Gameplay, GameplayLoader};
 pub use grp::Grp;
 pub use invisible::Invisible;
 
@@ -16,7 +15,6 @@ pub(crate) fn register_module(py: Python<'_>, prefix: &str, super_mod: &PyModule
     let m = PyModule::new(py, "dataset")?;
     m.add_class::<Gameplay>()?;
     m.add_class::<GameplayLoader>()?;
-    m.add_class::<Quality>()?;
     m.add_class::<Grp>()?;
     add_submodule(py, prefix, super_mod, m)
 }

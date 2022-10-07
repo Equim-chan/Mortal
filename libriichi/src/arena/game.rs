@@ -31,7 +31,7 @@ struct Game {
     seed: (u64, u64),
     indexes: [Index; 4],
 
-    need_invisible_state: [bool; 4],
+    oracle_obs_versions: [Option<u32>; 4],
     invisible_state_cache: [Option<Array2<f32>>; 4],
 
     last_reactions: [EventExt; 4], // cached for poll phase
@@ -93,8 +93,8 @@ impl Game {
                         continue;
                     }
 
-                    let invisible_state = self.need_invisible_state[player_id]
-                        .then(|| self.board.encode_oracle_obs(player_id as u8));
+                    let invisible_state = self.oracle_obs_versions[player_id]
+                        .map(|ver| self.board.encode_oracle_obs(player_id as u8, ver));
                     self.invisible_state_cache[player_id] = invisible_state.clone();
 
                     let idx = self.indexes[player_id];
@@ -249,10 +249,10 @@ impl BatchGame {
             .zip(seeds)
             .enumerate()
             .map(|(game_idx, (idxs, &seed))| {
-                let mut need_invisible_state = [false; 4];
+                let mut oracle_obs_versions = [None; 4];
                 for (i, idx) in idxs.iter().enumerate() {
                     agents[idx.agent_idx].start_game(idx.player_id_idx)?;
-                    need_invisible_state[i] = agents[idx.agent_idx].need_oracle_obs();
+                    oracle_obs_versions[i] = agents[idx.agent_idx].oracle_obs_version();
                 }
 
                 let game = Box::new(Game {
@@ -260,7 +260,7 @@ impl BatchGame {
                     seed,
                     indexes: *idxs,
                     scores: self.init_scores,
-                    need_invisible_state,
+                    oracle_obs_versions,
                     ..Default::default()
                 });
                 Ok((game_idx, game))
@@ -279,7 +279,7 @@ impl BatchGame {
         const TEMPLATE: &str = "{spinner:.cyan} steps: {msg}\n[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%";
         bar.set_style(
             ProgressStyle::with_template(TEMPLATE)?
-                .tick_chars(".oOo")
+                .tick_chars(".oO°Oo ")
                 .progress_chars("#-"),
         );
         bar.enable_steady_tick(Duration::from_millis(150));

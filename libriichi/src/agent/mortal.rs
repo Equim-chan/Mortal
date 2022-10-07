@@ -14,6 +14,7 @@ use pyo3::prelude::*;
 pub struct MortalBatchAgent {
     engine: PyObject,
     is_oracle: bool,
+    version: u32,
     enable_quick_eval: bool,
     enable_rule_based_agari_guard: bool,
     name: String,
@@ -40,19 +41,21 @@ impl MortalBatchAgent {
     pub fn new(engine: PyObject, player_ids: &[u8]) -> Result<Self> {
         ensure!(player_ids.iter().all(|&id| matches!(id, 0..=3)));
 
-        let (name, is_oracle, enable_quick_eval, enable_rule_based_agari_guard) =
+        let (name, is_oracle, version, enable_quick_eval, enable_rule_based_agari_guard) =
             Python::with_gil(|py| {
                 let obj = engine.as_ref(py);
                 ensure!(obj.getattr("react_batch")?.is_callable());
 
                 let name = obj.getattr("name")?.extract()?;
                 let is_oracle = obj.getattr("is_oracle")?.extract()?;
+                let version = obj.getattr("version")?.extract()?;
                 let enable_quick_eval = obj.getattr("enable_quick_eval")?.extract()?;
                 let enable_rule_based_agari_guard =
                     obj.getattr("enable_rule_based_agari_guard")?.extract()?;
                 Ok((
                     name,
                     is_oracle,
+                    version,
                     enable_quick_eval,
                     enable_rule_based_agari_guard,
                 ))
@@ -62,6 +65,7 @@ impl MortalBatchAgent {
         Ok(Self {
             engine,
             is_oracle,
+            version,
             enable_quick_eval,
             enable_rule_based_agari_guard,
             name,
@@ -166,8 +170,8 @@ impl BatchAgent for MortalBatchAgent {
     }
 
     #[inline]
-    fn need_oracle_obs(&self) -> bool {
-        self.is_oracle
+    fn oracle_obs_version(&self) -> Option<u32> {
+        self.is_oracle.then_some(self.version)
     }
 
     fn set_scene(
@@ -228,7 +232,7 @@ impl BatchAgent for MortalBatchAgent {
         };
 
         if need_kan_select {
-            let (kan_feature, kan_mask) = state.encode_obs(true);
+            let (kan_feature, kan_mask) = state.encode_obs(self.version, true);
             self.states.push(kan_feature);
             self.masks.push(kan_mask);
             if let Some(invisible_state) = invisible_state.clone() {
@@ -237,7 +241,7 @@ impl BatchAgent for MortalBatchAgent {
             self.kan_action_idxs[index] = Some(self.states.len() - 1);
         }
 
-        let (feature, mask) = state.encode_obs(false);
+        let (feature, mask) = state.encode_obs(self.version, false);
         self.states.push(feature);
         self.masks.push(mask);
         if let Some(invisible_state) = invisible_state {
