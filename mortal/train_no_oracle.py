@@ -145,7 +145,7 @@ def train():
         ))
 
         pb = tqdm(total=save_every, desc='TRAIN', unit='batch', dynamic_ncols=True, ascii=True)
-        for obs, _, actions, masks, steps_to_done, kyoku_rewards, _ in data_loader:
+        for obs, _, actions, masks, steps_to_done, kyoku_rewards in data_loader:
             obs = obs.to(dtype=torch.float32, device=device)
             # invisible_obs = invisible_obs.to(dtype=torch.float32, device=device)
             actions = actions.to(dtype=torch.int64, device=device)
