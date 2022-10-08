@@ -70,8 +70,7 @@ class ResNet(nn.Module):
         actv_builder = nn.ReLU,
         pre_actv = False,
         bias = True,
-        out_channels = 32,
-        out_dims = 1024,
+        reduce_dim = False,
     ):
         super().__init__()
 
@@ -90,12 +89,13 @@ class ResNet(nn.Module):
             layers += [*blocks, norm_builder(), actv_builder()]
         else:
             layers += [norm_builder(), actv_builder(), *blocks]
-        layers += [
-            nn.Conv1d(conv_channels, out_channels, kernel_size=3, padding=1),
-            actv_builder(),
-            nn.Flatten(),
-            nn.Linear(out_channels * 34, out_dims),
-        ]
+        if reduce_dim:
+            layers += [
+                nn.Conv1d(conv_channels, 32, kernel_size=3, padding=1),
+                actv_builder(),
+                nn.Flatten(),
+                nn.Linear(32 * 34, 1024),
+            ]
         self.net = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -135,8 +135,7 @@ class Brain(nn.Module):
             actv_builder = actv_builder,
             pre_actv = pre_actv,
             bias = bias,
-            out_channels = 32,
-            out_dims = 1024,
+            reduce_dim = True,
         )
 
         # when True, never updates running stats, weights and bias and always use EMA or CMA
