@@ -262,11 +262,14 @@ impl PlayerState {
         if !self.last_cans.can_agari() {
             return false;
         }
-        self.rule_based_agari_slow(self.last_cans.can_ron_agari, self.last_cans.target_actor)
+        self.rule_based_agari_slow(
+            self.last_cans.can_ron_agari,
+            self.rel(self.last_cans.target_actor),
+        )
     }
 
     #[inline(never)]
-    fn rule_based_agari_slow(&self, is_ron: bool, target: u8) -> bool {
+    fn rule_based_agari_slow(&self, is_ron: bool, target_rel: usize) -> bool {
         // Agari if it is not yet all-last, or we are oya ourselves, or we are
         // not the last place at all.
         if !self.is_all_last || self.oya == 0 || self.rank < 3 {
@@ -332,7 +335,7 @@ impl PlayerState {
         if is_ron {
             exp_scores[0] +=
                 max_win_point.ron + self.kyotaku as i32 * 1000 + self.honba as i32 * 300;
-            exp_scores[target as usize] -= max_win_point.ron + self.honba as i32 * 300;
+            exp_scores[target_rel] -= max_win_point.ron + self.honba as i32 * 300;
         } else {
             // The player must be ko here.
             exp_scores[0] += max_win_point.tsumo_ko * 2
