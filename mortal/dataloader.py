@@ -69,11 +69,6 @@ class FileDatasetsIter(IterableDataset):
             rank_by_player = grp.take_rank_by_player()
             kyoku_rewards = self.reward_calc.calc_delta_pt(player_id, grp_feature, rank_by_player)
 
-            final_scores = grp.take_final_scores()
-            scores_seq = np.concatenate((grp_feature[:, 3:] * 1e5, [final_scores]))
-            rank_by_player_seq = scores_seq.argsort(-1, kind='stable').argsort(-1, kind='stable')
-            next_rank_by_player_label = self.grp.get_label(torch.as_tensor(rank_by_player_seq, device=torch.device('cpu')))
-
             steps_to_done = np.zeros(game_size, dtype=np.int64)
             for i in reversed(range(game_size)):
                 if not dones[i]:
@@ -87,7 +82,6 @@ class FileDatasetsIter(IterableDataset):
                     masks[i],
                     steps_to_done[i],
                     kyoku_rewards[at_kyoku[i]],
-                    next_rank_by_player_label[at_kyoku[i] + 1],
                 )
                 self.buffer.append(entry)
 
