@@ -12,3 +12,5 @@ __pycache__
 *.ipynb
 
 /_draft
+
+config*

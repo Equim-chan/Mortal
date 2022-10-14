@@ -277,12 +277,12 @@ def train():
                     writer.add_scalar('test_play/fuuro_num', stat.avg_fuuro_num, steps)
                     writer.add_scalar('test_play/fuuro_point', stat.avg_fuuro_point, steps)
                     writer.flush()
-                    if online:
-                        # BUG: This is an bug with unkown reason. When training
-                        # in online mode, the process will get stuck here. This
-                        # is the reason why `main` spawns a sub process to train
-                        # in online mode instead of going for training directly.
-                        sys.exit(0)
+                    # if online:
+                    #     # BUG: This is an bug with unkown reason. When training
+                    #     # in online mode, the process will get stuck here. This
+                    #     # is the reason why `main` spawns a sub process to train
+                    #     # in online mode instead of going for training directly.
+                    #     sys.exit(0)
 
                 pb = tqdm(total=save_every, desc='TRAIN', unit='batch', dynamic_ncols=True, ascii=True)
         pb.close()
