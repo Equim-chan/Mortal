@@ -1,6 +1,6 @@
 import prelude
 
-from datetime import timedelta,datetime,date,time
+from datetime import timedelta, datetime, date, time
 import logging
 import os
 from time import sleep
@@ -16,21 +16,27 @@ def cp(source, target):
 
 def rotate():
     curent = config["control"]["state_file"]
-    snapshot = os.path.dirname(curent) + "/snap.pth"
-    yesterday = os.path.dirname(curent) + "/yes.pth"
+    for i in range(5):
+        yesterday = os.path.dirname(curent) + "/T-{}.pth".format(i + 1)
+        old_archive = (
+            os.path.dirname(curent)
+            + "/"
+            + (datetime.now() + timedelta(days=(-(i + 1)))).strftime("%Y%m%d")
+            + ".pth"
+        )
+        cp(old_archive, yesterday)
+
     archive = os.path.dirname(curent) + "/" + datetime.now().strftime("%Y%m%d") + ".pth"
-    cp(snapshot, yesterday)
-    cp(curent, snapshot)
     cp(curent, archive)
 
 
 def sleep_to_dawn():
     now = datetime.today()
-    
+
     next_day = date.today() + timedelta(days=1)
-    dawn_time = time(hour=6,minute=30)
-    next_dawn = datetime.combine(next_day,dawn_time)
-    delt = next_dawn-now
+    dawn_time = time(hour=6, minute=30)
+    next_dawn = datetime.combine(next_day, dawn_time)
+    delt = next_dawn - now
     delt = delt.total_seconds()
     logging.info("sleeping {} seconds".format(delt))
     sleep(delt)

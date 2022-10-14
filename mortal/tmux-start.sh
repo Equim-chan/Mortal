@@ -18,7 +18,13 @@ tmux select-layout tiled
 window=1
 tmux new-window -t $session:$window -n 'train'
 tmux send-keys -t $session:$window "pyenv activate mortal" C-m
-tmux send-keys -t $session:$window "python3 ./client.py" C-m
+tmux send-keys -t $session:$window "MORTAL_CFG=config-train-a.toml python3 ./client.py" C-m
+tmux split-window
+tmux send-keys -t $session:$window "pyenv activate mortal" C-m
+tmux send-keys -t $session:$window "MORTAL_CFG=config-train-b.toml python3 ./client.py" C-m
+tmux split-window
+tmux send-keys -t $session:$window "pyenv activate mortal" C-m
+tmux send-keys -t $session:$window "MORTAL_CFG=config-train-c.toml python3 ./client.py" C-m
 tmux split-window
 tmux send-keys -t $session:$window "pyenv activate mortal" C-m
 tmux send-keys -t $session:$window "python3 ./train_no_oracle.py" C-m
