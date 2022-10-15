@@ -33,9 +33,11 @@ def rotate():
 def sleep_to_dawn():
     now = datetime.today()
 
-    next_day = date.today() + timedelta(days=1)
+    next_dawn_day = date.today()
     dawn_time = time(hour=6, minute=30)
-    next_dawn = datetime.combine(next_day, dawn_time)
+    if now.time() > dawn_time:
+        next_dawn_day += timedelta(days=1)
+    next_dawn = datetime.combine(next_dawn_day, dawn_time)
     delt = next_dawn - now
     delt = delt.total_seconds()
     logging.info("sleeping {} seconds".format(delt))
