@@ -96,10 +96,11 @@ def train():
     all_q = torch.zeros((save_every, batch_size), device=device, dtype=torch.float32)
     all_q_target = torch.zeros((save_every, batch_size), device=device, dtype=torch.float32)
     idx = 0
-
+    batch_start_time = time.time()
     def train_epoch():
         nonlocal steps
         nonlocal idx
+        nonlocal batch_start_time
 
         player_names = []
         if online:
@@ -148,7 +149,6 @@ def train():
         ))
 
         pb = tqdm(total=save_every, desc='TRAIN', unit='batch', dynamic_ncols=True, ascii=True)
-        batch_start_time = time.time()
         for obs, _, actions, masks, steps_to_done, kyoku_rewards in data_loader:
             obs = obs.to(dtype=torch.float32, device=device)
             # invisible_obs = invisible_obs.to(dtype=torch.float32, device=device)
