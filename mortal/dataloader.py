@@ -1,3 +1,4 @@
+import logging
 import random
 import torch
 import numpy as np
@@ -7,19 +8,20 @@ from reward_calculator import RewardCalculator
 from libriichi.dataset import GameplayLoader
 from config import config
 
+
 class FileDatasetsIter(IterableDataset):
     def __init__(
         self,
         version,
         file_list,
         pts,
-        file_batch_size = 20, # hint: around 660 instances per file
-        player_names = None,
-        excludes = None,
+        file_batch_size=20,  # hint: around 660 instances per file
+        player_names=None,
+        excludes=None,
     ):
         super().__init__()
         self.version = version
-        self.file_list = file_list
+        self.file_list = file_list.copy()
         self.pts = pts
         self.file_batch_size = file_batch_size
         self.player_names = player_names
@@ -29,28 +31,31 @@ class FileDatasetsIter(IterableDataset):
 
     def build_iter(self):
         self.loader = GameplayLoader(
-            version = self.version,
-            oracle = True,
-            player_names = self.player_names,
-            excludes = self.excludes,
+            version=self.version,
+            oracle=True,
+            player_names=self.player_names,
+            excludes=self.excludes,
         )
 
         # do not put it in __init__, it won't work on Windows
-        self.grp = GRP(**config['grp']['network'])
-        grp_state = torch.load(config['grp']['state_file'], map_location=torch.device('cpu'))
-        self.grp.load_state_dict(grp_state['model'])
+        self.grp = GRP(**config["grp"]["network"])
+        grp_state = torch.load(
+            config["grp"]["state_file"], map_location=torch.device("cpu")
+        )
+        self.grp.load_state_dict(grp_state["model"])
         self.reward_calc = RewardCalculator(self.grp, self.pts)
 
         random.shuffle(self.file_list)
         for start_idx in range(0, len(self.file_list), self.file_batch_size):
             self.populate_buffer(start_idx)
             buffer_size = len(self.buffer)
+            # logging.info(f"buffer_size:{buffer_size}")
             for i in random.sample(range(buffer_size), buffer_size):
                 yield self.buffer[i]
             self.buffer.clear()
 
     def populate_buffer(self, start_idx):
-        file_list = self.file_list[start_idx:start_idx + self.file_batch_size]
+        file_list = self.file_list[start_idx : start_idx + self.file_batch_size]
         data = self.loader.load_gz_log_files(file_list)
 
         for game in data:
@@ -67,7 +72,9 @@ class FileDatasetsIter(IterableDataset):
 
             grp_feature = grp.take_feature()
             rank_by_player = grp.take_rank_by_player()
-            kyoku_rewards = self.reward_calc.calc_delta_pt(player_id, grp_feature, rank_by_player)
+            kyoku_rewards = self.reward_calc.calc_delta_pt(
+                player_id, grp_feature, rank_by_player
+            )
 
             steps_to_done = np.zeros(game_size, dtype=np.int64)
             for i in reversed(range(game_size)):
@@ -90,10 +97,14 @@ class FileDatasetsIter(IterableDataset):
             self.iterator = self.build_iter()
         return self.iterator
 
+
 def worker_init_fn(*args, **kwargs):
+    return
     worker_info = torch.utils.data.get_worker_info()
     dataset = worker_info.dataset
-    per_worker = int(np.ceil(len(dataset.file_list) / worker_info.num_workers))
-    start = worker_info.id * per_worker
-    end = start + per_worker
-    dataset.file_list = dataset.file_list[start:end]
+    file_list = dataset.file_list.copy()
+    dataset.file_list = [
+        file_list[i]
+        for i in range(len(file_list))
+        if i % worker_info.num_workers == worker_info.id
+    ]

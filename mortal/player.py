@@ -68,14 +68,15 @@ class TestPlayer:
 
 class TrainPlayer:
     def __init__(self):
-        baseline_cfg = config['baseline']['train']
-        device = torch.device(baseline_cfg['device'])
+        profile = os.environ.get('TRAIN_PLAY_PROFILE', 'default')
+        cfg = config['train_play'][profile]
+        device = torch.device(cfg['device'])
 
-        state = torch.load(baseline_cfg['state_file'], map_location=torch.device('cpu'))
-        cfg = state['config']
-        version = cfg['control'].get('version', 1)
-        conv_channels = cfg['resnet']['conv_channels']
-        num_blocks = cfg['resnet']['num_blocks']
+        state = torch.load(cfg['state_file'], map_location=torch.device('cpu'))
+        model_cfg = state['config']
+        version = model_cfg['control'].get('version', 1)
+        conv_channels = model_cfg['resnet']['conv_channels']
+        num_blocks = model_cfg['resnet']['num_blocks']
         stable_mortal = Brain(version=version, conv_channels=conv_channels, num_blocks=num_blocks).eval()
         stable_dqn = DQN(version=version).eval()
         stable_mortal.load_state_dict(state['mortal'])
@@ -90,8 +91,6 @@ class TrainPlayer:
             name = 'baseline',
         )
 
-        profile = os.environ.get('TRAIN_PLAY_PROFILE', 'default')
-        cfg = config['train_play'][profile]
         self.chal_version = config['control']['version']
         self.log_dir = path.abspath(cfg['log_dir'])
         self.train_key = secrets.randbits(64)

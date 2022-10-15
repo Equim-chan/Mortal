@@ -139,9 +139,9 @@ def train():
             dataset = file_data,
             batch_size = batch_size,
             drop_last = True,
-            num_workers = num_workers,
-            pin_memory = True,
-            worker_init_fn = worker_init_fn,
+            # num_workers = num_workers,
+            # pin_memory = True,
+            # worker_init_fn = worker_init_fn,
         ))
 
         pb = tqdm(total=save_every, desc='TRAIN', unit='batch', dynamic_ncols=True, ascii=True)
