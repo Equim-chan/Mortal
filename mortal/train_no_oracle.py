@@ -1,3 +1,6 @@
+import time
+
+
 def train():
     import prelude
 
@@ -145,6 +148,7 @@ def train():
         ))
 
         pb = tqdm(total=save_every, desc='TRAIN', unit='batch', dynamic_ncols=True, ascii=True)
+        batch_start_time = time.time()
         for obs, _, actions, masks, steps_to_done, kyoku_rewards in data_loader:
             obs = obs.to(dtype=torch.float32, device=device)
             # invisible_obs = invisible_obs.to(dtype=torch.float32, device=device)
@@ -204,6 +208,8 @@ def train():
                     writer.add_scalar('loss/cql_loss', stats['cql_loss'] / save_every, steps)
                 writer.add_histogram('q_predicted', all_q_1d, steps)
                 writer.add_histogram('q_target', all_q_target_1d, steps)
+                now_time = time.time()
+                writer.add_scalar('time/batch_time', (now_time - batch_start_time) / batch_size, steps)
                 writer.flush()
 
                 for k in stats:
@@ -229,11 +235,12 @@ def train():
                     logging.info('param has been submitted')
 
                 if steps % test_every == 0:
+                    test_start_time = time.time()
                     test_player = TestPlayer()
                     stat = test_player.test_play(test_games // 4, mortal, current_dqn, device)
                     mortal.train()
                     current_dqn.train()
-
+                    test_end_time = time.time()
                     avg_pt = stat.avg_pt([90, 45, 0, -135])
                     logging.info(f'avg rank: {stat.avg_rank:.6}')
                     logging.info(f'avg pt: {avg_pt:.6}')
@@ -277,8 +284,9 @@ def train():
                     }, steps)
                     writer.add_scalar('test_play/fuuro_num', stat.avg_fuuro_num, steps)
                     writer.add_scalar('test_play/fuuro_point', stat.avg_fuuro_point, steps)
+                    writer.add_scalar('time/test_time', (test_end_time - test_start_time) / test_games, steps)
                     writer.flush()
-
+                batch_start_time = now_time
                 pb = tqdm(total=save_every, desc='TRAIN', unit='batch', dynamic_ncols=True, ascii=True)
         pb.close()
 
