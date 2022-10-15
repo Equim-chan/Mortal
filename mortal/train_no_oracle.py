@@ -58,7 +58,7 @@ def train():
         {'params': current_dqn.parameters()},
     ])
     scaler = amp.GradScaler(enabled=enable_amp)
-    test_player = TestPlayer()
+    
 
     steps = 0
     state_file = config['control']['state_file']
@@ -229,6 +229,7 @@ def train():
                     logging.info('param has been submitted')
 
                 if steps % test_every == 0:
+                    test_player = TestPlayer()
                     stat = test_player.test_play(test_games // 4, mortal, current_dqn, device)
                     mortal.train()
                     current_dqn.train()
