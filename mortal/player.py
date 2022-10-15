@@ -92,7 +92,7 @@ class TrainPlayer:
         )
 
         self.chal_version = config['control']['version']
-        self.log_dir = path.abspath(cfg['log_dir'])
+        self.log_dir =path.join(path.abspath(cfg['log_dir']), str(os.getpid()))
         self.train_key = secrets.randbits(64)
         self.train_seed = 10000
 
