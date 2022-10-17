@@ -36,7 +36,7 @@ class TestPlayer:
         self.chal_version = config['control']['version']
         self.log_dir = path.abspath(config['test_play']['log_dir'])
 
-    def test_play(self, seed_count, mortal, dqn, device):
+    def test_play(self, seed_count,repeat, mortal, dqn, device):
         torch.backends.cudnn.benchmark = False
         engine_chal = MortalEngine(
             mortal,
@@ -55,12 +55,13 @@ class TestPlayer:
             disable_progress_bar = False,
             log_dir = self.log_dir,
         )
-        env.py_vs_py(
-            challenger = engine_chal,
-            champion = self.baseline_engine,
-            seed_start = (10000, 2000),
-            seed_count = seed_count,
-        )
+        for i in range(repeat):
+            env.py_vs_py(
+                challenger = engine_chal,
+                champion = self.baseline_engine,
+                seed_start = (10000, 2000),
+                seed_count = seed_count,
+            )
 
         stat = Stat.from_dir(self.log_dir, 'mortal')
         torch.backends.cudnn.benchmark = config['control']['enable_cudnn_benchmark']

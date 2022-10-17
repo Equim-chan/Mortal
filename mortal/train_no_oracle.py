@@ -34,6 +34,7 @@ def train():
     save_every = config['control']['save_every']
     test_every = config['control']['test_every']
     test_games = config['test_play']['games']
+    test_round = config['test_play']['round']
     min_q_weight = config['cql']['min_q_weight']
     assert save_every % opt_step_every == 0
     assert test_every % save_every == 0
@@ -237,7 +238,7 @@ def train():
                 if steps % test_every == 0:
                     test_start_time = time.time()
                     test_player = TestPlayer()
-                    stat = test_player.test_play(test_games // 4, mortal, current_dqn, device)
+                    stat = test_player.test_play(test_games // 4, test_round, mortal, current_dqn, device)
                     mortal.train()
                     current_dqn.train()
                     test_end_time = time.time()
