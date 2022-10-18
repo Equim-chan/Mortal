@@ -21,7 +21,7 @@ tmux select-layout tiled
 window=$(($window + 1))
 tmux new-window -t $session:$window -n 'train'
 panle=0
-for i in {1..2}
+for i in {1..3}
 do
 tmux send-keys -t $session:$window.$panle "pyenv activate mortal" C-m
 tmux send-keys -t $session:$window.$panle "python3 ./client.py" C-m
