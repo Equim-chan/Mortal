@@ -285,7 +285,7 @@ def train():
                     }, steps)
                     writer.add_scalar('test_play/fuuro_num', stat.avg_fuuro_num, steps)
                     writer.add_scalar('test_play/fuuro_point', stat.avg_fuuro_point, steps)
-                    writer.add_scalar('time/test_time', (test_end_time - test_start_time) / test_games, steps)
+                    writer.add_scalar('time/test_time', (test_end_time - test_start_time) / test_games / test_round, steps)
                     writer.flush()
                 batch_start_time = now_time
                 pb = tqdm(total=save_every, desc='TRAIN', unit='batch', dynamic_ncols=True, ascii=True)
