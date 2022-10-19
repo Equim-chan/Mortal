@@ -59,7 +59,7 @@ class TestPlayer:
             env.py_vs_py(
                 challenger = engine_chal,
                 champion = self.baseline_engine,
-                seed_start = (10000, 2000),
+                seed_start = (10000 + i * seed_count, 2000),
                 seed_count = seed_count,
             )
 
