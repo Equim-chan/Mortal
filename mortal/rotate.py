@@ -16,8 +16,8 @@ def cp(source, target):
 
 def rotate():
     curent = config["control"]["state_file"]
-    for i in range(5):
-        yesterday = os.path.dirname(curent) + "/T-{}.pth".format(i + 1)
+    for i in range(6):
+        yesterday = os.path.dirname(curent) + "/T-{}.pth".format(i)
         old_archive = (
             os.path.dirname(curent)
             + "/"
