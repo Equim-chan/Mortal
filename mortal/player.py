@@ -11,8 +11,8 @@ from libriichi.arena import OneVsThree
 from config import config
 
 class TestPlayer:
-    def __init__(self):
-        baseline_cfg = config['baseline']['test']
+    def __init__(self,name = "test"):
+        baseline_cfg = config['baseline'][name]
         device = torch.device(baseline_cfg['device'])
 
         state = torch.load(baseline_cfg['state_file'], map_location=torch.device('cpu'))
