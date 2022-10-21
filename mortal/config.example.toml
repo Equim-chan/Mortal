@@ -26,6 +26,9 @@ repeats = 2
 [test_play]
 games = 2000
 log_dir = '/path/to/test_play'
+against = [
+    'test'
+]
 
 [dataset]
 globs = ['/path/to/dataset/**/*.json.gz']
