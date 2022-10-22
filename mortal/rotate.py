@@ -16,6 +16,16 @@ def cp(source, target):
 
 def rotate():
     curent = config["control"]["state_file"]
+    archive = (
+        os.path.dirname(curent)
+        + "/"
+        + os.path.splitext(os.path.basename(curent))[0]
+        + "-"
+        + datetime.now().strftime("%Y%m%d")
+        + ".pth"
+    )
+    cp(curent, archive)
+
     for i in range(6):
         yesterday = os.path.dirname(curent) + "/T-{}.pth".format(i)
         old_archive = (
@@ -27,16 +37,6 @@ def rotate():
             + ".pth"
         )
         cp(old_archive, yesterday)
-
-    archive = (
-        os.path.dirname(curent)
-        + "/"
-        + os.path.splitext(os.path.basename(curent))[0]
-        + "-"
-        + datetime.now().strftime("%Y%m%d")
-        + ".pth"
-    )
-    cp(curent, archive)
 
 
 def sleep_to_dawn():
