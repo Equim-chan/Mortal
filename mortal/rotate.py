@@ -43,7 +43,7 @@ def sleep_to_dawn():
     now = datetime.today()
 
     next_dawn_day = date.today()
-    dawn_time = time(hour=6, minute=30)
+    dawn_time = time(hour=0, minute=0)
     if now.time() > dawn_time:
         next_dawn_day += timedelta(days=1)
     next_dawn = datetime.combine(next_dawn_day, dawn_time)
