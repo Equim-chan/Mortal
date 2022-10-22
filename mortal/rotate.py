@@ -21,7 +21,7 @@ def rotate():
         old_archive = (
             os.path.dirname(curent)
             + "/"
-            + os.path.basename(curent)
+            + os.path.splitext(os.path.basename(curent))[0]
             + "-"
             + (datetime.now() + timedelta(days=(-(i + 1)))).strftime("%Y%m%d")
             + ".pth"
@@ -31,7 +31,7 @@ def rotate():
     archive = (
         os.path.dirname(curent)
         + "/"
-        + os.path.basename(curent)
+        + os.path.splitext(os.path.basename(curent))[0]
         + "-"
         + datetime.now().strftime("%Y%m%d")
         + ".pth"
