@@ -28,7 +28,14 @@ def rotate():
         )
         cp(old_archive, yesterday)
 
-    archive = os.path.dirname(curent) + "/" + datetime.now().strftime("%Y%m%d") + ".pth"
+    archive = (
+        os.path.dirname(curent)
+        + "/"
+        + os.path.basename(curent)
+        + "-"
+        + datetime.now().strftime("%Y%m%d")
+        + ".pth"
+    )
     cp(curent, archive)
 
 
