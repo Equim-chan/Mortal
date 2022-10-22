@@ -23,7 +23,7 @@ def rotate():
             + "/"
             + os.path.splitext(os.path.basename(curent))[0]
             + "-"
-            + (datetime.now() + timedelta(days=(-(i + 1)))).strftime("%Y%m%d")
+            + (datetime.now() + timedelta(days=(-(i)))).strftime("%Y%m%d")
             + ".pth"
         )
         cp(old_archive, yesterday)
