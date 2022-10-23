@@ -312,9 +312,9 @@ def train():
 
     while True:
         train_epoch()
-        # gc.collect()
-        # torch.cuda.empty_cache()
-        # torch.cuda.synchronize()
+        gc.collect()
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
         if not online:
             # only run one epoch for offline for easier control
             break
