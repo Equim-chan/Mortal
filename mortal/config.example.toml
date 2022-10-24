@@ -8,6 +8,7 @@ tensorboard_dir = '/path/to/dir'
 device = 'cuda:0'
 enable_cudnn_benchmark = true
 enable_amp = false
+enable_online_cql = true
 
 batch_size = 512
 opt_step_every = 1

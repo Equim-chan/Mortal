@@ -43,6 +43,7 @@ def train():
     device = torch.device(config['control']['device'])
     torch.backends.cudnn.benchmark = config['control']['enable_cudnn_benchmark']
     enable_amp = config['control']['enable_amp']
+    enable_online_cql = config['control']['enable_online_cql']
 
     pts = config['env']['pts']
     gamma = config['env']['gamma']
@@ -170,8 +171,8 @@ def train():
                 dqn_loss = 0.5 * F.mse_loss(q, q_target_mc)
 
                 cql_loss = 0
-                # if not online:
-                cql_loss = q_out.logsumexp(-1).mean() - q.mean()
+                if enable_online_cql or not online :
+                    cql_loss = q_out.logsumexp(-1).mean() - q.mean()
 
                 loss = sum((
                     dqn_loss,
@@ -181,7 +182,7 @@ def train():
 
             with torch.no_grad():
                 stats['dqn_loss'] += dqn_loss
-                if not online:
+                if enable_online_cql or not online:
                     stats['cql_loss'] += cql_loss
                 all_q[idx] = q
                 all_q_target[idx] = q_target_mc
@@ -206,7 +207,7 @@ def train():
                 all_q_target_1d = all_q_target.cpu().numpy().flatten()[::128]
 
                 writer.add_scalar('loss/dqn_loss', stats['dqn_loss'] / save_every, steps)
-                if not online:
+                if enable_online_cql or not online:
                     writer.add_scalar('loss/cql_loss', stats['cql_loss'] / save_every, steps)
                 writer.add_histogram('q_predicted', all_q_1d, steps)
                 writer.add_histogram('q_target', all_q_target_1d, steps)
