@@ -170,8 +170,8 @@ def train():
                 dqn_loss = 0.5 * F.mse_loss(q, q_target_mc)
 
                 cql_loss = 0
-                if not online:
-                    cql_loss = q_out.logsumexp(-1).mean() - q.mean()
+                # if not online:
+                cql_loss = q_out.logsumexp(-1).mean() - q.mean()
 
                 loss = sum((
                     dqn_loss,
