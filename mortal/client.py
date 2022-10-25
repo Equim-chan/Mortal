@@ -41,21 +41,21 @@ def main():
             avg_rank = (rankings * np.arange(1, 5)).sum() / rankings.sum()
             avg_pt = (rankings * np.array([90, 45, 0, -135])).sum() / rankings.sum()
             logging.info(f'trainee rankings: {rankings} ({avg_rank:.6}, {avg_pt:.6}pt)')
+            logs = {}
+            for filename in file_list:
+                with open(filename, 'rb') as f:
+                    logs[path.basename(filename)] = f.read()
+
+            with socket.socket() as conn:
+                conn.connect(remote)
+                send_msg(conn, {
+                    'type': 'submit_replay',
+                    'logs': logs,
+                })
+                logging.info('logs have been submitted')
         except Exception as e:
             logging.exception('failed to game',e)
 
-        logs = {}
-        for filename in file_list:
-            with open(filename, 'rb') as f:
-                logs[path.basename(filename)] = f.read()
-
-        with socket.socket() as conn:
-            conn.connect(remote)
-            send_msg(conn, {
-                'type': 'submit_replay',
-                'logs': logs,
-            })
-            logging.info('logs have been submitted')
         gc.collect()
         torch.cuda.empty_cache()
         torch.cuda.synchronize()
