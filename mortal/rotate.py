@@ -7,11 +7,13 @@ from time import sleep
 from config import config
 
 
-def cp(source, target):
+def cp(source, target) -> bool:
     if os.path.exists(source):
         with open(source, "rb") as source_file, open(target, "wb") as tar_file:
             logging.info("{} -> {}".format(source, target))
             tar_file.write(source_file.read())
+            return True
+    return False
 
 
 def rotate():
@@ -36,7 +38,9 @@ def rotate():
             + (datetime.now() + timedelta(days=(-(i)))).strftime("%Y%m%d")
             + ".pth"
         )
-        cp(old_archive, yesterday)
+        if not cp(old_archive, yesterday):
+            old_archive = os.path.dirname(curent) + "/T-{}.pth".format(i - 1)
+            cp(old_archive, yesterday)
 
 
 def sleep_to_dawn():

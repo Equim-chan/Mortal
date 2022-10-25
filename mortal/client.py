@@ -36,11 +36,13 @@ def main():
         mortal.load_state_dict(rsp['mortal'])
         dqn.load_state_dict(rsp['dqn'])
         logging.info('param has been updated')
-
-        rankings, file_list = train_player.train_play(oracle, mortal, dqn, device)
-        avg_rank = (rankings * np.arange(1, 5)).sum() / rankings.sum()
-        avg_pt = (rankings * np.array([90, 45, 0, -135])).sum() / rankings.sum()
-        logging.info(f'trainee rankings: {rankings} ({avg_rank:.6}, {avg_pt:.6}pt)')
+        try:
+            rankings, file_list = train_player.train_play(oracle, mortal, dqn, device)
+            avg_rank = (rankings * np.arange(1, 5)).sum() / rankings.sum()
+            avg_pt = (rankings * np.array([90, 45, 0, -135])).sum() / rankings.sum()
+            logging.info(f'trainee rankings: {rankings} ({avg_rank:.6}, {avg_pt:.6}pt)')
+        except Exception as e:
+            logging.exception('failed to game',e)
 
         logs = {}
         for filename in file_list:
