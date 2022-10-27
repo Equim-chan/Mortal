@@ -1,8 +1,10 @@
 #!/usr/bin/bash
 
+py="python3"
+
 session="mortal-train"
 
-log_dir=$(python3 -c "from config import config ;print(config['control']['tensorboard_dir'])")
+log_dir=$($py -c "from config import config ;print(config['control']['tensorboard_dir'])")
 
 log_base_dir=$(dirname $log_dir)
 
@@ -16,11 +18,11 @@ tmux new-session -d -s $session
     tmux split-window -f -v -t $session:$window.$panle
     panle=1
     tmux send-keys -t $session:$window.$panle "pyenv activate mortal" C-m
-    tmux send-keys -t $session:$window.$panle "python3 ./server.py" C-m
+    tmux send-keys -t $session:$window.$panle "$py ./server.py" C-m
     tmux split-window -f -v -t $session:$window.$panle
     panle=2
     tmux send-keys -t $session:$window.$panle "pyenv activate mortal" C-m
-    tmux send-keys -t $session:$window.$panle "python3 ./rotate.py" C-m
+    tmux send-keys -t $session:$window.$panle "$py ./rotate.py" C-m
     tmux select-layout tiled
 
     sleep 5
@@ -29,13 +31,13 @@ tmux new-session -d -s $session
     tmux new-window -t $session:$window -n 'train'
     panle=0
     tmux send-keys -t $session:$window.$panle "pyenv activate mortal" C-m
-    tmux send-keys -t $session:$window.$panle "python3 ./train_no_oracle.py" C-m
+    tmux send-keys -t $session:$window.$panle "$py ./train_no_oracle.py" C-m
     for i in {1..4}
     do
         tmux split-window -f -v -t $session:$window.$panle
         panle=$(($panle + 1))
         tmux send-keys -t $session:$window.$panle "pyenv activate mortal" C-m
-        tmux send-keys -t $session:$window.$panle "TRAIN_PLAY_PROFILE=default-${i} python3 ./client.py" C-m
+        tmux send-keys -t $session:$window.$panle "TRAIN_PLAY_PROFILE=default-${i} $py ./client.py" C-m
         sleep 240
     done
     tmux select-layout tiled
