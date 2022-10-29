@@ -45,7 +45,6 @@ def main():
             for filename in file_list:
                 with open(filename, 'rb') as f:
                     logs[path.basename(filename)] = f.read()
-
             with socket.socket() as conn:
                 conn.connect(remote)
                 send_msg(conn, {
