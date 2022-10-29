@@ -14,7 +14,7 @@ def gen():
     from torch.utils.data import DataLoader
     from torch.utils.tensorboard import SummaryWriter
     from tqdm.auto import tqdm
-    from common import submit_param, parameter_count, drain
+    from torch_tools import parameter_count
     from player import TestPlayer
     from dataloader import FileDatasetsIter, worker_init_fn
     from model import Brain, DQN

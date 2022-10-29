@@ -19,7 +19,8 @@ def train():
     from torch.utils.data import DataLoader
     from torch.utils.tensorboard import SummaryWriter
     from tqdm.auto import tqdm
-    from common import normal_kl_div, submit_param, parameter_count, drain, filtered_stripped_lines
+    from common import submit_param, drain
+    from torch_tools import normal_kl_div, parameter_count, filtered_stripped_lines
     from player import TestPlayer
     from dataloader import FileDatasetsIter, worker_init_fn
     from model import Brain, DQN

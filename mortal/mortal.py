@@ -7,7 +7,7 @@ import torch
 from datetime import datetime, timezone
 from model import Brain, DQN, GRP
 from engine import MortalEngine
-from common import filtered_stripped_lines
+from torch_tools import filtered_stripped_lines
 from libriichi.mjai import Bot
 from libriichi.dataset import Grp
 from config import config

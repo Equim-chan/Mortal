@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torch.distributions import Normal, Categorical
-from common import apply_masks
+from torch_tools import apply_masks
 
 class MortalEngine:
     def __init__(
