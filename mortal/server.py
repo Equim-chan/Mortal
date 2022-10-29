@@ -10,7 +10,7 @@ from os import path
 from io import BytesIO
 from socketserver import ThreadingTCPServer, BaseRequestHandler
 from threading import Lock
-from common import send_msg, recv_msg, UnexpectedEOF
+from net_emit import send_msg, recv_msg, UnexpectedEOF
 from config import config
 
 buffer_dir = path.abspath(config['online']['server']['buffer_dir'])
@@ -66,8 +66,12 @@ class Handler(BaseRequestHandler):
         match msg['type']:
             case 'get_param':
                 self.get_param()
+
             case 'get_test_param':
                 self.get_test_param(msg['name'] if msg['name'] is not None else 'default')
+
+            case 'get_test_config':
+                self.get_test_config()
 
             case 'submit_replay':
                 with dir_lock:
@@ -140,6 +144,16 @@ class Handler(BaseRequestHandler):
             'mortal': state['mortal'],
             'dqn': state['current_dqn'],
             'model_cfg': state['config'],
+            'cfg': cfg,
+        }
+        buf = BytesIO()
+        torch.save(res, buf)
+        self.send_msg(buf.getvalue(), packed=True)
+
+    def get_test_config(self):
+        cfg = config
+        res = {
+            'status': 'ok',
             'cfg': cfg,
         }
         buf = BytesIO()

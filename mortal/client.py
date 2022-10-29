@@ -1,3 +1,4 @@
+
 import prelude
 
 import logging
@@ -6,14 +7,31 @@ import torch
 import numpy as np
 import time
 import gc
-from os import path
+from os import path,environ
+
 from model import Brain, DQN
-from player import TrainPlayer
-from common import send_msg, recv_msg
-from config import config
+from player_online import TrainPlayer
+from net_emit import send_msg,recv_msg
+
+def get_config(remote):
+    while True:
+        with socket.socket() as conn:
+            conn.connect(remote)
+            send_msg(conn, {'type': 'get_test_config'})
+            rsp = recv_msg(conn, map_location=torch.device('cpu'))
+            if rsp['status'] == 'ok':
+                return rsp['cfg']
+            time.sleep(3)
+
+def get_remote():
+    ip=environ.get('MORTAL_SERVER_ADDR', '127.0.0.1')
+    port=int(environ.get('MORTAL_SERVER_PORT', '5000'))
+    return (ip,port)
 
 def main():
-    remote = (config['online']['remote']['host'], config['online']['remote']['port'])
+    remote = get_remote()
+    config = get_config(remote)
+    logging.info('config has been loaded')
     device = torch.device(config['control']['device'])
     version = config['control']['version']
     num_blocks = config['resnet']['num_blocks']
@@ -24,7 +42,7 @@ def main():
     dqn = DQN(version=version).to(device)
 
     while True:
-        train_player = TrainPlayer()
+        train_player = TrainPlayer(remote,version)
         while True:
             with socket.socket() as conn:
                 conn.connect(remote)
