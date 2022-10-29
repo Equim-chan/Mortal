@@ -54,7 +54,8 @@ def main():
                 })
                 logging.info('logs have been submitted')
         except Exception as e:
-            logging.exception('failed to game',e)
+            logging.exception('failed to game：%s',str(e))
+            train_player.train_seed+=train_player.seed_count
 
         gc.collect()
         torch.cuda.empty_cache()
