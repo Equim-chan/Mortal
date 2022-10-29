@@ -40,7 +40,7 @@ def main():
     # oracle = Brain(version=version, is_oracle=True, num_blocks=num_blocks, conv_channels=conv_channels).to(device).eval()
     mortal = Brain(version=version, num_blocks=num_blocks, conv_channels=conv_channels).to(device).eval()
     dqn = DQN(version=version).to(device)
-
+    continues_fail_cnt = 0
     while True:
         train_player = TrainPlayer(remote,version)
         while True:
@@ -70,8 +70,11 @@ def main():
                     'logs': logs,
                 })
                 logging.info('logs have been submitted')
+            continues_fail_cnt = 0
         except Exception as e:
             logging.exception('failed to game：%s',str(e))
+            continues_fail_cnt += 1
+            logging.info('continues_fail_cnt = %d', continues_fail_cnt)
             train_player.train_seed+=train_player.seed_count
 
         gc.collect()
