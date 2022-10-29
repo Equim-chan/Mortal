@@ -81,7 +81,7 @@ class TrainPlayer:
                 conn.connect(remote)
                 send_msg(conn, {'type': 'get_test_param','name': profile})
                 rsp = recv_msg(conn, map_location=torch.device('cpu'))
-                logging.info(f'resp.status = {rsp["status"]} , keys = {rsp.keys()}')
+                logging.info('test param has been updated')
                 if rsp['status'] == 'ok':
                     break
                 time.sleep(3)
