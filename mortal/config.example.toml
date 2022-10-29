@@ -26,6 +26,7 @@ repeats = 2
 
 [test_play]
 games = 2000
+round = 1
 log_dir = '/path/to/test_play'
 against = [
     'test'
