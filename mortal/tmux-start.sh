@@ -40,7 +40,7 @@ tmux new-session -d -s $session
         tmux send-keys -t $session:$window.$panle "TRAIN_PLAY_PROFILE=default-${i} $py ./client.py" C-m
         sleep 240
     done
-    tmux select-layout tiled
+    tmux select-layout even-vertical
 }&
 
 tmux attach -t $session
