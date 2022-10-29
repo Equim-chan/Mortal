@@ -1,11 +1,16 @@
+import logging
+import time
 import torch
 import numpy as np
 import os
 import shutil
+import socket
 import secrets
 from os import path
 from model import Brain, DQN
 from engine import MortalEngine
+from common import send_msg, recv_msg
+
 from libriichi.stat import Stat
 from libriichi.arena import OneVsThree
 from config import config
@@ -70,18 +75,27 @@ class TestPlayer:
 class TrainPlayer:
     def __init__(self):
         profile = os.environ.get('TRAIN_PLAY_PROFILE', 'default')
-        cfg = config['train_play'][profile]
+        remote = (config['online']['remote']['host'], config['online']['remote']['port'])
+        while True:
+            with socket.socket() as conn:
+                conn.connect(remote)
+                send_msg(conn, {'type': 'get_test_param','name': profile})
+                rsp = recv_msg(conn, map_location=torch.device('cpu'))
+                logging.info(f'resp.status = {rsp["status"]} , keys = {rsp.keys()}')
+                if rsp['status'] == 'ok':
+                    break
+                time.sleep(3)
+        cfg = rsp['cfg']
         device = torch.device(cfg['device'])
 
-        state = torch.load(cfg['state_file'], map_location=torch.device('cpu'))
-        model_cfg = state['config']
+        model_cfg = rsp['model_cfg']
         version = model_cfg['control'].get('version', 1)
         conv_channels = model_cfg['resnet']['conv_channels']
         num_blocks = model_cfg['resnet']['num_blocks']
         stable_mortal = Brain(version=version, conv_channels=conv_channels, num_blocks=num_blocks).eval()
         stable_dqn = DQN(version=version).eval()
-        stable_mortal.load_state_dict(state['mortal'])
-        stable_dqn.load_state_dict(state['current_dqn'])
+        stable_mortal.load_state_dict(rsp['mortal'])
+        stable_dqn.load_state_dict(rsp['dqn'])
         self.baseline_engine = MortalEngine(
             stable_mortal,
             stable_dqn,

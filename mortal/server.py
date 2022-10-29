@@ -66,6 +66,8 @@ class Handler(BaseRequestHandler):
         match msg['type']:
             case 'get_param':
                 self.get_param()
+            case 'get_test_param':
+                self.get_test_param(msg['name'] if msg['name'] is not None else 'default')
 
             case 'submit_replay':
                 with dir_lock:
@@ -128,6 +130,20 @@ class Handler(BaseRequestHandler):
             }
             buf = BytesIO()
             packed = torch.save(res, buf)
+        self.send_msg(buf.getvalue(), packed=True)
+
+    def get_test_param(self,name):
+        cfg = config['train_play'][name]
+        state = torch.load(cfg['state_file'], map_location=torch.device('cpu'))
+        res = {
+            'status': 'ok',
+            'mortal': state['mortal'],
+            'dqn': state['current_dqn'],
+            'model_cfg': state['config'],
+            'cfg': cfg,
+        }
+        buf = BytesIO()
+        torch.save(res, buf)
         self.send_msg(buf.getvalue(), packed=True)
 
     def send_msg(self, msg, packed=False):
