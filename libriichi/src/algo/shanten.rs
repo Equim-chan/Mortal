@@ -130,7 +130,7 @@ pub fn calc_kokushi(tiles: &[u8; 34]) -> i8 {
             }
         });
 
-    let redunct = if pairs > 0 { 1 } else { 0 };
+    let redunct = i8::from(pairs > 0);
     14 - kinds - redunct - 1
 }
 
