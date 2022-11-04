@@ -138,7 +138,13 @@ class Handler(BaseRequestHandler):
 
     def get_test_param(self,name):
         cfg = config['train_play'][name]
-        state = torch.load(cfg['state_file'], map_location=torch.device('cpu'))
+        while True:
+            try:
+                state = torch.load(cfg['state_file'], map_location=torch.device('cpu'))
+                break
+            except RuntimeError as e:
+                logging.exception('failed to load state file：%s',str(e))
+                pass
         res = {
             'status': 'ok',
             'mortal': state['mortal'],
