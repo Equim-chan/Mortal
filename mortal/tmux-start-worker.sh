@@ -4,6 +4,8 @@ py="python3"
 
 session="mortal-train"
 
+server_ip="0.0.0.0"
+
 tmux new-session -d -s $session
 
 {
@@ -15,7 +17,7 @@ tmux new-session -d -s $session
     while ((i <= $count))
     do
         tmux send-keys -t $session:$window.$panle "pyenv activate mortal" C-m
-        tmux send-keys -t $session:$window.$panle " MORTAL_SERVER_ADDR=25.0.0.147 MORTAL_SERVER_PORT=5000 TRAIN_PLAY_PROFILE=default-${i} $py ./client.py" C-m
+        tmux send-keys -t $session:$window.$panle " MORTAL_SERVER_ADDR=$server_ip MORTAL_SERVER_PORT=5000 TRAIN_PLAY_PROFILE=default-${i} $py ./client.py" C-m
         tmux select-layout even-vertical
         if [ $i -ne $count ]
         then
