@@ -49,7 +49,7 @@ class TrainPlayer:
         )
 
         self.chal_version = version
-        self.log_dir =path.join(path.abspath(cfg['log_dir']), str(os.getpid()))
+        self.log_dir =path.join(path.abspath("/tmp/mortal"), str(os.getpid()))
         self.train_key = secrets.randbits(64)
         self.train_seed = 10000
 
@@ -72,7 +72,7 @@ class TrainPlayer:
             boltzmann_epsilon = self.boltzmann_epsilon,
             boltzmann_temp = self.boltzmann_temp,
             device = device,
-            enable_amp = True,
+            enable_amp = False,
             name = 'trainee',
         )
 
