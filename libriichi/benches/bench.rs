@@ -2,8 +2,9 @@ use riichi::algo::agari::{self, AgariCalculator};
 use riichi::algo::shanten;
 use riichi::hand::hand;
 use riichi::tu8;
+use std::hint::black_box;
 
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{criterion_group, criterion_main, Criterion};
 
 fn criterion_benchmark(c: &mut Criterion) {
     agari::ensure_init();

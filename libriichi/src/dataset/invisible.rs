@@ -186,7 +186,7 @@ impl Invisible {
                     arr.slice_mut(s![idx..idx + n, ..]).fill(1.);
                     idx += 6;
                 }
-                2 => {
+                2 | 3 => {
                     arr.slice_mut(s![idx + n, ..]).fill(1.);
                     idx += 7;
 

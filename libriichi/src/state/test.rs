@@ -1,4 +1,5 @@
 use super::{ActionCandidate, PlayerState};
+use crate::consts::MAX_VERSION;
 use crate::hand::{hand, hand_with_aka, tile37_to_vec};
 use crate::mjai::Event;
 use crate::{must_tile, t, tuz};
@@ -11,11 +12,11 @@ fn state_from_log(player_id: u8, log: &str) -> PlayerState {
     for line in log.trim().split('\n') {
         let cans = ps.update_json(line).unwrap();
         if cans.can_act() {
-            let _encoded = ps.encode_obs(1, false);
-            let _encoded = ps.encode_obs(2, false);
-            if cans.can_daiminkan || cans.can_kakan || cans.can_ankan {
-                let _encoded = ps.encode_obs(1, true);
-                let _encoded = ps.encode_obs(2, true);
+            for version in 1..=MAX_VERSION {
+                let _encoded = ps.encode_obs(version, false);
+                if cans.can_daiminkan || cans.can_kakan || cans.can_ankan {
+                    let _encoded = ps.encode_obs(version, true);
+                }
             }
         }
     }

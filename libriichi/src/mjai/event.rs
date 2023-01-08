@@ -183,6 +183,49 @@ impl Event {
             Event::ReachAccepted { .. } | Event::Dora { .. } | Event::Hora { .. }
         )
     }
+
+    #[inline]
+    pub fn augment(&mut self) {
+        #[inline]
+        fn swap_tile(t: &mut Tile) {
+            *t = t.augment();
+        }
+
+        match self {
+            Event::StartKyoku {
+                bakaze,
+                dora_marker,
+                tehais,
+                ..
+            } => {
+                swap_tile(bakaze);
+                swap_tile(dora_marker);
+                tehais.iter_mut().flatten().for_each(swap_tile);
+            }
+            Event::Tsumo { pai, .. } => swap_tile(pai),
+            Event::Dahai { pai, .. } => swap_tile(pai),
+            Event::Chi { pai, consumed, .. } => {
+                swap_tile(pai);
+                consumed.iter_mut().for_each(swap_tile);
+            }
+            Event::Pon { pai, consumed, .. } => {
+                swap_tile(pai);
+                consumed.iter_mut().for_each(swap_tile);
+            }
+            Event::Daiminkan { pai, consumed, .. } => {
+                swap_tile(pai);
+                consumed.iter_mut().for_each(swap_tile);
+            }
+            Event::Kakan { pai, consumed, .. } => {
+                swap_tile(pai);
+                consumed.iter_mut().for_each(swap_tile);
+            }
+            Event::Ankan { consumed, .. } => consumed.iter_mut().for_each(swap_tile),
+            Event::Dora { dora_marker } => swap_tile(dora_marker),
+            Event::Hora { ura_markers, .. } => ura_markers.iter_mut().flatten().for_each(swap_tile),
+            _ => (),
+        }
+    }
 }
 
 impl<const MIN: u8, const MAX: u8> TryFrom<BoundedU8<MIN, MAX>> for u8 {
@@ -254,7 +297,7 @@ mod test {
             .lines()
             .map(|l| {
                 let event: Event = json::from_str(l).unwrap();
-                json::to_value(&event).unwrap()
+                json::to_value(event).unwrap()
             })
             .collect();
 

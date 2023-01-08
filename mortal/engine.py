@@ -1,7 +1,6 @@
 import torch
 import numpy as np
 from torch.distributions import Normal, Categorical
-from common import apply_masks
 
 class MortalEngine:
     def __init__(
@@ -58,18 +57,14 @@ class MortalEngine:
                 else:
                     latent = mu
                 q_out = self.dqn(latent, masks)
-            case 2:
+            case 2 | 3:
                 phi = self.brain(obs)
                 q_out = self.dqn(phi, masks)
 
         if self.boltzmann_epsilon > 0:
-            is_greedy = torch.rand(batch_size, device=self.device) >= self.boltzmann_epsilon
-            logits = apply_masks(q_out / self.boltzmann_temp, masks, fill=-1e9)
-            actions = torch.where(
-                is_greedy,
-                q_out.argmax(-1),
-                Categorical(logits=logits).sample(),
-            )
+            is_greedy = torch.full((batch_size,), 1-self.boltzmann_epsilon, device=self.device).bernoulli().to(torch.bool)
+            logits = (q_out / self.boltzmann_temp).masked_fill(~masks, -torch.inf)
+            actions = torch.where(is_greedy, q_out.argmax(-1), Categorical(logits=logits).sample())
         else:
             is_greedy = torch.ones(batch_size, dtype=torch.bool, device=self.device)
             actions = q_out.argmax(-1)

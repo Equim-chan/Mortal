@@ -1,5 +1,5 @@
 use super::PlayerState;
-use crate::consts::{obs_shape, ACTION_SPACE};
+use crate::consts::{obs_shape, ACTION_SPACE, MAX_VERSION};
 use crate::state::item::KawaItem;
 use crate::tile::Tile;
 use crate::{tu8, tuz};
@@ -57,7 +57,7 @@ impl IntegerEncoder {
                 ctx.arr.slice_mut(s![ctx.idx..ctx.idx + n, ..]).fill(1.);
                 ctx.idx += self.cap;
             }
-            2 => {
+            2 | 3 => {
                 debug_assert!(self.one_hot || self.rescale || self.rbf_intervals.is_some());
 
                 if self.one_hot {
@@ -92,7 +92,7 @@ impl<'a> ObsEncoderContext<'a> {
     const KAWA_ITEM_CHANNELS: usize = 8;
 
     fn new(state: &'a PlayerState, version: u32, at_kan_select: bool) -> Self {
-        assert!(version <= 2);
+        assert!(version <= MAX_VERSION);
         let shape = obs_shape(version);
         let arr = Array2::zeros(shape);
         let mask = Array1::default(ACTION_SPACE);
@@ -138,7 +138,7 @@ impl<'a> ObsEncoderContext<'a> {
             self.arr.slice_mut(s![self.idx, ..]).fill(v);
             self.idx += 1;
 
-            if self.version == 2 {
+            if matches!(self.version, 2 | 3) {
                 IntegerEncoder::new(score as usize / 100, 500)
                     .rbf_intervals(10)
                     .encode(&mut self);
@@ -153,14 +153,14 @@ impl<'a> ObsEncoderContext<'a> {
         match self.version {
             // for v1, this was a mistake, it actually only uses 3 channels.
             1 => self.arr.slice_mut(s![self.idx..self.idx + n, ..]).fill(1.),
-            2 => self.arr.slice_mut(s![self.idx + n, ..]).fill(1.),
+            2 | 3 => self.arr.slice_mut(s![self.idx + n, ..]).fill(1.),
             _ => unreachable!(),
         }
         self.idx += 4;
 
         let cap = match self.version {
             1 => 10,
-            2 => 6,
+            2 | 3 => 6,
             _ => unreachable!(),
         };
         let n = state.honba as usize;
@@ -176,7 +176,7 @@ impl<'a> ObsEncoderContext<'a> {
         self.arr[[self.idx + 1, state.jikaze.as_usize()]] = 1.;
         self.idx += 2;
 
-        if self.version == 2 {
+        if matches!(self.version, 2 | 3) {
             let n = (state.bakaze.as_u8() - tu8!(E)).min(1) * 4 + state.kyoku;
             IntegerEncoder::new(n as usize, 7)
                 .rescale(true)
@@ -198,6 +198,19 @@ impl<'a> ObsEncoderContext<'a> {
             .for_each(|kawa_item| self.encode_self_kawa(kawa_item.as_ref()));
         self.idx += (18 - state.kawa[0].len().min(18)) * Self::SELF_KAWA_ITEM_CHANNELS;
 
+        let max_kawa_len = state.kawa.iter().map(|k| k.len()).max().unwrap();
+        if self.version == 3 {
+            for (turn, kawa_item) in state.kawa[0].iter().enumerate() {
+                if let Some(kawa_item) = kawa_item {
+                    let sutehai = kawa_item.sutehai;
+                    let tid = sutehai.tile.deaka().as_usize();
+                    let v = (-0.2 * (max_kawa_len - 1 - turn) as f32).exp();
+                    self.arr[[self.idx, tid]] = v;
+                }
+            }
+            self.idx += 1;
+        }
+
         for player_kawa in &state.kawa[1..] {
             player_kawa
                 .iter()
@@ -212,16 +225,36 @@ impl<'a> ObsEncoderContext<'a> {
                 .for_each(|kawa_item| self.encode_kawa(kawa_item.as_ref()));
             self.idx += (18 - player_kawa.len().min(18)) * Self::KAWA_ITEM_CHANNELS;
 
-            if self.version == 2 {
-                for (turn, kawa_item) in player_kawa.iter().flatten().enumerate() {
-                    let stage = (turn / 6).min(2);
-                    let tid = kawa_item.sutehai.tile.deaka().as_usize();
-                    self.arr[[self.idx + stage, tid]] = 1.;
-                    if kawa_item.sutehai.is_tedashi {
-                        self.arr[[self.idx + 3 + stage, tid]] = 1.;
+            match self.version {
+                2 => {
+                    for (turn, kawa_item) in player_kawa.iter().flatten().enumerate() {
+                        let row = (turn / 6).min(2);
+                        let tid = kawa_item.sutehai.tile.deaka().as_usize();
+                        self.arr[[self.idx + row, tid]] = 1.;
+                        if kawa_item.sutehai.is_tedashi {
+                            self.arr[[self.idx + 3 + row, tid]] = 1.;
+                        }
                     }
+                    self.idx += 6;
                 }
-                self.idx += 6;
+                3 => {
+                    for (turn, kawa_item) in player_kawa.iter().enumerate() {
+                        if let Some(kawa_item) = kawa_item {
+                            let sutehai = kawa_item.sutehai;
+                            let tid = sutehai.tile.deaka().as_usize();
+                            let v = (-0.2 * (max_kawa_len - 1 - turn) as f32).exp();
+                            self.arr[[self.idx, tid]] = v;
+                            if sutehai.is_tedashi {
+                                self.arr[[self.idx + 1, tid]] = v;
+                            }
+                            if sutehai.is_riichi {
+                                self.arr[[self.idx + 2, tid]] = v;
+                            }
+                        }
+                    }
+                    self.idx += 3;
+                }
+                _ => (),
             }
         }
 
@@ -274,7 +307,7 @@ impl<'a> ObsEncoderContext<'a> {
             self.idx += 1;
         }
 
-        if self.version == 2 {
+        if matches!(self.version, 2 | 3) {
             for (tid, count) in state.tiles_seen.iter().copied().enumerate() {
                 self.arr[[self.idx, tid]] = count as f32 / 4.;
             }
@@ -508,6 +541,7 @@ impl<'a> ObsEncoderContext<'a> {
         self.idx += 1;
 
         assert_eq!(self.idx, self.arr.shape()[0]);
+        debug_assert!(self.arr.iter().all(|&v| (0. ..=1.).contains(&v)));
         (self.arr, self.mask)
     }
 

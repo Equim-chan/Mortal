@@ -279,7 +279,7 @@ impl BatchGame {
         const TEMPLATE: &str = "{spinner:.cyan} steps: {msg}\n[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%";
         bar.set_style(
             ProgressStyle::with_template(TEMPLATE)?
-                .tick_chars(".oO°Oo ")
+                .tick_chars(".oO°Oo*")
                 .progress_chars("#-"),
         );
         bar.enable_steady_tick(Duration::from_millis(150));

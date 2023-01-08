@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader, IterableDataset
 from torch.utils.tensorboard import SummaryWriter
 from model import GRP
 from libriichi.dataset import Grp
-from tqdm.auto import tqdm
+from common import tqdm
 from config import config
 
 class GrpFileDatasetsIter(IterableDataset):
@@ -156,18 +156,19 @@ def train():
         collate_fn = collate,
     ))
 
-    stats_train_loss = 0
-    stats_train_acc = 0
-    stats_val_loss = None
-    stats_val_acc = None
-
+    stats = {
+        'train_loss': 0,
+        'train_acc': 0,
+        'val_loss': 0,
+        'val_acc': 0,
+    }
     logging.info(f'train file list size: {len(train_file_list):,}')
     logging.info(f'val file list size: {len(val_file_list):,}')
 
     approx_percent = steps * batch_size / (len(train_file_list) * 10) * 100
     logging.info(f'total steps: {steps:,} est. {approx_percent:6.3f}%')
 
-    pb = tqdm(total=save_every, desc='TRAIN', unit='batch', dynamic_ncols=True, ascii=True)
+    pb = tqdm(total=save_every, desc='TRAIN')
     for inputs, rank_by_players in train_data_loader:
         inputs = inputs.to(dtype=torch.float64, device=device)
         rank_by_players = rank_by_players.to(dtype=torch.int64, device=device)
@@ -181,8 +182,8 @@ def train():
         optimizer.step()
 
         with torch.no_grad():
-            stats_train_loss += loss
-            stats_train_acc += (logits.argmax(-1) == labels).to(torch.float64).mean()
+            stats['train_loss'] += loss
+            stats['train_acc'] += (logits.argmax(-1) == labels).to(torch.float64).mean()
 
         steps += 1
         pb.update(1)
@@ -191,10 +192,8 @@ def train():
             pb.close()
 
             with torch.no_grad():
-                stats_val_loss = 0
-                stats_val_acc = 0
                 grp.eval()
-                pb = tqdm(total=val_steps, desc='VAL', unit='batch', dynamic_ncols=True, ascii=True)
+                pb = tqdm(total=val_steps, desc='VAL')
                 for idx, (inputs, rank_by_players) in enumerate(val_data_loader):
                     if idx == val_steps:
                         break
@@ -205,32 +204,25 @@ def train():
                     labels = grp.get_label(rank_by_players)
                     loss = F.cross_entropy(logits, labels)
 
-                    stats_val_loss += loss
-                    stats_val_acc += (logits.argmax(-1) == labels).to(torch.float64).mean()
+                    stats['val_loss'] += loss
+                    stats['val_acc'] += (logits.argmax(-1) == labels).to(torch.float64).mean()
                     pb.update(1)
                 pb.close()
                 grp.train()
 
-            loss_dict = {
-                'train': stats_train_loss / save_every,
-            }
-            acc_dict = {
-                'train': stats_train_acc / save_every,
-            }
-            if stats_val_loss is not None:
-                loss_dict['val'] = stats_val_loss / val_steps
-            if stats_val_acc is not None:
-                acc_dict['val'] = stats_val_acc / val_steps
-
-            writer.add_scalars('loss', loss_dict, steps)
-            writer.add_scalars('acc', acc_dict, steps)
+            writer.add_scalars('loss', {
+                'train': stats['train_loss'] / save_every,
+                'val': stats['val_loss'] / val_steps,
+            }, steps)
+            writer.add_scalars('acc', {
+                'train': stats['train_acc'] / save_every,
+                'val': stats['val_acc'] / val_steps,
+            }, steps)
             writer.add_scalar('lr', lr, steps)
             writer.flush()
 
-            stats_train_loss = 0
-            stats_train_acc = 0
-            stats_val_loss = None
-            stats_val_acc = None
+            for k in stats:
+                stats[k] = 0
             approx_percent = steps * batch_size / (len(train_file_list) * 10) * 100
             logging.info(f'total steps: {steps:,} est. {approx_percent:6.3f}%')
 
@@ -241,7 +233,7 @@ def train():
                 'timestamp': datetime.now().timestamp(),
             }
             torch.save(state, state_file)
-            pb = tqdm(total=save_every, desc='TRAIN', unit='batch', dynamic_ncols=True, ascii=True)
+            pb = tqdm(total=save_every, desc='TRAIN')
     pb.close()
 
 if __name__ == '__main__':

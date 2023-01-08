@@ -24,7 +24,7 @@ fn main() -> Result<()> {
 
     const TEMPLATE: &str = "{spinner:.cyan} [{elapsed_precise}] {pos} ({per_sec})";
     let bar = ProgressBar::new_spinner()
-        .with_style(ProgressStyle::with_template(TEMPLATE)?.tick_chars(".oO°Oo "));
+        .with_style(ProgressStyle::with_template(TEMPLATE)?.tick_chars(".oO°Oo*"));
     bar.enable_steady_tick(Duration::from_millis(150));
 
     glob(&format!("{dir}/**/*.json"))?

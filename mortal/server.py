@@ -1,134 +1,119 @@
 import prelude
 
 import logging
-import random
 import shutil
 import torch
 import sys
 import os
 from os import path
 from io import BytesIO
+from typing import *
+from collections import OrderedDict
+from dataclasses import dataclass
 from socketserver import ThreadingTCPServer, BaseRequestHandler
 from threading import Lock
 from common import send_msg, recv_msg, UnexpectedEOF
 from config import config
 
-buffer_dir = path.abspath(config['online']['server']['buffer_dir'])
-drain_dir = path.abspath(config['online']['server']['drain_dir'])
-
-dir_lock = Lock()
-param_lock = Lock()
-buffer_size = 0
-oracle_param = None
-mortal_param = None
-dqn_param = None
-sample_reuse_rate = config['online']['server']['sample_reuse_rate']
-sample_reuse_threshold = config['online']['server']['sample_reuse_threshold']
-capacity = config['online']['server']['capacity']
-
-def save_log(filename, content):
-    filepath = path.join(buffer_dir, filename)
-    with open(filepath, 'wb') as f:
-        f.write(content)
-
-def move_log(filename):
-    src = path.join(buffer_dir, filename)
-    dst = path.join(drain_dir, filename)
-    shutil.move(src, dst)
-
-def delete_drain(filename):
-    filepath = path.join(drain_dir, filename)
-    os.remove(filepath)
-
-def update_param(oracle, mortal, dqn):
-    global oracle_param
-    global mortal_param
-    global dqn_param
-    with param_lock:
-        oracle_param = oracle
-        mortal_param = mortal
-        dqn_param = dqn
-
-def set_config(msg):
-    global sample_reuse_rate
-    global sample_reuse_threshold
-    global capacity
-    with dir_lock:
-        sample_reuse_rate = msg['sample_reuse_rate']
-        sample_reuse_threshold = msg['sample_reuse_threshold']
-        capacity = msg['capacity']
+@dataclass
+class State:
+    buffer_dir: str
+    drain_dir: str
+    dir_lock: Lock
+    param_lock: Lock
+    buffer_size: int
+    oracle_param: Optional[OrderedDict]
+    mortal_param: Optional[OrderedDict]
+    dqn_param: Optional[OrderedDict]
+    param_version: int
+    idle_param_version: int
+    capacity: int
+    force_sequential: bool
+S = None
 
 class Handler(BaseRequestHandler):
     def handle(self):
-        global buffer_size
         msg = self.recv_msg()
-
         match msg['type']:
+            # called by workers
             case 'get_param':
-                self.get_param()
-
+                self.get_param(msg)
             case 'submit_replay':
-                with dir_lock:
-                    for filename, content in msg['logs'].items():
-                        save_log(filename, content)
-                    buffer_size += len(msg['logs'])
-                    logging.info(f'total buffer size: {buffer_size}')
-
+                self.submit_replay(msg)
+            # called by trainer
             case 'submit_param':
-                update_param(msg['oracle'], msg['mortal'], msg['dqn'])
-
+                self.submit_param(msg)
             case 'drain':
-                with dir_lock:
-                    buffer_list = os.listdir(buffer_dir)
-                    count = len(buffer_list)
-                    if count > 0:
-                        drain_list = os.listdir(drain_dir)
-                        to_delete_count = int(max(
-                            len(drain_list) * (1 - sample_reuse_rate),
-                            # x/(k+x) = t, x = tk/(1-t)
-                            len(drain_list) - (count * sample_reuse_threshold) / (1 - sample_reuse_threshold),
-                        ))
-                        logging.info(f'previously drained files to delete: {to_delete_count}')
-                        to_delete = random.sample(drain_list, to_delete_count)
-                        for filename in to_delete:
-                            delete_drain(filename)
-                        for filename in buffer_list:
-                            move_log(filename)
+                self.drain()
 
-                        drain_size = len(drain_list) - to_delete_count + count
-                        buffer_size = 0
-                        logging.info(f'new drain files size: {drain_size}')
-                        logging.info(f'total buffer size: {buffer_size}')
-                self.send_msg({
-                    'count': count,
-                    'drain_dir': drain_dir,
-                })
-
-            case 'set_config':
-                set_config(msg)
-                with dir_lock:
-                    logging.info(f'sample_reuse_rate = {sample_reuse_rate}')
-                    logging.info(f'sample_reuse_threshold = {sample_reuse_threshold}')
-                    logging.info(f'capacity = {capacity}')
-
-    def get_param(self):
-        with dir_lock:
-            overflow = buffer_size >= capacity
-            with param_lock:
-                has_param = mortal_param is not None and dqn_param is not None
-        if not has_param or overflow:
-            self.send_msg({'status': 'empty param or log overflow'})
+    def get_param(self, msg):
+        with S.dir_lock:
+            overflow = S.buffer_size >= S.capacity
+            with S.param_lock:
+                has_param = S.mortal_param is not None and S.dqn_param is not None
+        if overflow:
+            self.send_msg({'status': 'samples overflow'})
+            return
+        if not has_param:
+            self.send_msg({'status': 'empty param'})
             return
 
-        with param_lock:
-            res = {
-                'status': 'ok',
-                'mortal': mortal_param,
-                'dqn': dqn_param,
-            }
-            buf = BytesIO()
-            packed = torch.save(res, buf)
-        self.send_msg(buf.getvalue(), packed=True)
+        client_param_version = msg['param_version']
+        buf = BytesIO()
+        with S.param_lock:
+            if S.force_sequential and S.idle_param_version <= client_param_version:
+                res = {'status': 'trainer is busy'}
+            else:
+                res = {
+                    'status': 'ok',
+                    'mortal': S.mortal_param,
+                    'dqn': S.dqn_param,
+                    'param_version': S.param_version,
+                }
+            torch.save(res, buf)
+        self.send_msg(buf.getbuffer(), packed=True)
+
+    def submit_replay(self, msg):
+        with S.dir_lock:
+            for filename, content in msg['logs'].items():
+                filepath = path.join(S.buffer_dir, filename)
+                with open(filepath, 'wb') as f:
+                    f.write(content)
+            S.buffer_size += len(msg['logs'])
+            logging.info(f'total buffer size: {S.buffer_size}')
+
+    def submit_param(self, msg):
+        with S.param_lock:
+            S.oracle_param = msg['oracle']
+            S.mortal_param = msg['mortal']
+            S.dqn_param = msg['dqn']
+            S.param_version += 1
+            if msg['is_idle']:
+                S.idle_param_version = S.param_version
+
+    def drain(self):
+        drained_size = 0
+        with S.dir_lock:
+            buffer_list = os.listdir(S.buffer_dir)
+            raw_count = len(buffer_list)
+            assert raw_count == S.buffer_size
+            if (not S.force_sequential or raw_count >= S.capacity) and raw_count > 0:
+                old_drain_list = os.listdir(S.drain_dir)
+                for filename in old_drain_list:
+                    filepath = path.join(S.drain_dir, filename)
+                    os.remove(filepath)
+                for filename in buffer_list:
+                    src = path.join(S.buffer_dir, filename)
+                    dst = path.join(S.drain_dir, filename)
+                    shutil.move(src, dst)
+                drained_size = raw_count
+                S.buffer_size = 0
+                logging.info(f'files transfered to trainer: {drained_size}')
+                logging.info(f'total buffer size: {S.buffer_size}')
+        self.send_msg({
+            'count': drained_size,
+            'drain_dir': S.drain_dir,
+        })
 
     def send_msg(self, msg, packed=False):
         return send_msg(self.request, msg, packed)
@@ -144,13 +129,30 @@ class Server(ThreadingTCPServer):
         return super().handle_error(request, client_address)
 
 def main():
+    global S
+    cfg = config['online']['server']
+    S = State(
+        buffer_dir = path.abspath(cfg['buffer_dir']),
+        drain_dir = path.abspath(cfg['drain_dir']),
+        dir_lock = Lock(),
+        param_lock = Lock(),
+        buffer_size = 0, # protected by dir_lock
+        oracle_param = None, # protected by param_lock
+        mortal_param = None, # protected by param_lock
+        dqn_param = None, # protected by param_lock
+        param_version = 0, # protected by param_lock
+        idle_param_version = 0, # protected by param_lock
+        capacity = cfg['capacity'],
+        force_sequential = cfg['force_sequential'],
+    )
+
     bind_addr = (config['online']['remote']['host'], config['online']['remote']['port'])
-    if path.isdir(buffer_dir):
-        shutil.rmtree(buffer_dir)
-    if path.isdir(drain_dir):
-        shutil.rmtree(drain_dir)
-    os.makedirs(buffer_dir)
-    os.makedirs(drain_dir)
+    if path.isdir(S.buffer_dir):
+        shutil.rmtree(S.buffer_dir)
+    if path.isdir(S.drain_dir):
+        shutil.rmtree(S.drain_dir)
+    os.makedirs(S.buffer_dir)
+    os.makedirs(S.drain_dir)
 
     with Server(bind_addr, Handler, bind_and_activate=False) as server:
         server.allow_reuse_address = True

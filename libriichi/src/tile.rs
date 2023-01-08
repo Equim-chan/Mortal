@@ -18,10 +18,9 @@ const MJAI_PAI_STRINGS: [&str; MJAI_PAI_STRINGS_LEN] = [
 ];
 
 static MJAI_PAI_STRINGS_MAP: Lazy<BoomHashMap<&'static str, Tile>> = Lazy::new(|| {
-    let mut values = vec![];
-    for id in 0..MJAI_PAI_STRINGS_LEN {
-        values.push(Tile::try_from(id).unwrap());
-    }
+    let values = (0..MJAI_PAI_STRINGS_LEN)
+        .map(|id| Tile::try_from(id).unwrap())
+        .collect();
     BoomHashMap::new(MJAI_PAI_STRINGS.to_vec(), values)
 });
 
@@ -95,7 +94,16 @@ impl Tile {
 
     #[inline]
     #[must_use]
+    pub const fn is_unknown(self) -> bool {
+        self.0 >= tu8!(?)
+    }
+
+    #[inline]
+    #[must_use]
     pub const fn next(self) -> Self {
+        if self.is_unknown() {
+            return self;
+        }
         let tile = self.deaka();
         let kind = tile.0 / 9;
         let num = tile.0 % 9;
@@ -112,6 +120,9 @@ impl Tile {
     #[inline]
     #[must_use]
     pub const fn prev(self) -> Self {
+        if self.is_unknown() {
+            return self;
+        }
         let tile = self.deaka();
         let kind = tile.0 / 9;
         let num = tile.0 % 9;
@@ -121,6 +132,27 @@ impl Tile {
             Self(3 * 9 + (num + 4 - 1) % 4)
         } else {
             Self(3 * 9 + 4 + (num - 4 + 3 - 1) % 3)
+        }
+    }
+
+    #[inline]
+    #[must_use]
+    pub const fn augment(self) -> Self {
+        if self.is_unknown() {
+            return self;
+        }
+        let tile = self.deaka();
+        let tid = tile.0;
+        let kind = tid / 9;
+        let ret = match kind {
+            0 => Self(tid + 9),
+            1 => Self(tid - 9),
+            _ => tile,
+        };
+        if self.is_aka() {
+            ret.akaize()
+        } else {
+            ret
         }
     }
 }

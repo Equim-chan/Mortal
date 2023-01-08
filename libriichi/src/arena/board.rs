@@ -428,7 +428,7 @@ impl BoardState {
                     honba_left = 0;
 
                     vec_add_assign(&mut self.kyoku_deltas, &deltas);
-                    let ura_markers = self.player_states[actor as usize]
+                    let ura_markers = self.player_states[actor]
                         .self_riichi_accepted()
                         .then(|| ura_indicators.clone())
                         .unwrap_or_default();
@@ -723,7 +723,7 @@ impl BoardState {
                         arr.slice_mut(s![idx..idx + n, ..]).fill(1.);
                         idx += 6;
                     }
-                    2 => {
+                    2 | 3 => {
                         arr.slice_mut(s![idx + n, ..]).fill(1.);
                         idx += 7;
 

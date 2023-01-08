@@ -1,33 +1,41 @@
 import torch
-from torch import nn
-from torch.nn import functional as F
+from torch import nn, Tensor
+from torch.nn import init, functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_sequence
 from typing import *
+from functools import partial
 from itertools import permutations
 from libriichi.consts import obs_shape, oracle_obs_shape, ACTION_SPACE, GRP_SIZE
-from common import apply_masks
 
 class ChannelAttention(nn.Module):
     def __init__(self, channels, ratio=16, actv_builder=nn.ReLU):
         super().__init__()
-        self.avg = nn.AdaptiveAvgPool1d(1)
-        self.max = nn.AdaptiveMaxPool1d(1)
         self.shared_mlp = nn.Sequential(
             nn.Linear(channels, channels // ratio),
             actv_builder(),
             nn.Linear(channels // ratio, channels),
         )
+        for mod in self.modules():
+            if isinstance(mod, nn.Linear):
+                init.constant_(mod.bias, 0)
 
     def forward(self, x):
-        avg_out = self.avg(x).squeeze(-1)
-        max_out = self.max(x).squeeze(-1)
-        avg_out = self.shared_mlp(avg_out)
-        max_out = self.shared_mlp(max_out)
-        out = torch.sigmoid(avg_out + max_out).unsqueeze(-1)
-        return out
+        avg_out = self.shared_mlp(x.mean(-1))
+        max_out = self.shared_mlp(x.amax(-1))
+        weight = (avg_out + max_out).sigmoid()
+        x = weight.unsqueeze(-1) * x
+        return x
 
 class ResBlock(nn.Module):
-    def __init__(self, channels, *, norm_builder=nn.Identity, actv_builder=nn.ReLU, pre_actv=False, bias=True):
+    def __init__(
+        self,
+        channels,
+        *,
+        norm_builder = nn.Identity,
+        actv_builder = nn.ReLU,
+        pre_actv = False,
+        bias = True,
+    ):
         super().__init__()
         self.actv = actv_builder()
         self.pre_actv = pre_actv
@@ -53,7 +61,7 @@ class ResBlock(nn.Module):
 
     def forward(self, x):
         out = self.res_unit(x)
-        out = self.ca(out) * out
+        out = self.ca(out)
         out = out + x
         if not self.pre_actv:
             out = self.actv(out)
@@ -70,7 +78,6 @@ class ResNet(nn.Module):
         actv_builder = nn.ReLU,
         pre_actv = False,
         bias = True,
-        reduce_dim = False,
     ):
         super().__init__()
 
@@ -89,13 +96,12 @@ class ResNet(nn.Module):
             layers += [*blocks, norm_builder(), actv_builder()]
         else:
             layers += [norm_builder(), actv_builder(), *blocks]
-        if reduce_dim:
-            layers += [
-                nn.Conv1d(conv_channels, 32, kernel_size=3, padding=1),
-                actv_builder(),
-                nn.Flatten(),
-                nn.Linear(32 * 34, 1024),
-            ]
+        layers += [
+            nn.Conv1d(conv_channels, 32, kernel_size=3, padding=1),
+            actv_builder(),
+            nn.Flatten(),
+            nn.Linear(32 * 34, 1024),
+        ]
         self.net = nn.Sequential(*layers)
 
     def forward(self, x):
@@ -106,12 +112,19 @@ class Brain(nn.Module):
         super().__init__()
         self.is_oracle = is_oracle
         self.version = version
-        norm_builder = lambda: nn.BatchNorm1d(conv_channels, momentum=0.01)
+
+        in_channels = obs_shape(version)[0]
+        if is_oracle:
+            in_channels += oracle_obs_shape(version)[0]
+
+        norm_builder = partial(nn.BatchNorm1d, conv_channels, momentum=0.01)
         bias = False
+        actv_builder = partial(nn.Mish, inplace=True)
+        pre_actv = True
 
         match version:
             case 1:
-                actv_builder = lambda: nn.ReLU(inplace=True)
+                actv_builder = partial(nn.ReLU, inplace=True)
                 pre_actv = False
                 self.latent_net = nn.Sequential(
                     nn.Linear(1024, 512),
@@ -120,12 +133,11 @@ class Brain(nn.Module):
                 self.mu_head = nn.Linear(512, 512)
                 self.logsig_head = nn.Linear(512, 512)
             case 2:
-                actv_builder = lambda: nn.Mish(inplace=True)
-                pre_actv = True
-
-        in_channels = obs_shape(version)[0]
-        if is_oracle:
-            in_channels += oracle_obs_shape(version)[0]
+                pass
+            case 3:
+                norm_builder = partial(nn.BatchNorm1d, conv_channels, momentum=0.01, eps=1e-3)
+            case _:
+                raise ValueError(f'Unexpected version {self.version}')
 
         self.encoder = ResNet(
             in_channels = in_channels,
@@ -135,13 +147,12 @@ class Brain(nn.Module):
             actv_builder = actv_builder,
             pre_actv = pre_actv,
             bias = bias,
-            reduce_dim = True,
         )
 
         # when True, never updates running stats, weights and bias and always use EMA or CMA
         self._freeze_bn = False
 
-    def forward(self, obs, invisible_obs: Optional[torch.Tensor] = None):
+    def forward(self, obs, invisible_obs: Optional[Tensor] = None) -> Union[Tuple[Tensor, Tensor], Tensor]:
         if self.is_oracle:
             assert invisible_obs is not None
             obs = torch.cat((obs, invisible_obs), dim=1)
@@ -153,61 +164,78 @@ class Brain(nn.Module):
                 mu = self.mu_head(latent_out)
                 logsig = self.logsig_head(latent_out)
                 return mu, logsig
-            case 2:
+            case 2 | 3:
                 return F.mish(phi)
+            case _:
+                raise ValueError(f'Unexpected version {self.version}')
 
     def train(self, mode=True):
         super().train(mode)
         if self._freeze_bn:
-            for module in self.modules():
-                if isinstance(module, nn.BatchNorm1d):
-                    module.eval()
+            for mod in self.modules():
+                if isinstance(mod, nn.BatchNorm1d):
+                    mod.eval()
                     # I don't think this benefits
                     # module.requires_grad_(False)
         return self
 
-    def set_track_running_stats(self, value: bool):
-        for module in self.modules():
-            if isinstance(module, nn.BatchNorm1d):
-                module.track_running_stats = value
-
     def reset_running_stats(self):
-        for module in self.modules():
-            if isinstance(module, nn.BatchNorm1d):
-                module.reset_running_stats()
+        for mod in self.modules():
+            if isinstance(mod, nn.BatchNorm1d):
+                mod.reset_running_stats()
+
+    def set_bn_attrs(self, **kwargs):
+        for mod in self.modules():
+            if isinstance(mod, nn.BatchNorm1d):
+                for k, v in kwargs.items():
+                    if hasattr(mod, k):
+                        setattr(mod, k, v)
 
     def freeze_bn(self, value: bool):
         self._freeze_bn = value
         return self.train(self.training)
 
+class NextRankPredictor(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(1024, 256),
+            nn.Mish(inplace=True),
+            nn.Linear(256, 4),
+        )
+
+    def forward(self, x):
+        logits = self.net(x)
+        return logits
+
 class DQN(nn.Module):
-    def __init__(self, version=1):
+    def __init__(self, *, version=1):
         super().__init__()
         self.version = version
         match version:
             case 1:
                 self.v_head = nn.Linear(512, 1)
                 self.a_head = nn.Linear(512, ACTION_SPACE)
-            case 2:
+            case 2 | 3:
+                hidden_size = 512 if version == 2 else 256
                 self.v_head = nn.Sequential(
-                    nn.Linear(1024, 512),
+                    nn.Linear(1024, hidden_size),
                     nn.Mish(inplace=True),
-                    nn.Linear(512, 1),
+                    nn.Linear(hidden_size, 1),
                 )
                 self.a_head = nn.Sequential(
-                    nn.Linear(1024, 512),
+                    nn.Linear(1024, hidden_size),
                     nn.Mish(inplace=True),
-                    nn.Linear(512, ACTION_SPACE),
+                    nn.Linear(hidden_size, ACTION_SPACE),
                 )
 
-    def forward(self, x, mask):
-        v = self.v_head(x)
-        a = self.a_head(x)
-
-        a_sum = apply_masks(a, mask, fill=0.).sum(-1, keepdim=True)
+    def forward(self, phi, mask):
+        v = self.v_head(phi)
+        a = self.a_head(phi)
+        a_sum = a.masked_fill(~mask, 0.).sum(-1, keepdim=True)
         mask_sum = mask.sum(-1, keepdim=True)
         a_mean = a_sum / mask_sum
-        q = apply_masks(v + a - a_mean, mask)
+        q = (v + a - a_mean).masked_fill(~mask, -torch.inf)
         return q
 
 class GRP(nn.Module):

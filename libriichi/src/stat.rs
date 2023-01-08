@@ -462,7 +462,7 @@ impl Stat {
         } else {
             const TEMPLATE: &str = "{spinner:.cyan} [{elapsed_precise}] {pos} ({per_sec})";
             ProgressBar::new_spinner()
-                .with_style(ProgressStyle::with_template(TEMPLATE)?.tick_chars(".oO°Oo "))
+                .with_style(ProgressStyle::with_template(TEMPLATE)?.tick_chars(".oO°Oo*"))
         };
         bar.enable_steady_tick(Duration::from_millis(150));
 

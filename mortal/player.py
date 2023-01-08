@@ -3,6 +3,7 @@ import numpy as np
 import os
 import shutil
 import secrets
+import logging
 from os import path
 from model import Brain, DQN
 from engine import MortalEngine
@@ -31,6 +32,7 @@ class TestPlayer:
             version = version,
             device = device,
             enable_amp = True,
+            enable_rule_based_agari_guard = True,
             name = 'baseline',
         )
         self.chal_version = config['control']['version']
@@ -87,10 +89,12 @@ class TrainPlayer:
             version = version,
             device = device,
             enable_amp = True,
+            enable_rule_based_agari_guard = True,
             name = 'baseline',
         )
 
         profile = os.environ.get('TRAIN_PLAY_PROFILE', 'default')
+        logging.info(f'using profile {profile}')
         cfg = config['train_play'][profile]
         self.chal_version = config['control']['version']
         self.log_dir = path.abspath(cfg['log_dir'])
@@ -100,7 +104,7 @@ class TrainPlayer:
         self.seed_count = cfg['games'] // 4
         self.boltzmann_epsilon = cfg['boltzmann_epsilon']
         self.boltzmann_temp = cfg['boltzmann_temp']
-        self.stochastic_latent = cfg['stochastic_latent']
+        self.stochastic_latent = cfg.get('stochastic_latent', True)
 
         self.repeats = cfg['repeats']
         self.repeat_counter = 0

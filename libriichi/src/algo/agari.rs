@@ -35,7 +35,7 @@ static AGARI_TABLE: Lazy<BoomHashMap<u32, Vec<Div>>> = Lazy::new(|| {
         })
         .unzip();
 
-    if cfg!(debug_assertions) {
+    if cfg!(test) {
         // Ensure there is no duplicated keys.
         let mut k = keys.clone();
         k.sort_unstable();

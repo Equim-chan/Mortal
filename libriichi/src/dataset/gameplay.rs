@@ -27,6 +27,7 @@ use tinyvec::ArrayVec;
     excludes = None,
     trust_seed = False,
     always_include_kan_select = True,
+    augmented = False,
 )")]
 #[derive(Derivative)]
 #[derivative(Debug)]
@@ -43,6 +44,8 @@ pub struct GameplayLoader {
     trust_seed: bool,
     #[pyo3(get)]
     always_include_kan_select: bool,
+    #[pyo3(get)]
+    augmented: bool,
 
     #[derivative(Debug = "ignore")]
     player_names_set: BoomHashMap<String, ()>,
@@ -92,7 +95,8 @@ impl GameplayLoader {
         player_names = "None",
         excludes = "None",
         trust_seed = "false",
-        always_include_kan_select = "true"
+        always_include_kan_select = "true",
+        augmented = "false"
     )]
     fn new(
         version: u32,
@@ -101,6 +105,7 @@ impl GameplayLoader {
         excludes: Option<Vec<String>>,
         trust_seed: bool,
         always_include_kan_select: bool,
+        augmented: bool,
     ) -> Self {
         let mut player_names = player_names.unwrap_or_default();
         player_names.sort_unstable();
@@ -119,6 +124,7 @@ impl GameplayLoader {
             excludes,
             trust_seed,
             always_include_kan_select,
+            augmented,
             player_names_set,
             excludes_set,
         }
@@ -127,11 +133,14 @@ impl GameplayLoader {
     // Nested result is too hard to handle...
     #[pyo3(text_signature = "($self, raw_log, /)")]
     fn load_log(&self, raw_log: &str) -> Result<Vec<Gameplay>> {
-        let events = raw_log
+        let mut events = raw_log
             .lines()
             .map(json::from_str)
             .collect::<Result<Vec<Event>, _>>()
             .context("failed to parse log")?;
+        if self.augmented {
+            events.iter_mut().for_each(Event::augment);
+        }
         self.load_events(&events)
     }
 

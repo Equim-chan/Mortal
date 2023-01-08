@@ -13,49 +13,63 @@ class FileDatasetsIter(IterableDataset):
         version,
         file_list,
         pts,
+        oracle = False,
         file_batch_size = 20, # hint: around 660 instances per file
         player_names = None,
         excludes = None,
+        num_epochs = 1,
+        enable_augmentation = False,
+        augmented_first = False,
     ):
         super().__init__()
         self.version = version
         self.file_list = file_list
         self.pts = pts
+        self.oracle = oracle
         self.file_batch_size = file_batch_size
         self.player_names = player_names
         self.excludes = excludes
-        self.buffer = []
+        self.num_epochs = num_epochs
+        self.enable_augmentation = enable_augmentation
+        self.augmented_first = augmented_first
         self.iterator = None
 
     def build_iter(self):
-        self.loader = GameplayLoader(
-            version = self.version,
-            oracle = True,
-            player_names = self.player_names,
-            excludes = self.excludes,
-        )
-
         # do not put it in __init__, it won't work on Windows
         self.grp = GRP(**config['grp']['network'])
         grp_state = torch.load(config['grp']['state_file'], map_location=torch.device('cpu'))
         self.grp.load_state_dict(grp_state['model'])
         self.reward_calc = RewardCalculator(self.grp, self.pts)
 
+        for _ in range(self.num_epochs):
+            yield from self.load_files(self.augmented_first)
+            if self.enable_augmentation:
+                yield from self.load_files(not self.augmented_first)
+
+    def load_files(self, augmented):
+        self.loader = GameplayLoader(
+            version = self.version,
+            oracle = self.oracle,
+            player_names = self.player_names,
+            excludes = self.excludes,
+            augmented = augmented,
+        )
+        self.buffer = []
+
         random.shuffle(self.file_list)
         for start_idx in range(0, len(self.file_list), self.file_batch_size):
-            self.populate_buffer(start_idx)
+            self.populate_buffer(self.file_list[start_idx:start_idx + self.file_batch_size])
             buffer_size = len(self.buffer)
             for i in random.sample(range(buffer_size), buffer_size):
                 yield self.buffer[i]
             self.buffer.clear()
 
-    def populate_buffer(self, start_idx):
-        file_list = self.file_list[start_idx:start_idx + self.file_batch_size]
+    def populate_buffer(self, file_list):
         data = self.loader.load_gz_log_files(file_list)
-
         for game in data:
             obs = game.take_obs()
-            invisible_obs = game.take_invisible_obs()
+            if self.oracle:
+                invisible_obs = game.take_invisible_obs()
             actions = game.take_actions()
             masks = game.take_masks()
             at_kyoku = game.take_at_kyoku()
@@ -64,10 +78,17 @@ class FileDatasetsIter(IterableDataset):
             grp = game.take_grp()
             player_id = game.take_player_id()
             game_size = len(obs)
+            num_kyokus = at_kyoku[-1] + 1
 
             grp_feature = grp.take_feature()
             rank_by_player = grp.take_rank_by_player()
             kyoku_rewards = self.reward_calc.calc_delta_pt(player_id, grp_feature, rank_by_player)
+            assert len(kyoku_rewards) >= num_kyokus # usually they are equal, unless there is no action in the last kyoku
+
+            final_scores = grp.take_final_scores()
+            scores_seq = np.concatenate((grp_feature[:, 3:] * 1e5, [final_scores]))
+            rank_by_player_seq = (-scores_seq).argsort(-1, kind='stable').argsort(-1, kind='stable')
+            player_ranks = rank_by_player_seq[:, player_id]
 
             steps_to_done = np.zeros(game_size, dtype=np.int64)
             for i in reversed(range(game_size)):
@@ -75,14 +96,16 @@ class FileDatasetsIter(IterableDataset):
                     steps_to_done[i] = steps_to_done[i + 1] + int(apply_gamma[i])
 
             for i in range(game_size):
-                entry = (
+                entry = [
                     obs[i],
-                    invisible_obs[i],
                     actions[i],
                     masks[i],
                     steps_to_done[i],
                     kyoku_rewards[at_kyoku[i]],
-                )
+                    player_ranks[at_kyoku[i] + 1],
+                ]
+                if self.oracle:
+                    entry.insert(1, invisible_obs[i])
                 self.buffer.append(entry)
 
     def __iter__(self):

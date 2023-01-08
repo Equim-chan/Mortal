@@ -22,6 +22,12 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        id: setup-python
+        with:
+          python-version: '3.11'
+
       - name: Environment preparation
         id: prep
         run: |

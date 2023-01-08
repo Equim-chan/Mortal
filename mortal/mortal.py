@@ -7,7 +7,7 @@ import torch
 from datetime import datetime, timezone
 from model import Brain, DQN, GRP
 from engine import MortalEngine
-from common import filtered_stripped_lines
+from common import filtered_trimmed_lines
 from libriichi.mjai import Bot
 from libriichi.dataset import Grp
 from config import config
@@ -55,7 +55,7 @@ def main():
 
     if review_mode:
         logs = []
-    for line in filtered_stripped_lines(sys.stdin):
+    for line in filtered_trimmed_lines(sys.stdin):
         if review_mode:
             logs.append(line)
 

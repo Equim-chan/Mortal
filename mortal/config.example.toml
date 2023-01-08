@@ -1,12 +1,16 @@
+# This is only an example. Most values are dummy placeholders just to match the
+# types; they are often not optimal and must be tuned.
+
 [control]
-version = 2
+version = 3
 online = false
 
 state_file = '/path/to/mortal.pth'
+best_state_file = '/path/to/best.pth'
 tensorboard_dir = '/path/to/dir'
 
 device = 'cuda:0'
-enable_cudnn_benchmark = true
+enable_cudnn_benchmark = false
 enable_amp = false
 
 batch_size = 512
@@ -14,6 +18,7 @@ opt_step_every = 1
 
 save_every = 400
 test_every = 20000
+submit_every = 400
 
 # using env `TRAIN_PLAY_PROFILE`
 [train_play.default]
@@ -24,7 +29,7 @@ boltzmann_temp = 0.05
 repeats = 2
 
 [test_play]
-games = 2000
+games = 3000
 log_dir = '/path/to/test_play'
 
 [dataset]
@@ -33,6 +38,9 @@ file_index = '/path/to/file_index.pth'
 file_batch_size = 15
 num_workers = 1
 player_names_files = []
+num_epochs = 1
+enable_augmentation = false
+augmented_first = false
 
 [env]
 gamma = 1
@@ -45,23 +53,25 @@ num_blocks = 40
 [cql]
 min_q_weight = 5
 
-[vlog]
-beta_init = 1e-4
-kld_target = 50
-free_bits_threshold = 0.5
-free_bits_weight = 1e-3
-
 [freeze_bn]
-mortal = true
-oracle = true
+# `true` in online training
+mortal = false
+
+[bn_attrs]
+momentum = 0.01
+eps = 1e-3
 
 [optim]
-mortal_lr = 1e-4
-oracle_lr = 1e-4
-dqn_lr = 1e-4
-beta_lr = 5e-4
+eps = 1e-8
+betas = [0.9, 0.999]
+weight_decay = 0.1
+max_grad_norm = 0
 
-max_grad_norm = 1.0
+[optim.scheduler]
+peak = 1e-4
+final = 1e-4
+warm_up_steps = 0
+max_steps = 0
 
 [baseline.train]
 device = 'cuda:0'
@@ -70,6 +80,9 @@ state_file = '/path/to/baseline.pth'
 [baseline.test]
 device = 'cuda:0'
 state_file = '/path/to/baseline.pth'
+
+[online]
+history_window = 50
 
 [online.remote]
 host = '127.0.0.1'
@@ -81,6 +94,7 @@ drain_dir = '/path/to/drain'
 sample_reuse_rate = 0
 sample_reuse_threshold = 0
 capacity = 1600
+force_sequential = false
 
 [test]
 stochastic_latent = false
