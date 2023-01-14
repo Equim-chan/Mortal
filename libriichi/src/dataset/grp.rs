@@ -97,6 +97,7 @@ impl Grp {
         let mut rank_by_player_opt = None;
         let mut final_deltas = [0; 4];
         let mut final_scores = [0; 4];
+        let mut cur_kyotaku = 0;
 
         for ev in events.iter().rev() {
             match *ev {
@@ -111,6 +112,7 @@ impl Grp {
                 Event::ReachAccepted { actor } => {
                     if rank_by_player_opt.is_none() {
                         final_deltas[actor as usize] -= 1000;
+                        cur_kyotaku += 1;
                     }
                 }
                 Event::StartKyoku {
@@ -129,8 +131,11 @@ impl Grp {
                         let mut player_by_rank: [_; 4] = array::from_fn(|i| (i, final_scores[i]));
                         player_by_rank.sort_by_key(|(_, s)| -s);
 
-                        if kyotaku > 0 {
-                            final_scores[player_by_rank[0].0] += kyotaku as i32 * 1000;
+                        // assume the sum of scores should be 100k
+                        let sum: i32 = final_scores.iter().sum();
+                        if sum < 100_000 {
+                            final_scores[player_by_rank[0].0] +=
+                                (kyotaku as i32 + cur_kyotaku) * 1000;
                         }
 
                         let mut rank_by_player = [0; 4];
@@ -155,7 +160,7 @@ impl Grp {
 
                     game_info.insert(0, kyoku_info);
                 }
-
+                Event::EndKyoku if rank_by_player_opt.is_none() => cur_kyotaku = 0,
                 _ => (),
             }
         }
