@@ -53,6 +53,9 @@ num_blocks = 40
 [cql]
 min_q_weight = 5
 
+[aux]
+next_rank_weight = 0.2
+
 [freeze_bn]
 # `true` in online training
 mortal = false

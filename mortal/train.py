@@ -37,6 +37,7 @@ def train():
     submit_every = config['control']['submit_every']
     test_games = config['test_play']['games']
     min_q_weight = config['cql']['min_q_weight']
+    next_rank_weight = config['aux']['next_rank_weight']
     assert save_every % opt_step_every == 0
     assert test_every % save_every == 0
 
@@ -219,7 +220,7 @@ def train():
                     cql_loss = q_out.logsumexp(-1).mean() - q.mean()
                 next_rank_logits = next_rank_pred(phi)
                 next_rank_loss = ce(next_rank_logits, player_ranks)
-                loss = dqn_loss + cql_loss * min_q_weight + next_rank_loss * 0.2
+                loss = dqn_loss + cql_loss * min_q_weight + next_rank_loss * next_rank_weight
             scaler.scale(loss / opt_step_every).backward()
 
             with torch.no_grad():
