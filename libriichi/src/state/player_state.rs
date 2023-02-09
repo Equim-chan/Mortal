@@ -18,7 +18,6 @@ use tinyvec::{ArrayVec, TinyVec};
 /// Notably, `PlayerState` encodes observation features into numpy arrays which
 /// serve as inputs for deep learning model.
 #[pyclass]
-#[pyo3(text_signature = "(player_id)")]
 #[derive(Debug, Clone, Derivative)]
 #[derivative(Default)]
 pub struct PlayerState {
@@ -151,7 +150,6 @@ impl PlayerState {
 
     /// Returns an `ActionCandidate`.
     #[pyo3(name = "update")]
-    #[pyo3(text_signature = "($self, mjai_json, /)")]
     pub(super) fn update_json(&mut self, mjai_json: &str) -> Result<ActionCandidate> {
         let event = json::from_str(mjai_json)?;
         Ok(self.update(&event))
@@ -159,7 +157,6 @@ impl PlayerState {
 
     /// Raises an exception if the action is not valid.
     #[pyo3(name = "validate_reaction")]
-    #[pyo3(text_signature = "($self, mjai_json, /)")]
     pub(super) fn validate_reaction_json(&self, mjai_json: &str) -> Result<()> {
         let action = json::from_str(mjai_json)?;
         self.validate_reaction(&action)
@@ -168,7 +165,6 @@ impl PlayerState {
     /// For debug only.
     ///
     /// Return a human readable description of the current state.
-    #[pyo3(text_signature = "($self, /)")]
     #[must_use]
     pub fn brief_info(&self) -> String {
         let waits = self

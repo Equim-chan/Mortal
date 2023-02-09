@@ -631,7 +631,6 @@ impl<'a> ObsEncoderContext<'a> {
 impl PlayerState {
     /// Returns `(obs, mask)`
     #[pyo3(name = "encode_obs")]
-    #[pyo3(text_signature = "($self, version, at_kan_select)")]
     fn encode_obs_py<'py>(
         &self,
         version: u32,

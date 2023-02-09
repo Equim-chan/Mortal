@@ -8,7 +8,6 @@ use pyo3::prelude::*;
 use serde_json as json;
 
 #[pyclass]
-#[pyo3(text_signature = "(engine, player_id)")]
 pub struct Bot {
     agent: MortalBatchAgent,
     state: PlayerState,
@@ -36,8 +35,7 @@ impl Bot {
     /// Both `line` and the return value are JSON strings representing one
     /// single mjai event.
     #[pyo3(name = "react")]
-    #[pyo3(text_signature = "($self, line, /, *, can_act=True)")]
-    #[args("*", can_act = "true")]
+    #[pyo3(signature = (line, /, *, can_act=true))]
     fn react_py(&mut self, line: &str, can_act: bool, py: Python<'_>) -> Result<Option<String>> {
         py.allow_threads(move || self.react(line, can_act))
     }

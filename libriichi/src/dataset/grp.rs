@@ -28,7 +28,6 @@ pub struct Grp {
 #[pymethods]
 impl Grp {
     #[staticmethod]
-    #[pyo3(text_signature = "(raw_log, /)")]
     fn load_log(raw_log: &str) -> Result<Self> {
         let events = raw_log
             .lines()
@@ -40,21 +39,17 @@ impl Grp {
 
     #[staticmethod]
     #[pyo3(name = "load_gz_log_files")]
-    #[pyo3(text_signature = "(gzip_filenames, /)")]
     fn load_gz_log_files_py(gzip_filenames: Vec<&str>) -> Result<Vec<Self>> {
         Self::load_gz_log_files(gzip_filenames)
     }
 
     /// Returns List[List[np.ndarray]]
-    #[pyo3(text_signature = "($self, /)")]
     pub fn take_feature<'py>(&mut self, py: Python<'py>) -> &'py PyArray2<f64> {
         PyArray2::from_owned_array(py, mem::take(&mut self.feature))
     }
-    #[pyo3(text_signature = "($self, /)")]
     pub const fn take_rank_by_player(&self) -> [u8; 4] {
         self.rank_by_player
     }
-    #[pyo3(text_signature = "($self, /)")]
     pub const fn take_final_scores(&self) -> [i32; 4] {
         self.final_scores
     }

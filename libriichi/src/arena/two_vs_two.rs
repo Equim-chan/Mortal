@@ -15,11 +15,6 @@ use pyo3::prelude::*;
 use rayon::prelude::*;
 
 #[pyclass]
-#[pyo3(text_signature = "(
-    *,
-    disable_progress_bar = False,
-    log_dir = None,
-)")]
 #[derive(Clone, Default)]
 pub struct TwoVsTwo {
     pub disable_progress_bar: bool,
@@ -29,7 +24,7 @@ pub struct TwoVsTwo {
 #[pymethods]
 impl TwoVsTwo {
     #[new]
-    #[args("*", disable_progress_bar = "false", log_dir = "None")]
+    #[pyo3(signature = (*, disable_progress_bar=false, log_dir=None))]
     const fn new(disable_progress_bar: bool, log_dir: Option<String>) -> Self {
         Self {
             disable_progress_bar,
@@ -37,7 +32,6 @@ impl TwoVsTwo {
         }
     }
 
-    #[pyo3(text_signature = "(challenger, champion, seed_start, seed_count)")]
     pub fn py_vs_py(
         &self,
         challenger: PyObject,
@@ -60,7 +54,6 @@ impl TwoVsTwo {
         })
     }
 
-    #[pyo3(text_signature = "($self, engine, seed_start, seed_count)")]
     pub fn ako_vs_py(
         &self,
         engine: PyObject,
@@ -79,7 +72,6 @@ impl TwoVsTwo {
         })
     }
 
-    #[pyo3(text_signature = "($self, engine, seed_start, seed_count)")]
     pub fn py_vs_ako(
         &self,
         engine: PyObject,
@@ -98,7 +90,6 @@ impl TwoVsTwo {
         })
     }
 
-    #[pyo3(text_signature = "($self, engine, seed, split)")]
     pub fn py_vs_ako_one(
         &self,
         engine: PyObject,

@@ -454,8 +454,7 @@ impl Stat {
 #[pymethods]
 impl Stat {
     #[staticmethod]
-    #[pyo3(text_signature = "(dir, player_name, disable_progress_bar)")]
-    #[args("*", disable_progress_bar = "false")]
+    #[pyo3(signature = (dir, player_name, disable_progress_bar=false))]
     pub fn from_dir(dir: &str, player_name: &str, disable_progress_bar: bool) -> Result<Self> {
         let bar = if disable_progress_bar {
             ProgressBar::hidden()
@@ -508,7 +507,6 @@ impl Stat {
     }
 
     #[staticmethod]
-    #[pyo3(text_signature = "(log, player_id)")]
     pub fn from_log(log: &str, player_id: u8) -> Result<Self> {
         let events = log
             .lines()
@@ -518,13 +516,11 @@ impl Stat {
         Ok(Self::from_game(&events, player_id))
     }
 
-    #[pyo3(text_signature = "($self, pts)")]
     #[inline]
     #[must_use]
     pub const fn total_pt(&self, pts: [i64; 4]) -> i64 {
         self.rank_1 * pts[0] + self.rank_2 * pts[1] + self.rank_3 * pts[2] + self.rank_4 * pts[3]
     }
-    #[pyo3(text_signature = "($self, pts)")]
     #[inline]
     #[must_use]
     pub fn avg_pt(&self, pts: [i64; 4]) -> f64 {

@@ -15,11 +15,6 @@ use pyo3::prelude::*;
 use rayon::prelude::*;
 
 #[pyclass]
-#[pyo3(text_signature = "(
-    *,
-    disable_progress_bar = False,
-    log_dir = None,
-)")]
 #[derive(Clone, Default)]
 pub struct OneVsThree {
     pub disable_progress_bar: bool,
@@ -29,7 +24,7 @@ pub struct OneVsThree {
 #[pymethods]
 impl OneVsThree {
     #[new]
-    #[args("*", disable_progress_bar = "false", log_dir = "None")]
+    #[pyo3(signature = (*, disable_progress_bar=false, log_dir=None))]
     const fn new(disable_progress_bar: bool, log_dir: Option<String>) -> Self {
         Self {
             disable_progress_bar,
@@ -38,7 +33,6 @@ impl OneVsThree {
     }
 
     /// Returns the rankings of the challenger.
-    #[pyo3(text_signature = "($self, challenger, champion, seed_start, seed_count)")]
     pub fn py_vs_py(
         &self,
         challenger: PyObject,
@@ -68,7 +62,6 @@ impl OneVsThree {
     }
 
     /// Returns the rankings of the challenger (akochan in this case).
-    #[pyo3(text_signature = "($self, engine, seed_start, seed_count)")]
     pub fn ako_vs_py(
         &self,
         engine: PyObject,
@@ -94,7 +87,6 @@ impl OneVsThree {
     }
 
     /// Returns the rankings of the challenger (python agent in this case).
-    #[pyo3(text_signature = "($self, engine, seed_start, seed_count)")]
     pub fn py_vs_ako(
         &self,
         engine: PyObject,

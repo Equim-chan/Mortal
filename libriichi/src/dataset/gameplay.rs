@@ -19,16 +19,6 @@ use serde_json as json;
 use tinyvec::ArrayVec;
 
 #[pyclass]
-#[pyo3(text_signature = "(
-    version,
-    *,
-    oracle = True,
-    player_names = None,
-    excludes = None,
-    trust_seed = False,
-    always_include_kan_select = True,
-    augmented = False,
-)")]
 #[derive(Derivative)]
 #[derivative(Debug)]
 pub struct GameplayLoader {
@@ -89,15 +79,16 @@ struct LoaderContext<'a> {
 #[pymethods]
 impl GameplayLoader {
     #[new]
-    #[args(
-        "*",
-        oracle = "true",
-        player_names = "None",
-        excludes = "None",
-        trust_seed = "false",
-        always_include_kan_select = "true",
-        augmented = "false"
-    )]
+    #[pyo3(signature = (
+        version,
+        *,
+        oracle = true,
+        player_names = None,
+        excludes = None,
+        trust_seed = false,
+        always_include_kan_select = true,
+        augmented = false
+    ))]
     fn new(
         version: u32,
         oracle: bool,
@@ -131,7 +122,6 @@ impl GameplayLoader {
     }
 
     // Nested result is too hard to handle...
-    #[pyo3(text_signature = "($self, raw_log, /)")]
     fn load_log(&self, raw_log: &str) -> Result<Vec<Gameplay>> {
         let mut events = raw_log
             .lines()
@@ -145,7 +135,6 @@ impl GameplayLoader {
     }
 
     #[pyo3(name = "load_gz_log_files")]
-    #[pyo3(text_signature = "($self, gzip_filenames, /)")]
     fn load_gz_log_files_py(&self, gzip_filenames: Vec<String>) -> Result<Vec<Gameplay>> {
         self.load_gz_log_files(gzip_filenames)
     }
@@ -209,58 +198,47 @@ impl GameplayLoader {
 
 #[pymethods]
 impl Gameplay {
-    #[pyo3(text_signature = "($self, /)")]
     fn take_obs<'py>(&mut self, py: Python<'py>) -> Vec<&'py PyArray2<f32>> {
         mem::take(&mut self.obs)
             .into_iter()
             .map(|v| PyArray2::from_owned_array(py, v))
             .collect()
     }
-    #[pyo3(text_signature = "($self, /)")]
     fn take_invisible_obs<'py>(&mut self, py: Python<'py>) -> Vec<&'py PyArray2<f32>> {
         mem::take(&mut self.invisible_obs)
             .into_iter()
             .map(|v| PyArray2::from_owned_array(py, v))
             .collect()
     }
-    #[pyo3(text_signature = "($self, /)")]
     fn take_actions(&mut self) -> Vec<i64> {
         mem::take(&mut self.actions)
     }
-    #[pyo3(text_signature = "($self, /)")]
     fn take_masks<'py>(&mut self, py: Python<'py>) -> Vec<&'py PyArray1<bool>> {
         mem::take(&mut self.masks)
             .into_iter()
             .map(|v| PyArray1::from_owned_array(py, v))
             .collect()
     }
-    #[pyo3(text_signature = "($self, /)")]
     fn take_at_kyoku(&mut self) -> Vec<u8> {
         mem::take(&mut self.at_kyoku)
     }
-    #[pyo3(text_signature = "($self, /)")]
     fn take_dones(&mut self) -> Vec<bool> {
         mem::take(&mut self.dones)
     }
-    #[pyo3(text_signature = "($self, /)")]
     fn take_apply_gamma(&mut self) -> Vec<bool> {
         mem::take(&mut self.apply_gamma)
     }
-    #[pyo3(text_signature = "($self, /)")]
     fn take_at_turns(&mut self) -> Vec<u8> {
         mem::take(&mut self.at_turns)
     }
-    #[pyo3(text_signature = "($self, /)")]
     fn take_shantens(&mut self) -> Vec<i8> {
         mem::take(&mut self.shantens)
     }
 
-    #[pyo3(text_signature = "($self, /)")]
     fn take_grp(&mut self) -> Grp {
         mem::take(&mut self.grp)
     }
 
-    #[pyo3(text_signature = "($self, /)")]
     const fn take_player_id(&self) -> u8 {
         self.player_id
     }

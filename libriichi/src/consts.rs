@@ -16,7 +16,6 @@ pub const ACTION_SPACE: usize = 37 // discard | kan (choice)
 pub const GRP_SIZE: usize = 7;
 
 #[pyfunction]
-#[pyo3(text_signature = "(version)")]
 #[inline]
 pub const fn obs_shape(version: u32) -> (usize, usize) {
     match version {
@@ -28,7 +27,6 @@ pub const fn obs_shape(version: u32) -> (usize, usize) {
 }
 
 #[pyfunction]
-#[pyo3(text_signature = "(version)")]
 #[inline]
 pub const fn oracle_obs_shape(version: u32) -> (usize, usize) {
     match version {
