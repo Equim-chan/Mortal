@@ -54,13 +54,13 @@ impl fmt::Display for KawaItem {
         if !self.kan.is_empty() {
             f.write_str("{")?;
             for kan in self.kan {
-                write!(f, "{}", kan)?;
+                write!(f, "{kan}")?;
             }
             f.write_str("}")?;
         }
 
         if let Some(chi_pon) = &self.chi_pon {
-            write!(f, "{}", chi_pon)?;
+            write!(f, "{chi_pon}")?;
         }
 
         write!(f, "{}", self.sutehai)

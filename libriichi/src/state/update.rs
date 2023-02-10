@@ -4,9 +4,9 @@ use super::PlayerState;
 use crate::algo::agari::{self, AgariCalculator};
 use crate::algo::shanten;
 use crate::mjai::Event;
+use crate::rankings::Rankings;
 use crate::tile::Tile;
 use crate::{must_tile, tu8, tuz};
-use std::array;
 use std::cmp::Ordering;
 use std::mem;
 
@@ -852,12 +852,10 @@ impl PlayerState {
     }
 
     pub(super) fn get_rank(&self, mut scores_rel: [i32; 4]) -> u8 {
-        scores_rel.rotate_right(self.player_id as usize);
-        let mut scores_abs: [_; 4] = array::from_fn(|id| (id, scores_rel[id]));
-        scores_abs.sort_by_key(|(_, s)| -s);
-        scores_abs
-            .into_iter()
-            .position(|(id, _)| id as u8 == self.player_id)
-            .unwrap() as u8
+        let scores_abs = {
+            scores_rel.rotate_right(self.player_id as usize);
+            scores_rel
+        };
+        Rankings::new(scores_abs).rank_by_player[self.player_id as usize]
     }
 }

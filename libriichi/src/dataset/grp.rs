@@ -1,8 +1,8 @@
 use crate::consts::GRP_SIZE;
 use crate::mjai::Event;
+use crate::rankings::Rankings;
 use crate::tu8;
 use crate::vec_ops::vec_add_assign;
-use std::array;
 use std::fs::File;
 use std::io::prelude::*;
 use std::mem;
@@ -92,7 +92,6 @@ impl Grp {
         let mut rank_by_player_opt = None;
         let mut final_deltas = [0; 4];
         let mut final_scores = [0; 4];
-        let mut cur_kyotaku = 0;
 
         for ev in events.iter().rev() {
             match *ev {
@@ -107,7 +106,6 @@ impl Grp {
                 Event::ReachAccepted { actor } => {
                     if rank_by_player_opt.is_none() {
                         final_deltas[actor as usize] -= 1000;
-                        cur_kyotaku += 1;
                     }
                 }
                 Event::StartKyoku {
@@ -122,22 +120,15 @@ impl Grp {
                         final_scores = scores;
                         vec_add_assign(&mut final_scores, &final_deltas);
 
-                        // (player_id, score)
-                        let mut player_by_rank: [_; 4] = array::from_fn(|i| (i, final_scores[i]));
-                        player_by_rank.sort_by_key(|(_, s)| -s);
+                        let rk = Rankings::new(final_scores);
 
-                        // assume the sum of scores should be 100k
+                        // assume the sum of scores to be 100k
                         let sum: i32 = final_scores.iter().sum();
                         if sum < 100_000 {
-                            final_scores[player_by_rank[0].0] +=
-                                (kyotaku as i32 + cur_kyotaku) * 1000;
+                            final_scores[rk.player_by_rank[0] as usize] += 100_000 - sum;
                         }
 
-                        let mut rank_by_player = [0; 4];
-                        for (rank, (player_id, _)) in player_by_rank.into_iter().enumerate() {
-                            rank_by_player[player_id] = rank as u8;
-                        }
-                        rank_by_player_opt = Some(rank_by_player);
+                        rank_by_player_opt = Some(rk.rank_by_player);
                     }
 
                     let mut kyoku_info = array_vec!([_; GRP_SIZE]);
@@ -155,7 +146,6 @@ impl Grp {
 
                     game_info.insert(0, kyoku_info);
                 }
-                Event::EndKyoku if rank_by_player_opt.is_none() => cur_kyotaku = 0,
                 _ => (),
             }
         }

@@ -39,7 +39,7 @@ jobs:
           rustup show
 
           rustc --version | awk '{print $2}' | tee RUSTC_VER
-          echo "::set-output name=rustc_ver::$(cat RUSTC_VER)"
+          echo "rustc_ver=$(cat RUSTC_VER)" >> $GITHUB_OUTPUT
 
       - name: Cache for Rust
         uses: actions/cache@v3

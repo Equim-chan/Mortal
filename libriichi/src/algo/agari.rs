@@ -563,7 +563,7 @@ impl<'sup, 'a> DivWorker<'sup, 'a> {
                 && self.sup.is_menzen
                 && self.menzen_shuntsu.len() >= 2
             {
-                let mut shuntsu_marks = [0u8; 3];
+                let mut shuntsu_marks = [0_u8; 3];
                 let has_ipeikou = self.menzen_shuntsu.iter().any(|&t| {
                     let kind = t as usize / 9;
                     let num = t % 9;

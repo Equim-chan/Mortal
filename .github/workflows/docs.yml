@@ -30,7 +30,7 @@ jobs:
           rustup show
 
           rustc --version | awk '{print $2}' | tee RUSTC_VER
-          echo "::set-output name=rustc_ver::$(cat RUSTC_VER)"
+          echo "rustc_ver=$(cat RUSTC_VER)" >> $GITHUB_OUTPUT
 
       - name: Get latest versions of mdbook with plugins
         id: get-version
@@ -40,9 +40,9 @@ jobs:
           curl -SsL https://crates.io/api/v1/crates/mdbook | jq -r .crate.max_stable_version | tee MDBOOK_VER
           curl -SsL https://crates.io/api/v1/crates/mdbook-admonish | jq -r .crate.max_stable_version | tee MDBOOK_ADMONISH_VER
           curl -SsL https://crates.io/api/v1/crates/mdbook-pagetoc | jq -r .crate.max_stable_version | tee MDBOOK_PAGETOC_VER
-          echo "::set-output name=mdbook_ver::$(cat MDBOOK_VER)"
-          echo "::set-output name=mdbook_admonish_ver::$(cat MDBOOK_ADMONISH_VER)"
-          echo "::set-output name=mdbook_pagetoc_ver::$(cat MDBOOK_PAGETOC_VER)"
+          echo "mdbook_ver=$(cat MDBOOK_VER)" >> $GITHUB_OUTPUT
+          echo "mdbook_admonish_ver=$(cat MDBOOK_ADMONISH_VER)" >> $GITHUB_OUTPUT
+          echo "mdbook_pagetoc_ver=$(cat MDBOOK_PAGETOC_VER)" >> $GITHUB_OUTPUT
 
       - name: Cache for mdbook
         id: cache-mdbook

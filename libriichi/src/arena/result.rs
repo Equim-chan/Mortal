@@ -1,5 +1,5 @@
 use crate::mjai::{Event, EventExt};
-use std::array;
+use crate::rankings::Rankings;
 
 use anyhow::Result;
 use serde_json as json;
@@ -23,12 +23,6 @@ pub struct GameResult {
     pub game_log: Vec<Vec<EventExt>>,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct Rankings {
-    pub player_by_rank: [u8; 4],
-    pub rank_by_player: [u8; 4],
-}
-
 #[derive(Clone, Copy)]
 pub enum KyokuEndState {
     Passive = 0,
@@ -38,21 +32,9 @@ pub enum KyokuEndState {
 }
 
 impl GameResult {
+    #[inline]
     pub fn rankings(&self) -> Rankings {
-        let mut player_by_rank = [0; 4];
-        let mut rank_by_player = [0; 4];
-
-        let mut v: [_; 4] = array::from_fn(|id| (id, self.scores[id]));
-        v.sort_by_key(|(_, s)| -s);
-        for (rank, (id, _)) in v.into_iter().enumerate() {
-            player_by_rank[rank] = id as u8;
-            rank_by_player[id] = rank as u8;
-        }
-
-        Rankings {
-            player_by_rank,
-            rank_by_player,
-        }
+        Rankings::new(self.scores)
     }
 
     pub fn dump_json_log(&self) -> Result<String> {
@@ -98,51 +80,5 @@ impl GameResult {
                 ret
             })
             .collect()
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn rankings() {
-        let mut res = GameResult {
-            scores: [25000, 25000, 30000, 20000],
-            ..Default::default()
-        };
-        let r = res.rankings();
-        assert_eq!(r.player_by_rank, [2, 0, 1, 3]);
-        assert_eq!(r.rank_by_player, [1, 2, 0, 3]);
-        *res.scores.iter_mut().min_by_key(|s| -**s).unwrap() = 0; // used in game end kyotaku give out
-        assert_eq!(res.scores, [25000, 25000, 0, 20000]);
-
-        res.scores = [25000, 25000, 25000, 25000];
-        let r = res.rankings();
-        assert_eq!(r.player_by_rank, [0, 1, 2, 3]);
-        assert_eq!(r.rank_by_player, [0, 1, 2, 3]);
-        *res.scores.iter_mut().min_by_key(|s| -**s).unwrap() = 0;
-        assert_eq!(res.scores, [0, 25000, 25000, 25000]);
-
-        res.scores = [18000, 32000, 32000, 18000];
-        let r = res.rankings();
-        assert_eq!(r.player_by_rank, [1, 2, 0, 3]);
-        assert_eq!(r.rank_by_player, [2, 0, 1, 3]);
-        *res.scores.iter_mut().min_by_key(|s| -**s).unwrap() = 0;
-        assert_eq!(res.scores, [18000, 0, 32000, 18000]);
-
-        res.scores = [32000, 18000, 18000, 32000];
-        let r = res.rankings();
-        assert_eq!(r.player_by_rank, [0, 3, 1, 2]);
-        assert_eq!(r.rank_by_player, [0, 2, 3, 1]);
-        *res.scores.iter_mut().min_by_key(|s| -**s).unwrap() = 0;
-        assert_eq!(res.scores, [0, 18000, 18000, 32000]);
-
-        res.scores = [0, 100000, 0, 0];
-        let r = res.rankings();
-        assert_eq!(r.player_by_rank, [1, 0, 2, 3]);
-        assert_eq!(r.rank_by_player, [1, 0, 2, 3]);
-        *res.scores.iter_mut().min_by_key(|s| -**s).unwrap() = 0;
-        assert_eq!(res.scores, [0; 4]);
     }
 }

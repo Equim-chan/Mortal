@@ -1,6 +1,8 @@
 #![deny(
     rust_2018_idioms,
     let_underscore_drop,
+    clippy::uninlined_format_args,
+    clippy::unseparated_literal_suffix,
     clippy::must_use_candidate,
     clippy::redundant_else,
     clippy::manual_assert,
@@ -41,13 +43,13 @@
     clippy::borrow_as_ptr,
     clippy::ptr_as_ptr
 )]
-#![allow(clippy::borrow_deref_ref)] // FIXME: pyo3 code makes it complains
 
 mod arena;
 mod consts;
 mod dataset;
 mod macros;
 mod py_helper;
+mod rankings;
 mod vec_ops;
 
 // pub for bins

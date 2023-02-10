@@ -5,6 +5,7 @@ use crate::state::PlayerState;
 use crate::tile::Tile;
 use crate::vec_ops::vec_add_assign;
 use crate::{matches_tu8, must_tile, t, tu8};
+use std::array;
 use std::convert::TryInto;
 use std::mem;
 
@@ -107,12 +108,7 @@ impl Board {
         let mut seq = UNSHUFFLED;
         seq.shuffle(&mut rng);
 
-        self.haipai = [
-            seq[..13].try_into().unwrap(),
-            seq[13..13 * 2].try_into().unwrap(),
-            seq[13 * 2..13 * 3].try_into().unwrap(),
-            seq[13 * 3..13 * 4].try_into().unwrap(),
-        ];
+        self.haipai = array::from_fn(|i| seq[i * 13..(i + 1) * 13].try_into().unwrap());
         let mut idx = 13 * 4;
 
         self.rinshan = seq[idx..idx + 4].to_vec();
@@ -303,8 +299,8 @@ impl BoardState {
 
     fn update_nagashi_mangan_and_four_wind(&mut self, ev: &Event) {
         match *ev {
-            Event::Dahai { actor, pai, .. } => {
-                self.can_nagashi_mangan[actor as usize] &= pai.is_yaokyuu();
+            Event::Dahai { actor, pai, .. } if !pai.is_yaokyuu() => {
+                self.can_nagashi_mangan[actor as usize] = false;
             }
             Event::Chi { target, .. }
             | Event::Pon { target, .. }
@@ -486,7 +482,7 @@ impl BoardState {
             | Event::Daiminkan {
                 target, actor, pai, ..
             } if pai.is_jihai() => {
-                let mut jihais = 0u8;
+                let mut jihais = 0_u8;
                 self.player_states[actor as usize]
                     .pons()
                     .iter()
