@@ -1,4 +1,14 @@
 # Strength
+
+<style>
+.coal .best, .navy .best, .ayu .best {
+    color: lightgreen;
+}
+.light .best, .rust .best {
+    color: deeppink;
+}
+</style>
+
 ## Simulation environment
 The simulation uses a 1v3 duplicate mahjong setting as follows
 
@@ -13,13 +23,17 @@ In this setting, every 4 games are initialized with same random seed. The emulat
 
 The emulator is implemented in [`libriichi::arena`](https://github.com/Equim-chan/Mortal/tree/main/libriichi/src/arena).
 
+The "rank pt" in all the tables are calculated using a distribution of [90, 45, 0, -135].
+
+The name of the <span class="best">current best model</span> is highlighted.
+
 ## Mortal vs akochan (jun_pt = [90, 45, 0, -135])
 Challenger is akochan and Champion is Mortal.
 
 ### mortal1-b40c192-t22040618
 <details>
 
-|  | akochan (x1) | mortal1-b40c192-t22040618 (x3) |
+|  | akochan (x1) | **mortal1-b40c192-t22040618** (x3) |
 |---:|:---|:---|
 | Games | 23432 | 70296 |
 | Rounds | 250168 | 750504 |
@@ -31,8 +45,8 @@ Challenger is akochan and Champion is Mortal.
 | 4th (rate) | 6435 (0.274624) | 16997 (0.241792) |
 | Tobi(rate) | 1916 (0.081769) | 4426 (0.062962) |
 | Avg rank | 2.562564 | 2.479145 |
-| Total pt | -117900 | 117900 |
-| Avg game pt | -5.031581 | 1.677194 |
+| Total rank pt | -117900 | 117900 |
+| Avg rank pt | -5.031581 | **1.677194** 👑 |
 | Total Δscore | -28694400 | 28694400 |
 | Avg game Δscore | -1224.581769 | 408.193923 |
 | Avg round Δscore | -114.700521 | 38.233507 |
@@ -82,10 +96,10 @@ Challenger is akochan and Champion is Mortal.
 
 </details>
 
-### mortal3-b24c512-t22122709
+### <span class="best">mortal3-b24c512-t22122709</span>
 <details>
 
-|  | akochan (x1) | mortal3-b24c512-t22122709 (x3) |
+|  | akochan (x1) | **<span class="best">mortal3-b24c512-t22122709</span>** (x3) |
 |---:|:---|:---|
 | Games | 13152 | 39456 |
 | Rounds | 140132 | 420396 |
@@ -97,8 +111,8 @@ Challenger is akochan and Champion is Mortal.
 | 4th (rate) | 3672 (0.279197) | 9480 (0.240268) |
 | Tobi(rate) | 1028 (0.078163) | 2439 (0.061816) |
 | Avg rank | 2.567670 | 2.477443 |
-| Total pt | -74610 | 74610 |
-| Avg game pt | -5.672901 | 1.890967 |
+| Total rank pt | -74610 | 74610 |
+| Avg rank pt | -5.672901 | **1.890967** 👑 |
 | Total Δscore | -14601500 | 14601500 |
 | Avg game Δscore | -1110.211375 | 370.070458 |
 | Avg round Δscore | -104.198185 | 34.732728 |
@@ -152,7 +166,7 @@ Challenger is akochan and Champion is Mortal.
 ### mortal1-b40c192-t22040618
 <details>
 
-|  | akochan (x1) | mortal1-b40c192-t22040618 (x3) |
+|  | akochan (x1) | **mortal1-b40c192-t22040618** (x3) |
 |---:|:---|:---|
 | Games | 24388 | 73164 |
 | Rounds | 259986 | 779958 |
@@ -164,8 +178,8 @@ Challenger is akochan and Champion is Mortal.
 | 4th (rate) | 6984 (0.286370) | 17404 (0.237877) |
 | Tobi(rate) | 2058 (0.084386) | 4580 (0.062599) |
 | Avg rank | 2.549082 | 2.483639 |
-| Total pt | -133695 | 133695 |
-| Avg game pt | -5.481999 | 1.827333 |
+| Total rank pt | -133695 | 133695 |
+| Avg rank pt | -5.481999 | **1.827333** 👑 |
 | Total Δscore | -24085000 | 24085000 |
 | Avg game Δscore | -987.575857 | 329.191952 |
 | Avg round Δscore | -92.639604 | 30.879868 |
@@ -219,7 +233,7 @@ Challenger is akochan and Champion is Mortal.
 ### mortal2-b75c256-t22092920 and mortal1-b40c192-t22040618
 <details>
 
-|  | mortal2-b75c256-t22092920 (x1) | mortal1-b40c192-t22040618 (x3) |
+|  | **mortal2-b75c256-t22092920** (x1) | mortal1-b40c192-t22040618 (x3) |
 |---:|:---|:---|
 | Games | 426000 | 1278000 |
 | Rounds | 4568485 | 13705455 |
@@ -231,8 +245,8 @@ Challenger is akochan and Champion is Mortal.
 | 4th (rate) | 106468 (0.249925) | 319532 (0.250025) |
 | Tobi(rate) | 27006 (0.063394) | 87330 (0.068333) |
 | Avg rank | 2.496998 | 2.501001 |
-| Total pt | 60435 | -60435 |
-| Avg game pt | 0.141866 | -0.047289 |
+| Total rank pt | 60435 | -60435 |
+| Avg rank pt | **0.141866** 👑 | -0.047289 |
 | Total Δscore | 18652900 | -18652900 |
 | Avg game Δscore | 43.786150 | -14.595383 |
 | Avg round Δscore | 4.082951 | -1.360984 |
@@ -286,7 +300,7 @@ Swapping Challenger and Champion.
 
 <details>
 
-|  | mortal1-b40c192-t22040618 (x1) | mortal2-b75c256-t22092920 (x3) |
+|  | **mortal1-b40c192-t22040618** (x1) | mortal2-b75c256-t22092920 (x3) |
 |---:|:---|:---|
 | Games | 404000 | 1212000 |
 | Rounds | 4364061 | 13092183 |
@@ -298,8 +312,8 @@ Swapping Challenger and Champion.
 | 4th (rate) | 100629 (0.249082) | 303371 (0.250306) |
 | Tobi(rate) | 29033 (0.071864) | 81611 (0.067336) |
 | Avg rank | 2.498649 | 2.500450 |
-| Total pt | 57960 | -57960 |
-| Avg game pt | 0.143465 | -0.047822 |
+| Total rank pt | 57960 | -57960 |
+| Avg rank pt | **0.143465** 👑 | -0.047822 |
 | Total Δscore | 13969900 | -13969900 |
 | Avg game Δscore | 34.578960 | -11.526320 |
 | Avg round Δscore | 3.201124 | -1.067041 |
@@ -352,7 +366,7 @@ Swapping Challenger and Champion.
 ### mortal2-b75c256-t22100115 and mortal1-b40c192-t22040618
 <details>
 
-|  | mortal2-b75c256-t22100115 (x1) | mortal1-b40c192-t22040618 (x3) |
+|  | mortal2-b75c256-t22100115 (x1) | **mortal1-b40c192-t22040618** (x3) |
 |---:|:---|:---|
 | Games | 88000 | 264000 |
 | Rounds | 938739 | 2816217 |
@@ -364,8 +378,8 @@ Swapping Challenger and Champion.
 | 4th (rate) | 22838 (0.259523) | 65162 (0.246826) |
 | Tobi(rate) | 6158 (0.069977) | 18546 (0.070250) |
 | Avg rank | 2.489932 | 2.503356 |
-| Total pt | -35550 | 35550 |
-| Avg game pt | -0.403977 | 0.134659 |
+| Total rank pt | -35550 | 35550 |
+| Avg rank pt | -0.403977 | **0.134659** 👑 |
 | Total Δscore | 17452400 | -17452400 |
 | Avg game Δscore | 198.322727 | -66.107576 |
 | Avg round Δscore | 18.591323 | -6.197108 |
@@ -419,7 +433,7 @@ Swapping Challenger and Champion.
 
 <details>
 
-|  | mortal1-b40c192-t22040618 (x1) | mortal2-b75c256-t22100115 (x3) |
+|  | **mortal1-b40c192-t22040618** (x1) | mortal2-b75c256-t22100115 (x3) |
 |---:|:---|:---|
 | Games | 184000 | 552000 |
 | Rounds | 1949267 | 5847801 |
@@ -431,8 +445,8 @@ Swapping Challenger and Champion.
 | 4th (rate) | 44248 (0.240478) | 139752 (0.253174) |
 | Tobi(rate) | 13951 (0.075821) | 42533 (0.077053) |
 | Avg rank | 2.509484 | 2.496839 |
-| Total pt | 79155 | -79155 |
-| Avg game pt | 0.430190 | -0.143397 |
+| Total rank pt | 79155 | -79155 |
+| Avg rank pt | **0.430190** 👑 | -0.143397 |
 | Total Δscore | -27210700 | 27210700 |
 | Avg game Δscore | -147.884239 | 49.294746 |
 | Avg round Δscore | -13.959452 | 4.653151 |
@@ -485,7 +499,7 @@ Swapping Challenger and Champion.
 ### mortal2-b75c256-t22092920 and mortal2-b75c256-t22100115
 <details>
 
-|  | mortal2-b75c256-t22100115 (x1) | mortal2-b75c256-t22092920 (x3) |
+|  | **mortal2-b75c256-t22100115** (x1) | mortal2-b75c256-t22092920 (x3) |
 |---:|:---|:---|
 | Games | 186000 | 558000 |
 | Rounds | 2000904 | 6002712 |
@@ -497,8 +511,8 @@ Swapping Challenger and Champion.
 | 4th (rate) | 47444 (0.255075) | 138556 (0.248308) |
 | Tobi(rate) | 14221 (0.076457) | 39735 (0.071210) |
 | Avg rank | 2.481054 | 2.506315 |
-| Total pt | 73620 | -73620 |
-| Avg game pt | 0.395806 | -0.131935 |
+| Total rank pt | 73620 | -73620 |
+| Avg rank pt | **0.395806** 👑 | -0.131935 |
 | Total Δscore | 52811900 | -52811900 |
 | Avg game Δscore | 283.934946 | -94.644982 |
 | Avg round Δscore | 26.394020 | -8.798007 |
@@ -552,7 +566,7 @@ Swapping Challenger and Champion.
 
 <details>
 
-|  | mortal2-b75c256-t22092920 (x1) | mortal2-b75c256-t22100115 (x3) |
+|  | **mortal2-b75c256-t22092920** (x1) | mortal2-b75c256-t22100115 (x3) |
 |---:|:---|:---|
 | Games | 468000 | 1404000 |
 | Rounds | 4970641 | 14911923 |
@@ -564,8 +578,8 @@ Swapping Challenger and Champion.
 | 4th (rate) | 113470 (0.242457) | 354530 (0.252514) |
 | Tobi(rate) | 34046 (0.072748) | 111105 (0.079135) |
 | Avg rank | 2.512308 | 2.495897 |
-| Total pt | 58500 | -58500 |
-| Avg game pt | 0.125000 | -0.041667 |
+| Total rank pt | 58500 | -58500 |
+| Avg rank pt | 0.125000 👑 | -0.041667 |
 | Total Δscore | -87196300 | 87196300 |
 | Avg game Δscore | -186.316880 | 62.105627 |
 | Avg round Δscore | -17.542265 | 5.847422 |
@@ -615,267 +629,71 @@ Swapping Challenger and Champion.
 
 </details>
 
-### mortal3-b24c512-t22122709 and mortal1-b40c192-t22040618
+### <span class="best">mortal3-b24c512-t22122709</span> and mortal1-b40c192-t22040618
 <details>
 
-|  | mortal3-b24c512-t22122709 (x1) | mortal1-b40c192-t22040618 (x3) |
-|---:|:---|:---|
-| Games | 1002000 | 3006000 |
-| Rounds | 10709438 | 32128314 |
-| Rounds as dealer | 2662468 | 8046970 |
-|  |  |  |
-| 1st (rate) | 252727 (0.252223) | 749273 (0.249259) |
-| 2nd (rate) | 248648 (0.248152) | 753352 (0.250616) |
-| 3rd (rate) | 250132 (0.249633) | 751868 (0.250122) |
-| 4th (rate) | 250493 (0.249993) | 751507 (0.250002) |
-| Tobi(rate) | 66970 (0.066836) | 198442 (0.066015) |
-| Avg rank | 2.497396 | 2.500868 |
-| Total pt | 118035 | -118035 |
-| Avg game pt | 0.117799 | -0.039266 |
-| Total Δscore | -63363900 | 63363900 |
-| Avg game Δscore | -63.237425 | 21.079142 |
-| Avg round Δscore | -5.916641 | 1.972214 |
-|  |  |  |
-| Win rate | 0.208219 | 0.210348 |
-| Deal-in rate | 0.119234 | 0.119914 |
-| Call rate | 0.294273 | 0.295517 |
-| Riichi rate | 0.188882 | 0.181314 |
-| Ryukyoku rate | 0.165333 | 0.165333 |
-|  |  |  |
-| Avg winning Δscore | 6445.727072 | 6429.191949 |
-| Avg winning Δscore as dealer | 8399.590822 | 8368.224417 |
-| Avg winning Δscore as non-dealer | 5717.250013 | 5694.814795 |
-| Avg riichi winning Δscore | 8021.969607 | 8016.244281 |
-| Avg open winning Δscore | 4828.263260 | 4928.192270 |
-| Avg dama winning Δscore | 6699.031669 | 6438.613051 |
-| Avg ryukyoku Δscore | -9.543246 | 3.181082 |
-|  |  |  |
-| Avg winning turn | 11.112528 | 11.089737 |
-| Avg riichi winning turn | 11.135377 | 11.105556 |
-| Avg open winning turn | 11.076537 | 11.029325 |
-| Avg dama winning turn | 11.162149 | 11.228365 |
-|  |  |  |
-| Avg deal-in turn | 11.403147 | 11.468034 |
-| Avg deal-in Δscore | -5224.409601 | -5263.605252 |
-| Avg deal-in Δscore to dealer | -6915.714079 | -6979.817903 |
-| Avg deal-in Δscore to non-dealer | -4632.352717 | -4665.443922 |
-|  |  |  |
-| Chasing riichi rate | 0.162380 | 0.168922 |
-| Riichi chased rate | 0.173606 | 0.172392 |
-| Winning rate after riichi | 0.480132 | 0.481958 |
-| Deal-in rate after riichi | 0.150001 | 0.150695 |
-| Avg riichi turn | 7.807936 | 7.789643 |
-| Avg riichi Δscore | 3133.117891 | 3146.475994 |
-|  |  |  |
-| Avg number of calls | 1.432674 | 1.449256 |
-| Winning rate after call | 0.313738 | 0.313302 |
-| Deal-in rate after call | 0.133888 | 0.137132 |
-| Avg call Δscore | 851.132637 | 860.015782 |
-|  |  |  |
-| Dealer wins/all dealer rounds | 0.227460 | 0.230700 |
-| Dealer wins/all wins | 0.271583 | 0.274697 |
-| Deal-in to dealer/all deal-ins | 0.259292 | 0.258455 |
-|  |  |  |
-| Yakuman (rate) | 1369 (0.000127831) | 4884 (0.000152015) |
-| Nagashi mangan (rate) | 770 (0.000071899) | 932 (0.000029009) |
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-</details>
-
-### mortal3-b24c512-t22122709 and mortal2-b75c256-t22092920
-<details>
-
-|  | mortal3-b24c512-t22122709 (x1) | mortal2-b75c256-t22092920 (x3) |
-|---:|:---|:---|
-| Games | 368000 | 1104000 |
-| Rounds | 3974175 | 11922525 |
-| Rounds as dealer | 1000068 | 2974107 |
-|  |  |  |
-| 1st (rate) | 93704 (0.254630) | 274296 (0.248457) |
-| 2nd (rate) | 91424 (0.248435) | 276576 (0.250522) |
-| 3rd (rate) | 92006 (0.250016) | 275994 (0.249995) |
-| 4th (rate) | 90866 (0.246918) | 277134 (0.251027) |
-| Tobi(rate) | 26211 (0.071226) | 73783 (0.066832) |
-| Avg rank | 2.489223 | 2.503592 |
-| Total pt | 280530 | -280530 |
-| Avg game pt | 0.762310 | -0.254103 |
-| Total Δscore | 16622600 | -16622600 |
-| Avg game Δscore | 45.170109 | -15.056703 |
-| Avg round Δscore | 4.182654 | -1.394218 |
-|  |  |  |
-| Win rate | 0.210877 | 0.201749 |
-| Deal-in rate | 0.116472 | 0.111503 |
-| Call rate | 0.293698 | 0.286804 |
-| Riichi rate | 0.193439 | 0.176834 |
-| Ryukyoku rate | 0.187923 | 0.187923 |
-|  |  |  |
-| Avg winning Δscore | 6506.988743 | 6671.600717 |
-| Avg winning Δscore as dealer | 8465.651080 | 8586.955954 |
-| Avg winning Δscore as non-dealer | 5762.116967 | 5925.650595 |
-| Avg riichi winning Δscore | 8093.180291 | 8287.979161 |
-| Avg open winning Δscore | 4825.511770 | 5152.033307 |
-| Avg dama winning Δscore | 6772.418571 | 6511.443291 |
-| Avg ryukyoku Δscore | 60.018880 | -20.006293 |
-|  |  |  |
-| Avg winning turn | 11.258288 | 11.165158 |
-| Avg riichi winning turn | 11.253880 | 11.170332 |
-| Avg open winning turn | 11.244792 | 11.112081 |
-| Avg dama winning turn | 11.319405 | 11.308801 |
-|  |  |  |
-| Avg deal-in turn | 11.490814 | 11.573875 |
-| Avg deal-in Δscore | -5424.654554 | -5386.304929 |
-| Avg deal-in Δscore to dealer | -7072.028040 | -7092.616967 |
-| Avg deal-in Δscore to non-dealer | -4829.650323 | -4785.963319 |
-|  |  |  |
-| Chasing riichi rate | 0.156698 | 0.162294 |
-| Riichi chased rate | 0.163280 | 0.167319 |
-| Winning rate after riichi | 0.478186 | 0.481160 |
-| Deal-in rate after riichi | 0.144392 | 0.145621 |
-| Avg riichi turn | 7.893116 | 7.806837 |
-| Avg riichi Δscore | 3179.229826 | 3296.884365 |
-|  |  |  |
-| Avg number of calls | 1.419072 | 1.460339 |
-| Winning rate after call | 0.311547 | 0.304823 |
-| Deal-in rate after call | 0.130112 | 0.132365 |
-| Avg call Δscore | 856.935365 | 918.769254 |
-|  |  |  |
-| Dealer wins/all dealer rounds | 0.230885 | 0.226693 |
-| Dealer wins/all wins | 0.275518 | 0.280295 |
-| Deal-in to dealer/all deal-ins | 0.265345 | 0.260265 |
-|  |  |  |
-| Yakuman (rate) | 486 (0.000122290) | 1736 (0.000145607) |
-| Nagashi mangan (rate) | 344 (0.000086559) | 268 (0.000022478) |
-
-</details>
-
-### mortal3-b24c512-t22122709 and mortal2-b75c256-t22100115
-<details>
-
-|  | mortal3-b24c512-t22122709 (x1) | mortal2-b75c256-t22100115 (x3) |
-|---:|:---|:---|
-| Games | 386000 | 1158000 |
-| Rounds | 4083546 | 12250638 |
-| Rounds as dealer | 1022028 | 3061518 |
-|  |  |  |
-| 1st (rate) | 93099 (0.241189) | 292901 (0.252937) |
-| 2nd (rate) | 97284 (0.252031) | 288716 (0.249323) |
-| 3rd (rate) | 102923 (0.266640) | 283077 (0.244453) |
-| 4th (rate) | 92694 (0.240140) | 293306 (0.253287) |
-| Tobi(rate) | 29413 (0.076199) | 89107 (0.076949) |
-| Avg rank | 2.505731 | 2.498090 |
-| Total pt | 243000 | -243000 |
-| Avg game pt | 0.629534 | -0.209845 |
-| Total Δscore | -79207200 | 79207200 |
-| Avg game Δscore | -205.200000 | 68.400000 |
-| Avg round Δscore | -19.396671 | 6.465557 |
-|  |  |  |
-| Win rate | 0.212155 | 0.204081 |
-| Deal-in rate | 0.113413 | 0.116293 |
-| Call rate | 0.295992 | 0.252329 |
-| Riichi rate | 0.190717 | 0.217100 |
-| Ryukyoku rate | 0.180088 | 0.180088 |
-|  |  |  |
-| Avg winning Δscore | 6566.458089 | 6987.499520 |
-| Avg winning Δscore as dealer | 8535.578228 | 8976.920737 |
-| Avg winning Δscore as non-dealer | 5823.653642 | 6218.547096 |
-| Avg riichi winning Δscore | 8154.003066 | 8328.467883 |
-| Avg open winning Δscore | 4922.635337 | 5334.771576 |
-| Avg dama winning Δscore | 6854.794355 | 6896.380902 |
-| Avg ryukyoku Δscore | -33.202474 | 11.067491 |
-|  |  |  |
-| Avg winning turn | 11.178651 | 11.212072 |
-| Avg riichi winning turn | 11.189294 | 11.254969 |
-| Avg open winning turn | 11.139738 | 11.113306 |
-| Avg dama winning turn | 11.279740 | 11.369807 |
-|  |  |  |
-| Avg deal-in turn | 11.528364 | 11.617473 |
-| Avg deal-in Δscore | -5605.944361 | -5549.620576 |
-| Avg deal-in Δscore to dealer | -7342.659893 | -7304.122310 |
-| Avg deal-in Δscore to non-dealer | -4988.584666 | -4928.993379 |
-|  |  |  |
-| Chasing riichi rate | 0.185512 | 0.205671 |
-| Riichi chased rate | 0.230286 | 0.205672 |
-| Winning rate after riichi | 0.483306 | 0.463756 |
-| Deal-in rate after riichi | 0.147658 | 0.156078 |
-| Avg riichi turn | 7.846740 | 8.008423 |
-| Avg riichi Δscore | 3180.435567 | 3063.362113 |
-|  |  |  |
-| Avg number of calls | 1.430087 | 1.439802 |
-| Winning rate after call | 0.316357 | 0.318721 |
-| Deal-in rate after call | 0.126356 | 0.135419 |
-| Avg call Δscore | 885.609639 | 1014.625726 |
-|  |  |  |
-| Dealer wins/all dealer rounds | 0.232180 | 0.227651 |
-| Dealer wins/all wins | 0.273903 | 0.278770 |
-| Deal-in to dealer/all deal-ins | 0.262251 | 0.261303 |
-|  |  |  |
-| Yakuman (rate) | 512 (0.000125381) | 946 (0.000158849) |
-| Nagashi mangan (rate) | 341 (0.000083506) | 25 (0.000034692) |
-
-</details>
-
-### mortal3-b24c512-t22122709 and mortal3-b24c512-t22121413
-<details>
-
-|  | mortal3-b24c512-t22122709 (x1) | mortal3-b24c512-t22121413 (x3) |
+|  | **<span class="best">mortal3-b24c512-t22122709</span>** (x1) | mortal1-b40c192-t22040618 (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
-| Rounds | 10675990 | 32027970 |
-| Rounds as dealer | 2640435 | 8035555 |
+| Rounds | 10695634 | 32086902 |
+| Rounds as dealer | 2658828 | 8036806 |
 |  |  |  |
-| 1st (rate) | 256715 (0.256715) | 743285 (0.247762) |
-| 2nd (rate) | 253315 (0.253315) | 746685 (0.248895) |
-| 3rd (rate) | 246115 (0.246115) | 753885 (0.251295) |
-| 4th (rate) | 243855 (0.243855) | 756145 (0.252048) |
-| Tobi(rate) | 62001 (0.062001) | 194826 (0.064942) |
-| Avg rank | 2.477110 | 2.507630 |
-| Total pt | 1583100 | -1583100 |
-| Avg game pt | 1.583100 | -0.527700 |
-| Total Δscore | 146170800 | -146170800 |
-| Avg game Δscore | 146.170800 | -48.723600 |
-| Avg round Δscore | 13.691545 | -4.563848 |
+| 1st (rate) | 252650 (0.252650) | 747350 (0.249117) |
+| 2nd (rate) | 247931 (0.247931) | 752069 (0.250690) |
+| 3rd (rate) | 248607 (0.248607) | 751393 (0.250464) |
+| 4th (rate) | 250812 (0.250812) | 749188 (0.249729) |
+| Tobi(rate) | 67045 (0.067045) | 197266 (0.065755) |
+| Avg rank | 2.497581 | 2.500806 |
+| Total rank pt | 35775 | -35775 |
+| Avg rank pt | **0.035775** 👑 | -0.011925 |
+| Total Δscore | -62641200 | 62641200 |
+| Avg game Δscore | -62.641200 | 20.880400 |
+| Avg round Δscore | -5.856708 | 1.952236 |
 |  |  |  |
-| Win rate | 0.206694 | 0.213079 |
-| Deal-in rate | 0.116511 | 0.125168 |
-| Call rate | 0.294321 | 0.303311 |
-| Riichi rate | 0.185257 | 0.177704 |
-| Ryukyoku rate | 0.159419 | 0.159419 |
+| Win rate | 0.208091 | 0.210464 |
+| Deal-in rate | 0.119449 | 0.119959 |
+| Call rate | 0.294222 | 0.295577 |
+| Riichi rate | 0.188956 | 0.181209 |
+| Ryukyoku rate | 0.165081 | 0.165081 |
 |  |  |  |
-| Avg winning Δscore | 6404.250681 | 6286.824125 |
-| Avg winning Δscore as dealer | 8361.741949 | 8224.710855 |
-| Avg winning Δscore as non-dealer | 5676.332225 | 5551.529875 |
-| Avg riichi winning Δscore | 8047.830008 | 7978.528810 |
-| Avg open winning Δscore | 4777.098429 | 4775.399159 |
-| Avg dama winning Δscore | 6644.025031 | 6379.190680 |
-| Avg ryukyoku Δscore | -18.918538 | 6.306179 |
+| Avg winning Δscore | 6449.130348 | 6424.322248 |
+| Avg winning Δscore as dealer | 8419.583823 | 8363.884227 |
+| Avg winning Δscore as non-dealer | 5712.776286 | 5688.908765 |
+| Avg riichi winning Δscore | 8035.032474 | 8015.259869 |
+| Avg open winning Δscore | 4824.707771 | 4921.858157 |
+| Avg dama winning Δscore | 6693.977160 | 6439.002502 |
+| Avg ryukyoku Δscore | -7.396714 | 2.465571 |
 |  |  |  |
-| Avg winning turn | 10.978592 | 10.967597 |
-| Avg riichi winning turn | 11.051985 | 11.045908 |
-| Avg open winning turn | 10.885215 | 10.873950 |
-| Avg dama winning turn | 11.066078 | 11.042189 |
+| Avg winning turn | 11.119622 | 11.091341 |
+| Avg riichi winning turn | 11.138805 | 11.108040 |
+| Avg open winning turn | 11.088877 | 11.028942 |
+| Avg dama winning turn | 11.163080 | 11.233838 |
 |  |  |  |
-| Avg deal-in turn | 11.295449 | 11.278288 |
-| Avg deal-in Δscore | -5139.674387 | -5124.328080 |
-| Avg deal-in Δscore to dealer | -6859.246117 | -6821.157102 |
-| Avg deal-in Δscore to non-dealer | -4538.744279 | -4533.356136 |
+| Avg deal-in turn | 11.401893 | 11.469167 |
+| Avg deal-in Δscore | -5218.971087 | -5258.480211 |
+| Avg deal-in Δscore to dealer | -6911.768558 | -6973.255171 |
+| Avg deal-in Δscore to non-dealer | -4626.232841 | -4661.005910 |
 |  |  |  |
-| Chasing riichi rate | 0.163170 | 0.171444 |
-| Riichi chased rate | 0.177894 | 0.175603 |
-| Winning rate after riichi | 0.477664 | 0.474371 |
-| Deal-in rate after riichi | 0.148014 | 0.151642 |
-| Avg riichi turn | 7.744334 | 7.742333 |
-| Avg riichi Δscore | 3157.026400 | 3077.846775 |
+| Chasing riichi rate | 0.161910 | 0.168683 |
+| Riichi chased rate | 0.173607 | 0.171993 |
+| Winning rate after riichi | 0.479358 | 0.481873 |
+| Deal-in rate after riichi | 0.150173 | 0.150826 |
+| Avg riichi turn | 7.806175 | 7.789729 |
+| Avg riichi Δscore | 3134.217928 | 3145.470729 |
 |  |  |  |
-| Avg number of calls | 1.441144 | 1.454572 |
-| Winning rate after call | 0.316271 | 0.317613 |
-| Deal-in rate after call | 0.130817 | 0.139817 |
-| Avg call Δscore | 863.542555 | 834.038992 |
+| Avg number of calls | 1.432339 | 1.449045 |
+| Winning rate after call | 0.313502 | 0.313821 |
+| Deal-in rate after call | 0.133932 | 0.136927 |
+| Avg call Δscore | 848.863432 | 861.857731 |
 |  |  |  |
-| Dealer wins/all dealer rounds | 0.226533 | 0.233608 |
-| Dealer wins/all wins | 0.271064 | 0.275063 |
-| Deal-in to dealer/all deal-ins | 0.258966 | 0.258314 |
+| Dealer wins/all dealer rounds | 0.227718 | 0.231012 |
+| Dealer wins/all wins | 0.272038 | 0.274923 |
+| Deal-in to dealer/all deal-ins | 0.259343 | 0.258395 |
 |  |  |  |
-| Yakuman (rate) | 1273 (0.000119240) | 6058 (0.000189147) |
-| Nagashi mangan (rate) | 774 (0.000072499) | 2320 (0.000072437) |
+| Yakuman (rate) | 1399 (0.000130801) | 5116 (0.000159442) |
+| Nagashi mangan (rate) | 753 (0.000070403) | 927 (0.000028890) |
 
 </details>
 
@@ -883,66 +701,480 @@ Swapping Challenger and Champion.
 
 <details>
 
-|  | mortal3-b24c512-t22121413 (x1) | mortal3-b24c512-t22122709 (x3) |
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
+
+|  | mortal1-b40c192-t22040618 (x1) | **<span class="best">mortal3-b24c512-t22122709</span>** (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
-| Rounds | 10671322 | 32013966 |
-| Rounds as dealer | 2697993 | 7973329 |
+| Rounds | 10681846 | 32045538 |
+| Rounds as dealer | 2686542 | 7995304 |
 |  |  |  |
-| 1st (rate) | 243160 (0.243160) | 756840 (0.252280) |
-| 2nd (rate) | 248268 (0.248268) | 751732 (0.250577) |
-| 3rd (rate) | 253542 (0.253542) | 746458 (0.248819) |
-| 4th (rate) | 255030 (0.255030) | 744970 (0.248323) |
-| Tobi(rate) | 66964 (0.066964) | 192123 (0.064041) |
-| Avg rank | 2.520442 | 2.493186 |
-| Total pt | -1372590 | 1372590 |
-| Avg game pt | -1.372590 | 0.457530 |
-| Total Δscore | -129515800 | 129515800 |
-| Avg game Δscore | -129.515800 | 43.171933 |
-| Avg round Δscore | -12.136809 | 4.045603 |
+| 1st (rate) | 247830 (0.247830) | 752170 (0.250723) |
+| 2nd (rate) | 251678 (0.251678) | 748322 (0.249441) |
+| 3rd (rate) | 250287 (0.250287) | 749713 (0.249904) |
+| 4th (rate) | 250205 (0.250205) | 749795 (0.249932) |
+| Tobi(rate) | 64486 (0.064486) | 196291 (0.065430) |
+| Avg rank | 2.502867 | 2.499044 |
+| Total rank pt | -147465 | 147465 |
+| Avg rank pt | -0.147465 | **0.049155** 👑 |
+| Total Δscore | 66038200 | -66038200 |
+| Avg game Δscore | 66.038200 | -22.012733 |
+| Avg round Δscore | 6.182283 | -2.060761 |
 |  |  |  |
-| Win rate | 0.213817 | 0.208091 |
-| Deal-in rate | 0.125421 | 0.117515 |
-| Call rate | 0.301421 | 0.293180 |
-| Riichi rate | 0.180298 | 0.187937 |
-| Ryukyoku rate | 0.166519 | 0.166519 |
+| Win rate | 0.210470 | 0.208555 |
+| Deal-in rate | 0.118683 | 0.118394 |
+| Call rate | 0.294801 | 0.293244 |
+| Riichi rate | 0.181426 | 0.188990 |
+| Ryukyoku rate | 0.168219 | 0.168219 |
 |  |  |  |
-| Avg winning Δscore | 6339.122361 | 6446.471119 |
-| Avg winning Δscore as dealer | 8298.133576 | 8413.219744 |
-| Avg winning Δscore as non-dealer | 5590.723615 | 5713.335004 |
-| Avg riichi winning Δscore | 7999.275659 | 8059.222245 |
-| Avg open winning Δscore | 4806.043945 | 4804.190094 |
-| Avg dama winning Δscore | 6432.490775 | 6700.040250 |
-| Avg ryukyoku Δscore | 23.501685 | -7.833895 |
+| Avg winning Δscore | 6441.741107 | 6463.110036 |
+| Avg winning Δscore as dealer | 8389.178064 | 8435.434308 |
+| Avg winning Δscore as non-dealer | 5701.832421 | 5725.629723 |
+| Avg riichi winning Δscore | 8040.795495 | 8056.487760 |
+| Avg open winning Δscore | 4921.799428 | 4821.942178 |
+| Avg dama winning Δscore | 6452.432258 | 6720.265364 |
+| Avg ryukyoku Δscore | 15.347898 | -5.115966 |
 |  |  |  |
-| Avg winning turn | 11.052582 | 11.067857 |
-| Avg riichi winning turn | 11.113263 | 11.117478 |
-| Avg open winning turn | 10.970769 | 10.995953 |
-| Avg dama winning turn | 11.130811 | 11.153572 |
+| Avg winning turn | 11.083579 | 11.110649 |
+| Avg riichi winning turn | 11.111335 | 11.143880 |
+| Avg open winning turn | 11.006246 | 11.056852 |
+| Avg dama winning turn | 11.237825 | 11.186742 |
 |  |  |  |
-| Avg deal-in turn | 11.369043 | 11.398171 |
-| Avg deal-in Δscore | -5189.700710 | -5198.814820 |
-| Avg deal-in Δscore to dealer | -6903.797579 | -6916.602151 |
-| Avg deal-in Δscore to non-dealer | -4597.567461 | -4604.788905 |
+| Avg deal-in turn | 11.495143 | 11.425903 |
+| Avg deal-in Δscore | -5268.128750 | -5226.544027 |
+| Avg deal-in Δscore to dealer | -7013.511667 | -6942.419782 |
+| Avg deal-in Δscore to non-dealer | -4666.693040 | -4631.493791 |
 |  |  |  |
-| Chasing riichi rate | 0.177665 | 0.168433 |
-| Riichi chased rate | 0.175032 | 0.177377 |
-| Winning rate after riichi | 0.476806 | 0.479996 |
-| Deal-in rate after riichi | 0.152919 | 0.149520 |
-| Avg riichi turn | 7.784426 | 7.788808 |
-| Avg riichi Δscore | 3090.200897 | 3165.365615 |
+| Chasing riichi rate | 0.174701 | 0.168081 |
+| Riichi chased rate | 0.174329 | 0.175712 |
+| Winning rate after riichi | 0.482719 | 0.480700 |
+| Deal-in rate after riichi | 0.150422 | 0.150047 |
+| Avg riichi turn | 7.793320 | 7.812665 |
+| Avg riichi Δscore | 3172.162360 | 3159.695391 |
 |  |  |  |
-| Avg number of calls | 1.449837 | 1.437720 |
-| Winning rate after call | 0.315467 | 0.315524 |
-| Deal-in rate after call | 0.140190 | 0.132097 |
-| Avg call Δscore | 832.163243 | 861.704796 |
+| Avg number of calls | 1.449919 | 1.434968 |
+| Winning rate after call | 0.313266 | 0.314411 |
+| Deal-in rate after call | 0.135724 | 0.132926 |
+| Avg call Δscore | 866.934708 | 856.788630 |
 |  |  |  |
-| Dealer wins/all dealer rounds | 0.233776 | 0.226878 |
-| Dealer wins/all wins | 0.276426 | 0.271543 |
-| Deal-in to dealer/all deal-ins | 0.256754 | 0.256952 |
+| Dealer wins/all dealer rounds | 0.230408 | 0.227492 |
+| Dealer wins/all wins | 0.275331 | 0.272153 |
+| Deal-in to dealer/all deal-ins | 0.256277 | 0.257494 |
 |  |  |  |
-| Yakuman (rate) | 2065 (0.000193509) | 4069 (0.000127101) |
-| Nagashi mangan (rate) | 769 (0.000072062) | 2417 (0.000075498) |
+| Yakuman (rate) | 1715 (0.000160553) | 4260 (0.000132936) |
+| Nagashi mangan (rate) | 346 (0.000032391) | 2298 (0.000071710) |
+
+</details>
+
+### <span class="best">mortal3-b24c512-t22122709</span> and mortal2-b75c256-t22092920
+<details>
+
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
+
+|  | **<span class="best">mortal3-b24c512-t22122709</span>** (x1) | mortal2-b75c256-t22092920 (x3) |
+|---:|:---|:---|
+| Games | 1000000 | 3000000 |
+| Rounds | 10794074 | 32382222 |
+| Rounds as dealer | 2714189 | 8079885 |
+|  |  |  |
+| 1st (rate) | 253921 (0.253921) | 746079 (0.248693) |
+| 2nd (rate) | 249095 (0.249095) | 750905 (0.250302) |
+| 3rd (rate) | 248901 (0.248901) | 751099 (0.250366) |
+| 4th (rate) | 248083 (0.248083) | 751917 (0.250639) |
+| Tobi(rate) | 71932 (0.071932) | 199836 (0.066612) |
+| Avg rank | 2.491146 | 2.502951 |
+| Total rank pt | 570960 | -570960 |
+| Avg rank pt | **0.570960** 👑 | -0.190320 |
+| Total Δscore | 12519600 | -12519600 |
+| Avg game Δscore | 12.519600 | -4.173200 |
+| Avg round Δscore | 1.159859 | -0.386620 |
+|  |  |  |
+| Win rate | 0.210818 | 0.201898 |
+| Deal-in rate | 0.116902 | 0.111598 |
+| Call rate | 0.293437 | 0.286838 |
+| Riichi rate | 0.193449 | 0.176785 |
+| Ryukyoku rate | 0.187581 | 0.187581 |
+|  |  |  |
+| Avg winning Δscore | 6505.488403 | 6667.890829 |
+| Avg winning Δscore as dealer | 8477.982575 | 8596.257317 |
+| Avg winning Δscore as non-dealer | 5759.386298 | 5917.334229 |
+| Avg riichi winning Δscore | 8093.932156 | 8287.397743 |
+| Avg open winning Δscore | 4822.253967 | 5141.377214 |
+| Avg dama winning Δscore | 6779.976814 | 6514.201122 |
+| Avg ryukyoku Δscore | 61.932587 | -20.644196 |
+|  |  |  |
+| Avg winning turn | 11.264049 | 11.163706 |
+| Avg riichi winning turn | 11.270153 | 11.175177 |
+| Avg open winning turn | 11.240304 | 11.104653 |
+| Avg dama winning turn | 11.323828 | 11.306526 |
+|  |  |  |
+| Avg deal-in turn | 11.485562 | 11.574023 |
+| Avg deal-in Δscore | -5426.145463 | -5381.267182 |
+| Avg deal-in Δscore to dealer | -7103.013105 | -7091.845074 |
+| Avg deal-in Δscore to non-dealer | -4818.004676 | -4781.601931 |
+|  |  |  |
+| Chasing riichi rate | 0.157252 | 0.162370 |
+| Riichi chased rate | 0.163592 | 0.167532 |
+| Winning rate after riichi | 0.477378 | 0.481816 |
+| Deal-in rate after riichi | 0.145369 | 0.145891 |
+| Avg riichi turn | 7.897461 | 7.814115 |
+| Avg riichi Δscore | 3168.973852 | 3300.285237 |
+|  |  |  |
+| Avg number of calls | 1.418284 | 1.459495 |
+| Winning rate after call | 0.311955 | 0.304760 |
+| Deal-in rate after call | 0.130134 | 0.132450 |
+| Avg call Δscore | 856.123294 | 914.165276 |
+|  |  |  |
+| Dealer wins/all dealer rounds | 0.230094 | 0.226703 |
+| Dealer wins/all wins | 0.274444 | 0.280171 |
+| Deal-in to dealer/all deal-ins | 0.266144 | 0.259568 |
+|  |  |  |
+| Yakuman (rate) | 1464 (0.000135630) | 4806 (0.000148415) |
+| Nagashi mangan (rate) | 926 (0.000085788) | 768 (0.000023717) |
+
+</details>
+
+Swapping Challenger and Champion.
+
+<details>
+
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
+
+|  | mortal2-b75c256-t22092920 (x1) | **<span class="best">mortal3-b24c512-t22122709</span>** (x3) |
+|---:|:---|:---|
+| Games | 1000000 | 3000000 |
+| Rounds | 10709917 | 32129751 |
+| Rounds as dealer | 2664203 | 8045714 |
+|  |  |  |
+| 1st (rate) | 247855 (0.247855) | 752145 (0.250715) |
+| 2nd (rate) | 251110 (0.251110) | 748890 (0.249630) |
+| 3rd (rate) | 249961 (0.249961) | 750039 (0.250013) |
+| 4th (rate) | 251074 (0.251074) | 748926 (0.249642) |
+| Tobi(rate) | 61718 (0.061718) | 202260 (0.067420) |
+| Avg rank | 2.504254 | 2.498582 |
+| Total rank pt | -288090 | 288090 |
+| Avg rank pt | -0.288090 | **0.096030** 👑 |
+| Total Δscore | 38611300 | -38611300 |
+| Avg game Δscore | 38.611300 | -12.870433 |
+| Avg round Δscore | 3.605191 | -1.201730 |
+|  |  |  |
+| Win rate | 0.200728 | 0.209391 |
+| Deal-in rate | 0.111855 | 0.117746 |
+| Call rate | 0.286540 | 0.293106 |
+| Riichi rate | 0.173787 | 0.190548 |
+| Ryukyoku rate | 0.175353 | 0.175353 |
+|  |  |  |
+| Avg winning Δscore | 6646.797620 | 6478.638827 |
+| Avg winning Δscore as dealer | 8583.476603 | 8452.863873 |
+| Avg winning Δscore as non-dealer | 5898.761921 | 5738.410751 |
+| Avg riichi winning Δscore | 8278.209005 | 8074.388079 |
+| Avg open winning Δscore | 5138.402803 | 4818.069187 |
+| Avg dama winning Δscore | 6476.611784 | 6737.745891 |
+| Avg ryukyoku Δscore | -56.753716 | 18.917905 |
+|  |  |  |
+| Avg winning turn | 11.065420 | 11.159526 |
+| Avg riichi winning turn | 11.087838 | 11.186097 |
+| Avg open winning turn | 10.983828 | 11.111529 |
+| Avg dama winning turn | 11.250609 | 11.235839 |
+|  |  |  |
+| Avg deal-in turn | 11.545093 | 11.457348 |
+| Avg deal-in Δscore | -5254.747624 | -5286.519366 |
+| Avg deal-in Δscore to dealer | -6997.933170 | -6998.560141 |
+| Avg deal-in Δscore to non-dealer | -4664.630758 | -4688.125901 |
+|  |  |  |
+| Chasing riichi rate | 0.171227 | 0.166480 |
+| Riichi chased rate | 0.176573 | 0.172225 |
+| Winning rate after riichi | 0.484899 | 0.479996 |
+| Deal-in rate after riichi | 0.148462 | 0.148330 |
+| Avg riichi turn | 7.749868 | 7.842133 |
+| Avg riichi Δscore | 3313.932502 | 3172.073099 |
+|  |  |  |
+| Avg number of calls | 1.469039 | 1.430194 |
+| Winning rate after call | 0.306840 | 0.313696 |
+| Deal-in rate after call | 0.133631 | 0.131876 |
+| Avg call Δscore | 921.151061 | 856.316664 |
+|  |  |  |
+| Dealer wins/all dealer rounds | 0.224828 | 0.228026 |
+| Dealer wins/all wins | 0.278628 | 0.272699 |
+| Deal-in to dealer/all deal-ins | 0.252911 | 0.258996 |
+|  |  |  |
+| Yakuman (rate) | 1576 (0.000147153) | 4308 (0.000134081) |
+| Nagashi mangan (rate) | 218 (0.000020355) | 2543 (0.000079148) |
+
+</details>
+
+
+### <span class="best">mortal3-b24c512-t22122709</span> and mortal2-b75c256-t22100115
+<details>
+
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
+
+|  | **<span class="best">mortal3-b24c512-t22122709</span>** (x1) | mortal2-b75c256-t22100115 (x3) |
+|---:|:---|:---|
+| Games | 1000000 | 3000000 |
+| Rounds | 10580180 | 31740540 |
+| Rounds as dealer | 2650320 | 7929860 |
+|  |  |  |
+| 1st (rate) | 240497 (0.240497) | 759503 (0.253168) |
+| 2nd (rate) | 252350 (0.252350) | 747650 (0.249217) |
+| 3rd (rate) | 266247 (0.266247) | 733753 (0.244584) |
+| 4th (rate) | 240906 (0.240906) | 759094 (0.253031) |
+| Tobi(rate) | 76286 (0.076286) | 229191 (0.076397) |
+| Avg rank | 2.507562 | 2.497479 |
+| Total rank pt | 478170 | -478170 |
+| Avg rank pt | **0.478170** 👑 | -0.159390 |
+| Total Δscore | -234662700 | 234662700 |
+| Avg game Δscore | -234.662700 | 78.220900 |
+| Avg round Δscore | -22.179462 | 7.393154 |
+|  |  |  |
+| Win rate | 0.212137 | 0.204120 |
+| Deal-in rate | 0.113633 | 0.116214 |
+| Call rate | 0.295817 | 0.252353 |
+| Riichi rate | 0.190434 | 0.217060 |
+| Ryukyoku rate | 0.179934 | 0.179934 |
+|  |  |  |
+| Avg winning Δscore | 6562.081044 | 6982.614957 |
+| Avg winning Δscore as dealer | 8524.919488 | 8972.527641 |
+| Avg winning Δscore as non-dealer | 5820.523974 | 6214.663863 |
+| Avg riichi winning Δscore | 8155.308152 | 8325.205145 |
+| Avg open winning Δscore | 4918.650745 | 5324.010738 |
+| Avg dama winning Δscore | 6841.466884 | 6892.135765 |
+| Avg ryukyoku Δscore | -33.449963 | 11.149988 |
+|  |  |  |
+| Avg winning turn | 11.174078 | 11.210121 |
+| Avg riichi winning turn | 11.193804 | 11.260085 |
+| Avg open winning turn | 11.131523 | 11.105989 |
+| Avg dama winning turn | 11.256423 | 11.355080 |
+|  |  |  |
+| Avg deal-in turn | 11.526976 | 11.612176 |
+| Avg deal-in Δscore | -5606.544790 | -5540.796351 |
+| Avg deal-in Δscore to dealer | -7334.694569 | -7293.048601 |
+| Avg deal-in Δscore to non-dealer | -4991.365772 | -4922.769562 |
+|  |  |  |
+| Chasing riichi rate | 0.186378 | 0.205428 |
+| Riichi chased rate | 0.229815 | 0.205832 |
+| Winning rate after riichi | 0.483319 | 0.464406 |
+| Deal-in rate after riichi | 0.147901 | 0.155449 |
+| Avg riichi turn | 7.846743 | 8.008428 |
+| Avg riichi Δscore | 3180.381244 | 3072.441118 |
+|  |  |  |
+| Avg number of calls | 1.430774 | 1.439585 |
+| Winning rate after call | 0.316797 | 0.318383 |
+| Deal-in rate after call | 0.126578 | 0.135364 |
+| Avg call Δscore | 885.025674 | 1009.641505 |
+|  |  |  |
+| Dealer wins/all dealer rounds | 0.232213 | 0.227507 |
+| Dealer wins/all wins | 0.274204 | 0.278459 |
+| Deal-in to dealer/all deal-ins | 0.262524 | 0.260740 |
+|  |  |  |
+| Yakuman (rate) | 1437 (0.000135820) | 5293 (0.000166758) |
+| Nagashi mangan (rate) | 915 (0.000086482) | 1191 (0.000037523) |
+
+</details>
+
+Swapping Challenger and Champion.
+
+<details>
+
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
+
+|  | mortal2-b75c256-t22100115 (x1) | **<span class="best">mortal3-b24c512-t22122709</span>** (x3) |
+|---:|:---|:---|
+| Games | 1000000 | 3000000 |
+| Rounds | 10643651 | 31930953 |
+| Rounds as dealer | 2657147 | 7986504 |
+|  |  |  |
+| 1st (rate) | 259347 (0.259347) | 740653 (0.246884) |
+| 2nd (rate) | 247816 (0.247816) | 752184 (0.250728) |
+| 3rd (rate) | 234215 (0.234215) | 765785 (0.255262) |
+| 4th (rate) | 258622 (0.258622) | 741378 (0.247126) |
+| Tobi(rate) | 67944 (0.067944) | 205917 (0.068639) |
+| Avg rank | 2.492112 | 2.502629 |
+| Total rank pt | -421020 | 421020 |
+| Avg rank pt | -0.421020 | **0.140340** 👑 |
+| Total Δscore | 228401300 | -228401300 |
+| Avg game Δscore | 228.401300 | -76.133767 |
+| Avg round Δscore | 21.458924 | -7.152975 |
+|  |  |  |
+| Win rate | 0.201474 | 0.210016 |
+| Deal-in rate | 0.118739 | 0.116618 |
+| Call rate | 0.250626 | 0.293914 |
+| Riichi rate | 0.215169 | 0.189668 |
+| Ryukyoku rate | 0.172833 | 0.172833 |
+|  |  |  |
+| Avg winning Δscore | 6915.148973 | 6497.758759 |
+| Avg winning Δscore as dealer | 8911.680881 | 8466.896617 |
+| Avg winning Δscore as non-dealer | 6150.055376 | 5759.151321 |
+| Avg riichi winning Δscore | 8264.591750 | 8098.586794 |
+| Avg open winning Δscore | 5247.716013 | 4845.293569 |
+| Avg dama winning Δscore | 6817.927961 | 6758.749431 |
+| Avg ryukyoku Δscore | 40.759326 | -13.586442 |
+|  |  |  |
+| Avg winning turn | 11.168466 | 11.132965 |
+| Avg riichi winning turn | 11.220550 | 11.166051 |
+| Avg open winning turn | 11.055192 | 11.077232 |
+| Avg dama winning turn | 11.336143 | 11.215639 |
+|  |  |  |
+| Avg deal-in turn | 11.561293 | 11.470561 |
+| Avg deal-in Δscore | -5287.797651 | -5343.773976 |
+| Avg deal-in Δscore to dealer | -7030.056513 | -7068.283142 |
+| Avg deal-in Δscore to non-dealer | -4686.285173 | -4743.306272 |
+|  |  |  |
+| Chasing riichi rate | 0.193987 | 0.176314 |
+| Riichi chased rate | 0.171859 | 0.194337 |
+| Winning rate after riichi | 0.462808 | 0.482173 |
+| Deal-in rate after riichi | 0.156977 | 0.149222 |
+| Avg riichi turn | 7.977237 | 7.827756 |
+| Avg riichi Δscore | 3067.251642 | 3179.022276 |
+|  |  |  |
+| Avg number of calls | 1.442432 | 1.434169 |
+| Winning rate after call | 0.316296 | 0.315339 |
+| Deal-in rate after call | 0.139166 | 0.130661 |
+| Avg call Δscore | 990.477231 | 865.012397 |
+|  |  |  |
+| Dealer wins/all dealer rounds | 0.223585 | 0.229041 |
+| Dealer wins/all wins | 0.277045 | 0.272776 |
+| Deal-in to dealer/all deal-ins | 0.256643 | 0.258268 |
+|  |  |  |
+| Yakuman (rate) | 1771 (0.000166390) | 4241 (0.000132818) |
+| Nagashi mangan (rate) | 379 (0.000035608) | 2532 (0.000079296) |
+
+</details>
+
+### <span class="best">mortal3-b24c512-t22122709</span> and mortal3-b24c512-t22121413
+<details>
+
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
+
+|  | **<span class="best">mortal3-b24c512-t22122709</span>** (x1) | mortal3-b24c512-t22121413 (x3) |
+|---:|:---|:---|
+| Games | 1000000 | 3000000 |
+| Rounds | 10672820 | 32018460 |
+| Rounds as dealer | 2638754 | 8034066 |
+|  |  |  |
+| 1st (rate) | 257695 (0.257695) | 742305 (0.247435) |
+| 2nd (rate) | 251910 (0.251910) | 748090 (0.249363) |
+| 3rd (rate) | 246323 (0.246323) | 753677 (0.251226) |
+| 4th (rate) | 244072 (0.244072) | 755928 (0.251976) |
+| Tobi(rate) | 61679 (0.061679) | 194147 (0.064716) |
+| Avg rank | 2.476772 | 2.507743 |
+| Total rank pt | 1578780 | -1578780 |
+| Avg rank pt | **1.578780** 👑 | -0.526260 |
+| Total Δscore | 141713700 | -141713700 |
+| Avg game Δscore | 141.713700 | -47.237900 |
+| Avg round Δscore | 13.278000 | -4.426000 |
+|  |  |  |
+| Win rate | 0.206616 | 0.213110 |
+| Deal-in rate | 0.116523 | 0.125230 |
+| Call rate | 0.294328 | 0.303519 |
+| Riichi rate | 0.185142 | 0.177515 |
+| Ryukyoku rate | 0.159329 | 0.159329 |
+|  |  |  |
+| Avg winning Δscore | 6393.292699 | 6277.894042 |
+| Avg winning Δscore as dealer | 8361.182170 | 8216.077731 |
+| Avg winning Δscore as non-dealer | 5663.546740 | 5542.927200 |
+| Avg riichi winning Δscore | 8038.709958 | 7967.980774 |
+| Avg open winning Δscore | 4763.976086 | 4768.279243 |
+| Avg dama winning Δscore | 6643.934196 | 6373.165641 |
+| Avg ryukyoku Δscore | -18.771703 | 6.257234 |
+|  |  |  |
+| Avg winning turn | 10.977653 | 10.969263 |
+| Avg riichi winning turn | 11.054236 | 11.046526 |
+| Avg open winning turn | 10.881511 | 10.875537 |
+| Avg dama winning turn | 11.064665 | 11.046965 |
+|  |  |  |
+| Avg deal-in turn | 11.296985 | 11.277504 |
+| Avg deal-in Δscore | -5131.059349 | -5120.197911 |
+| Avg deal-in Δscore to dealer | -6851.804109 | -6818.371357 |
+| Avg deal-in Δscore to non-dealer | -4531.572031 | -4528.012159 |
+|  |  |  |
+| Chasing riichi rate | 0.163329 | 0.171303 |
+| Riichi chased rate | 0.177762 | 0.175511 |
+| Winning rate after riichi | 0.477421 | 0.474646 |
+| Deal-in rate after riichi | 0.148095 | 0.151698 |
+| Avg riichi turn | 7.749290 | 7.745117 |
+| Avg riichi Δscore | 3151.175689 | 3074.558334 |
+|  |  |  |
+| Avg number of calls | 1.441311 | 1.454160 |
+| Winning rate after call | 0.316400 | 0.317539 |
+| Deal-in rate after call | 0.130536 | 0.139848 |
+| Avg call Δscore | 862.860813 | 832.612203 |
+|  |  |  |
+| Dealer wins/all dealer rounds | 0.226065 | 0.233514 |
+| Dealer wins/all wins | 0.270513 | 0.274944 |
+| Deal-in to dealer/all deal-ins | 0.258374 | 0.258556 |
+|  |  |  |
+| Yakuman (rate) | 1315 (0.000123210) | 6080 (0.000189890) |
+| Nagashi mangan (rate) | 794 (0.000074395) | 2218 (0.000069273) |
+
+</details>
+
+Swapping Challenger and Champion.
+
+<details>
+
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
+
+|  | mortal3-b24c512-t22121413 (x1) | **<span class="best">mortal3-b24c512-t22122709</span>** (x3) |
+|---:|:---|:---|
+| Games | 1000000 | 3000000 |
+| Rounds | 10669992 | 32009976 |
+| Rounds as dealer | 2697917 | 7972075 |
+|  |  |  |
+| 1st (rate) | 243806 (0.243806) | 756194 (0.252065) |
+| 2nd (rate) | 247827 (0.247827) | 752173 (0.250724) |
+| 3rd (rate) | 253045 (0.253045) | 746955 (0.248985) |
+| 4th (rate) | 255322 (0.255322) | 744678 (0.248226) |
+| Tobi(rate) | 66615 (0.066615) | 192154 (0.064051) |
+| Avg rank | 2.519883 | 2.493372 |
+| Total rank pt | -1373715 | 1373715 |
+| Avg rank pt | -1.373715 | **0.457905** 👑 |
+| Total Δscore | -118840100 | 118840100 |
+| Avg game Δscore | -118.840100 | 39.613367 |
+| Avg round Δscore | -11.137787 | 3.712596 |
+|  |  |  |
+| Win rate | 0.213914 | 0.208153 |
+| Deal-in rate | 0.125289 | 0.117664 |
+| Call rate | 0.301722 | 0.293444 |
+| Riichi rate | 0.180383 | 0.187768 |
+| Ryukyoku rate | 0.166224 | 0.166224 |
+|  |  |  |
+| Avg winning Δscore | 6330.727501 | 6443.132694 |
+| Avg winning Δscore as dealer | 8280.369762 | 8410.694912 |
+| Avg winning Δscore as non-dealer | 5586.939756 | 5709.768885 |
+| Avg riichi winning Δscore | 7994.749659 | 8056.114230 |
+| Avg open winning Δscore | 4802.352073 | 4801.785665 |
+| Avg dama winning Δscore | 6409.434157 | 6699.093516 |
+| Avg ryukyoku Δscore | 26.121389 | -8.707130 |
+|  |  |  |
+| Avg winning turn | 11.051539 | 11.069493 |
+| Avg riichi winning turn | 11.112450 | 11.119327 |
+| Avg open winning turn | 10.975654 | 10.996090 |
+| Avg dama winning turn | 11.112447 | 11.159894 |
+|  |  |  |
+| Avg deal-in turn | 11.374586 | 11.395562 |
+| Avg deal-in Δscore | -5186.749544 | -5198.649621 |
+| Avg deal-in Δscore to dealer | -6900.362263 | -6921.241774 |
+| Avg deal-in Δscore to non-dealer | -4594.414358 | -4602.814162 |
+|  |  |  |
+| Chasing riichi rate | 0.177953 | 0.168486 |
+| Riichi chased rate | 0.174718 | 0.177684 |
+| Winning rate after riichi | 0.476407 | 0.480056 |
+| Deal-in rate after riichi | 0.153066 | 0.149383 |
+| Avg riichi turn | 7.787894 | 7.792345 |
+| Avg riichi Δscore | 3083.735582 | 3162.814094 |
+|  |  |  |
+| Avg number of calls | 1.449730 | 1.438054 |
+| Winning rate after call | 0.315681 | 0.315400 |
+| Deal-in rate after call | 0.139797 | 0.132199 |
+| Avg call Δscore | 833.669134 | 859.677494 |
+|  |  |  |
+| Dealer wins/all dealer rounds | 0.233624 | 0.226936 |
+| Dealer wins/all wins | 0.276149 | 0.271523 |
+| Deal-in to dealer/all deal-ins | 0.256873 | 0.257000 |
+|  |  |  |
+| Yakuman (rate) | 2076 (0.000194564) | 4131 (0.000129054) |
+| Nagashi mangan (rate) | 839 (0.000078632) | 2327 (0.000072696) |
 
 </details>
 

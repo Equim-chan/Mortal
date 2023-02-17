@@ -140,8 +140,8 @@ Rounds as dealer {}
 4th (rate)       {} ({:.6})
 Tobi(rate)       {} ({:.6})
 Avg rank         {:.6}
-Total pt         {}
-Avg game pt      {:.6}
+Total rank pt    {}
+Avg rank pt      {:.6}
 Total Δscore     {}
 Avg game Δscore  {:.6}
 Avg round Δscore {:.6}
