@@ -3,9 +3,8 @@
 </p>
 
 # Mortal
-
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Equim-chan/Mortal/libriichi.yml?branch=main)](https://github.com/Equim-chan/Mortal/actions)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Equim-chan/Mortal/docs.yml?branch=main)](https://mortal.ekyu.moe)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Equim-chan/Mortal/libriichi.yml?branch=main)](https://github.com/Equim-chan/Mortal/actions/workflows/libriichi.yml)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Equim-chan/Mortal/docs.yml?branch=main&label=docs)](https://mortal.ekyu.moe)
 [![dependency status](https://deps.rs/repo/github/Equim-chan/Mortal/status.svg)](https://deps.rs/repo/github/Equim-chan/Mortal)
 ![GitHub top language](https://img.shields.io/github/languages/top/Equim-chan/Mortal)
 ![Lines of code](https://img.shields.io/tokei/lines/github/Equim-chan/Mortal)
@@ -20,9 +19,9 @@ The development of Mortal is hosted on GitHub at <https://github.com/Equim-chan/
 
 ## Features
 * [x] A strong mahjong AI that is compatible with Tenhou's standard ranked rule for four-player mahjong.
-* [x] A blazingly fast mahjong emulator written in Rust with a Python interface. Up to 23K hanchans per hour[^env] can be achieved using the Rust emulator combined with Python neural network inference.
+* [x] A blazingly fast mahjong emulator written in Rust with a Python interface. Up to 40K hanchans per hour[^env] can be achieved using the Rust emulator combined with Python neural network inference.
 * [x] An easy-to-use mjai interface.
-* [x] Serve as a backend for [mjai-reviewer](https://github.com/Equim-chan/mjai-reviewer) (formerly known as akochan-reviewer).
+* [x] Serve as a backend for [mjai-reviewer](https://github.com/Equim-chan/mjai-reviewer) (previously known as akochan-reviewer).
 * [x] Free and open source.
 
 ## About this doc
@@ -46,4 +45,4 @@ You should have received a copy of the GNU Affero General Public License along w
 ### Logo and Other Assets
 [![CC BY-SA 4.0](assets/by-sa.png)](https://creativecommons.org/licenses/by-sa/4.0/)
 
-[^env]: Measured on NVIDIA® GeForce® RTX 2060 SUPER™ with AMD Ryzen™ 5 3600, game batch size 2000.
+[^env]: Evaluated on NVIDIA GeForce RTX 4090 with AMD Ryzen 9 7950X, game batch size 2000.

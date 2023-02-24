@@ -204,7 +204,7 @@ impl PlayerState {
 
             Event::None => return Ok(()),
 
-            _ => bail!("unexpected action {:?}", action),
+            _ => bail!("unexpected action {action:?}"),
         };
 
         Ok(())

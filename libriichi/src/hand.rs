@@ -21,10 +21,8 @@ pub fn hand_with_aka(s: &str) -> Result<[u8; 37]> {
     for b in s.as_bytes() {
         match b {
             b'0'..=b'9' => stack.push((b - b'0') as usize),
-            b' ' | b'\t' | b'\n' => (),
-
             b'm' | b'p' | b's' | b'z' => {
-                for &t in &stack {
+                for t in stack.drain(..) {
                     let idx = if t == 0 {
                         match b {
                             b'm' => tuz!(5mr),
@@ -38,15 +36,14 @@ pub fn hand_with_aka(s: &str) -> Result<[u8; 37]> {
                             b'p' => 1,
                             b's' => 2,
                             b'z' => 3,
-                            _ => bail!("unexpected byte {b}"),
+                            _ => unreachable!(),
                         };
                         kind * 9 + t - 1
                     };
                     ret[idx] += 1;
                 }
-                stack.clear();
             }
-
+            b' ' | b'\t' | b'\n' => (),
             _ => bail!("unexpected byte {b}"),
         };
     }

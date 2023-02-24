@@ -753,7 +753,6 @@ fn get_tile14_and_key(tiles: &[u8; 34]) -> ([u8; 14], u32) {
     let mut tile14_iter = tile14.iter_mut();
     let mut key = 0;
 
-    // let mut tile14_idx = 0;
     let mut bit_idx = -1;
     let mut prev_in_hand = None;
     for (kind, chunk) in tiles.chunks_exact(9).enumerate() {
@@ -938,7 +937,7 @@ mod test {
         test_one("23m 999p 33345666s", "9p", 4, true, true);
 
         // The 1m kan will make chuuren gone, but in this impl we don't take
-        // yaku into acccount.
+        // yaku into account.
         test_one("1113445678999m", "1m", 4, true, true);
         test_one("1113445678999m", "9m", 4, true, false);
     }

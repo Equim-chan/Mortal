@@ -129,8 +129,7 @@ impl fmt::Display for Stat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            r#"
-Games            {}
+            r#"Games            {}
 Rounds           {}
 Rounds as dealer {}
 
@@ -464,7 +463,11 @@ impl Stat {
                 let path = path?;
 
                 let mut raw_log = String::new();
-                if matches!(path.extension(), Some(s) if s.eq_ignore_ascii_case("gz")) {
+                if path
+                    .extension()
+                    .filter(|s| s.eq_ignore_ascii_case("gz"))
+                    .is_some()
+                {
                     let mut gz = GzDecoder::new(File::open(path)?);
                     gz.read_to_string(&mut raw_log)?;
                 } else {
@@ -488,7 +491,7 @@ impl Stat {
                             .sum();
                         Ok(log_stat)
                     }
-                    ev => bail!("first event is not start_game, got {:?}", ev),
+                    ev => bail!("first event is not start_game, got {ev:?}"),
                 }
             })
             .sum::<Result<_>>()?;
