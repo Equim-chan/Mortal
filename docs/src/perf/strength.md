@@ -1,14 +1,4 @@
 # Strength
-
-<style>
-.coal .best, .navy .best, .ayu .best {
-    color: lightgreen;
-}
-.light .best, .rust .best {
-    color: deeppink;
-}
-</style>
-
 ## Simulation environment
 The simulation uses a 1v3 duplicate mahjong setting as follows
 
@@ -25,7 +15,7 @@ The emulator is implemented in [`libriichi::arena`](https://github.com/Equim-cha
 
 The "rank pt" in all the tables are calculated using a distribution of [90, 45, 0, -135].
 
-The name of the <span class="best">current best model</span> is highlighted.
+The name of the <span class="best-model">current best model</span> is highlighted.
 
 ## Mortal vs akochan (jun_pt = [90, 45, 0, -135])
 Challenger is akochan and Champion is Mortal.
@@ -96,10 +86,10 @@ Challenger is akochan and Champion is Mortal.
 
 </details>
 
-### <span class="best">mortal3-b24c512-t22122709</span>
+### <span class="best-model">mortal3-b24c512-t22122709</span>
 <details>
 
-|  | akochan (x1) | **<span class="best">mortal3-b24c512-t22122709</span>** (x3) |
+|  | akochan (x1) | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x3) |
 |---:|:---|:---|
 | Games | 13152 | 39456 |
 | Rounds | 140132 | 420396 |
@@ -629,12 +619,12 @@ Swapping Challenger and Champion.
 
 </details>
 
-### <span class="best">mortal3-b24c512-t22122709</span> and mortal1-b40c192-t22040618
+### <span class="best-model">mortal3-b24c512-t22122709</span> and mortal1-b40c192-t22040618
 <details>
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | **<span class="best">mortal3-b24c512-t22122709</span>** (x1) | mortal1-b40c192-t22040618 (x3) |
+|  | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x1) | mortal1-b40c192-t22040618 (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10695634 | 32086902 |
@@ -703,7 +693,7 @@ Swapping Challenger and Champion.
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | mortal1-b40c192-t22040618 (x1) | **<span class="best">mortal3-b24c512-t22122709</span>** (x3) |
+|  | mortal1-b40c192-t22040618 (x1) | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10681846 | 32045538 |
@@ -766,12 +756,12 @@ Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
 </details>
 
-### <span class="best">mortal3-b24c512-t22122709</span> and mortal2-b75c256-t22092920
+### <span class="best-model">mortal3-b24c512-t22122709</span> and mortal2-b75c256-t22092920
 <details>
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | **<span class="best">mortal3-b24c512-t22122709</span>** (x1) | mortal2-b75c256-t22092920 (x3) |
+|  | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x1) | mortal2-b75c256-t22092920 (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10794074 | 32382222 |
@@ -840,7 +830,7 @@ Swapping Challenger and Champion.
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | mortal2-b75c256-t22092920 (x1) | **<span class="best">mortal3-b24c512-t22122709</span>** (x3) |
+|  | mortal2-b75c256-t22092920 (x1) | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10709917 | 32129751 |
@@ -904,12 +894,12 @@ Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 </details>
 
 
-### <span class="best">mortal3-b24c512-t22122709</span> and mortal2-b75c256-t22100115
+### <span class="best-model">mortal3-b24c512-t22122709</span> and mortal2-b75c256-t22100115
 <details>
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | **<span class="best">mortal3-b24c512-t22122709</span>** (x1) | mortal2-b75c256-t22100115 (x3) |
+|  | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x1) | mortal2-b75c256-t22100115 (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10580180 | 31740540 |
@@ -978,7 +968,7 @@ Swapping Challenger and Champion.
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | mortal2-b75c256-t22100115 (x1) | **<span class="best">mortal3-b24c512-t22122709</span>** (x3) |
+|  | mortal2-b75c256-t22100115 (x1) | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10643651 | 31930953 |
@@ -1041,12 +1031,12 @@ Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
 </details>
 
-### <span class="best">mortal3-b24c512-t22122709</span> and mortal3-b24c512-t22121413
+### <span class="best-model">mortal3-b24c512-t22122709</span> and mortal3-b24c512-t22121413
 <details>
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | **<span class="best">mortal3-b24c512-t22122709</span>** (x1) | mortal3-b24c512-t22121413 (x3) |
+|  | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x1) | mortal3-b24c512-t22121413 (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10672820 | 32018460 |
@@ -1115,7 +1105,7 @@ Swapping Challenger and Champion.
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | mortal3-b24c512-t22121413 (x1) | **<span class="best">mortal3-b24c512-t22122709</span>** (x3) |
+|  | mortal3-b24c512-t22121413 (x1) | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10669992 | 32009976 |
