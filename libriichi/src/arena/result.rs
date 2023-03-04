@@ -38,19 +38,24 @@ impl GameResult {
     }
 
     pub fn dump_json_log(&self) -> Result<String> {
-        let mut ret = json::to_string(&Event::StartGame {
+        let mut v = vec![];
+
+        let start_game = Event::StartGame {
             names: self.names.clone(),
             seed: Some(self.seed),
-        })? + "\n";
+        };
+        json::to_writer(&mut v, &start_game)?;
+        v.push(b'\n');
 
-        for kyoku in &self.game_log {
-            for ev in kyoku {
-                ret += &(json::to_string(ev)? + "\n");
-            }
+        for ev in self.game_log.iter().flatten() {
+            json::to_writer(&mut v, ev)?;
+            v.push(b'\n');
         }
 
-        ret += &(json::to_string(&Event::EndGame)? + "\n");
-        Ok(ret)
+        json::to_writer(&mut v, &Event::EndGame)?;
+        v.push(b'\n');
+
+        Ok(String::from_utf8(v)?)
     }
 
     pub fn kyoku_end_states(&self, perspective: u8) -> Vec<KyokuEndState> {

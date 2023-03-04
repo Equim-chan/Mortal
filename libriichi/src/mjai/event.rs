@@ -180,7 +180,7 @@ impl Event {
     pub const fn is_in_game_announce(&self) -> bool {
         matches!(
             self,
-            Event::ReachAccepted { .. } | Event::Dora { .. } | Event::Hora { .. }
+            Self::ReachAccepted { .. } | Self::Dora { .. } | Self::Hora { .. }
         )
     }
 
@@ -192,7 +192,7 @@ impl Event {
         }
 
         match self {
-            Event::StartKyoku {
+            Self::StartKyoku {
                 bakaze,
                 dora_marker,
                 tehais,
@@ -202,32 +202,24 @@ impl Event {
                 swap_tile(dora_marker);
                 tehais.iter_mut().flatten().for_each(swap_tile);
             }
-            Event::Tsumo { pai, .. } => swap_tile(pai),
-            Event::Dahai { pai, .. } => swap_tile(pai),
-            Event::Chi { pai, consumed, .. } => {
+            Self::Tsumo { pai, .. } | Self::Dahai { pai, .. } => swap_tile(pai),
+            Self::Chi { pai, consumed, .. } | Self::Pon { pai, consumed, .. } => {
                 swap_tile(pai);
                 consumed.iter_mut().for_each(swap_tile);
             }
-            Event::Pon { pai, consumed, .. } => {
+            Self::Daiminkan { pai, consumed, .. } | Self::Kakan { pai, consumed, .. } => {
                 swap_tile(pai);
                 consumed.iter_mut().for_each(swap_tile);
             }
-            Event::Daiminkan { pai, consumed, .. } => {
-                swap_tile(pai);
-                consumed.iter_mut().for_each(swap_tile);
-            }
-            Event::Kakan { pai, consumed, .. } => {
-                swap_tile(pai);
-                consumed.iter_mut().for_each(swap_tile);
-            }
-            Event::Ankan { consumed, .. } => consumed.iter_mut().for_each(swap_tile),
-            Event::Dora { dora_marker } => swap_tile(dora_marker),
-            Event::Hora { ura_markers, .. } => ura_markers.iter_mut().flatten().for_each(swap_tile),
+            Self::Ankan { consumed, .. } => consumed.iter_mut().for_each(swap_tile),
+            Self::Dora { dora_marker } => swap_tile(dora_marker),
+            Self::Hora { ura_markers, .. } => ura_markers.iter_mut().flatten().for_each(swap_tile),
             _ => (),
         }
     }
 }
 
+#[allow(clippy::use_self)] // false positive
 impl<const MIN: u8, const MAX: u8> TryFrom<BoundedU8<MIN, MAX>> for u8 {
     type Error = OutOfBoundError;
 

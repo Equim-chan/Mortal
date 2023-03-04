@@ -175,7 +175,7 @@ impl TryFrom<usize> for Tile {
     type Error = InvalidTile;
 
     fn try_from(v: usize) -> Result<Self, Self::Error> {
-        if v > Tile::MAX {
+        if v > Self::MAX {
             Err(InvalidTile::Number(v))
         } else {
             // SAFETY: `v` has been proven to be in bound.

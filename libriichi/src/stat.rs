@@ -487,7 +487,7 @@ impl Stat {
                             .iter()
                             .enumerate()
                             .filter(|(_, name)| name == &player_name)
-                            .map(|(i, _)| Stat::from_game(&events, i as u8))
+                            .map(|(i, _)| Self::from_game(&events, i as u8))
                             .sum();
                         Ok(log_stat)
                     }

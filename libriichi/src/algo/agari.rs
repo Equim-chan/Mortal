@@ -150,8 +150,8 @@ impl From<u32> for Div {
 impl PartialEq for Agari {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Agari::Yakuman(l), Agari::Yakuman(r)) => l == r,
-            (Agari::Normal { fu: lf, han: lh }, Agari::Normal { fu: rf, han: rh }) => {
+            (Self::Yakuman(l), Self::Yakuman(r)) => l == r,
+            (Self::Normal { fu: lf, han: lh }, Self::Normal { fu: rf, han: rh }) => {
                 lf == rf && lh == rh
             }
             _ => false,
@@ -168,10 +168,10 @@ impl PartialOrd for Agari {
 impl Ord for Agari {
     fn cmp(&self, other: &Self) -> Ordering {
         match (self, other) {
-            (Agari::Yakuman(l), Agari::Yakuman(r)) => l.cmp(r),
-            (Agari::Yakuman(_), Agari::Normal { .. }) => Ordering::Greater,
-            (Agari::Normal { .. }, Agari::Yakuman(..)) => Ordering::Less,
-            (Agari::Normal { fu: lf, han: lh }, Agari::Normal { fu: rf, han: rh }) => {
+            (Self::Yakuman(l), Self::Yakuman(r)) => l.cmp(r),
+            (Self::Yakuman(_), Self::Normal { .. }) => Ordering::Greater,
+            (Self::Normal { .. }, Self::Yakuman(..)) => Ordering::Less,
+            (Self::Normal { fu: lf, han: lh }, Self::Normal { fu: rf, han: rh }) => {
                 match lh.cmp(rh) {
                     Ordering::Equal => lf.cmp(rf),
                     v => v,
@@ -185,8 +185,8 @@ impl Agari {
     #[must_use]
     pub fn into_point(self, is_oya: bool) -> Point {
         match self {
-            Agari::Normal { fu, han } => Point::calc(fu, han, is_oya),
-            Agari::Yakuman(n) => Point::yakuman(is_oya, n as i32),
+            Self::Normal { fu, han } => Point::calc(fu, han, is_oya),
+            Self::Yakuman(n) => Point::yakuman(is_oya, n as i32),
         }
     }
 }
@@ -869,9 +869,7 @@ pub fn check_ankan_after_riichi(tehai: &[u8; 34], len_div3: u8, tile: Tile, stri
             tehai_after[tile_id] = 0;
             tehai_after[wait] += 1;
             let (_, key) = get_tile14_and_key(&tehai_after);
-            let divs_after = if let Some(divs) = AGARI_TABLE.get(&key) {
-                divs
-            } else {
+            let Some(divs_after) = AGARI_TABLE.get(&key) else {
                 // The wait tile set will get smaller after kan.
                 return false;
             };

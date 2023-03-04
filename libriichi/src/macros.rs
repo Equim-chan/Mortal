@@ -151,6 +151,7 @@ macro_rules! tuz {
 #[macro_export]
 macro_rules! t {
     ($s:tt) => {
+        // SAFETY: All possible values of `tu8!` are valid for `Tile`.
         unsafe { $crate::tile::Tile::new_unchecked($crate::tu8!($s)) }
     };
     ($first:tt, $($left:tt),*) => {
