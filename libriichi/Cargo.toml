@@ -27,6 +27,7 @@ flate2 = "1"
 sha3 = "0.10"
 glob = "0.3"
 derivative = "2"
+ahash = "0.8"
 indicatif = { version = "0.17", features = ["rayon"] }
 tinyvec = { version = "1", features = ["alloc", "serde"] }
 serde = { version = "1", features = ["derive"] }

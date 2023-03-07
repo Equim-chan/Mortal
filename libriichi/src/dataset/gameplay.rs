@@ -7,8 +7,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::mem;
 
+use ahash::AHashSet;
 use anyhow::{bail, Context, Result};
-use boomphf::hashmap::BoomHashMap;
 use derivative::Derivative;
 use flate2::read::GzDecoder;
 use ndarray::prelude::*;
@@ -38,9 +38,9 @@ pub struct GameplayLoader {
     augmented: bool,
 
     #[derivative(Debug = "ignore")]
-    player_names_set: BoomHashMap<String, ()>,
+    player_names_set: AHashSet<String>,
     #[derivative(Debug = "ignore")]
-    excludes_set: BoomHashMap<String, ()>,
+    excludes_set: AHashSet<String>,
 }
 
 #[pyclass]
@@ -98,15 +98,10 @@ impl GameplayLoader {
         always_include_kan_select: bool,
         augmented: bool,
     ) -> Self {
-        let mut player_names = player_names.unwrap_or_default();
-        player_names.sort_unstable();
-        player_names.dedup();
-        let player_names_set = BoomHashMap::new(player_names.clone(), vec![(); player_names.len()]);
-
-        let mut excludes = excludes.unwrap_or_default();
-        excludes.sort_unstable();
-        excludes.dedup();
-        let excludes_set = BoomHashMap::new(excludes.clone(), vec![(); excludes.len()]);
+        let player_names = player_names.unwrap_or_default();
+        let player_names_set = player_names.clone().into_iter().collect();
+        let excludes = excludes.unwrap_or_default();
+        let excludes_set = excludes.clone().into_iter().collect();
 
         Self {
             version,
@@ -176,10 +171,10 @@ impl GameplayLoader {
                 .enumerate()
                 .filter(|(_, name)| {
                     if !self.player_names_set.is_empty() {
-                        return self.player_names_set.get_key_id(*name).is_some();
+                        return self.player_names_set.contains(*name);
                     }
                     if !self.excludes_set.is_empty() {
-                        return self.excludes_set.get_key_id(*name).is_none();
+                        return !self.excludes_set.contains(*name);
                     }
                     true
                 })
