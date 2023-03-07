@@ -17,17 +17,18 @@ use boomphf::hashmap::BoomHashMap;
 use byteorder::{LittleEndian, ReadBytesExt};
 use flate2::read::GzDecoder;
 use once_cell::sync::Lazy;
+use tinyvec::ArrayVec;
 
 const AGARI_TABLE_SIZE: usize = 9_362;
 
-static AGARI_TABLE: Lazy<BoomHashMap<u32, Vec<Div>>> = Lazy::new(|| {
-    let mut raw = GzDecoder::new(&include_bytes!("data/agari.bin.gz")[..]);
+static AGARI_TABLE: Lazy<BoomHashMap<u32, ArrayVec<[Div; 4]>>> = Lazy::new(|| {
+    let mut raw = GzDecoder::new(include_bytes!("data/agari.bin.gz").as_slice());
 
     let (keys, values): (Vec<_>, Vec<_>) = (0..AGARI_TABLE_SIZE)
         .map(|_| {
             let key = raw.read_u32::<LittleEndian>().unwrap();
             let v_size = raw.read_u8().unwrap();
-            let value: Vec<_> = (0..v_size)
+            let value = (0..v_size)
                 .map(|_| raw.read_u32::<LittleEndian>().unwrap())
                 .map(Div::from)
                 .collect();
@@ -49,11 +50,11 @@ static AGARI_TABLE: Lazy<BoomHashMap<u32, Vec<Div>>> = Lazy::new(|| {
     BoomHashMap::new(keys, values)
 });
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 struct Div {
     pair_idx: u8,
-    kotsu_idxs: Vec<u8>,
-    shuntsu_idxs: Vec<u8>,
+    kotsu_idxs: ArrayVec<[u8; 4]>,
+    shuntsu_idxs: ArrayVec<[u8; 4]>,
     has_chitoi: bool,
     has_chuuren: bool,
     has_ittsuu: bool,
@@ -94,13 +95,13 @@ pub struct AgariCalculator<'a> {
     pub is_ron: bool,
 }
 
-struct DivWorker<'sup, 'a> {
-    sup: &'a AgariCalculator<'sup>,
+struct DivWorker<'a> {
+    sup: &'a AgariCalculator<'a>,
     tile14: &'a [u8; 14],
     div: &'a Div,
     pair_tile: u8,
-    menzen_kotsu: Vec<u8>,
-    menzen_shuntsu: Vec<u8>,
+    menzen_kotsu: ArrayVec<[u8; 4]>,
+    menzen_shuntsu: ArrayVec<[u8; 4]>,
 
     /// Used in fu calc and sanankou condition.
     ///
@@ -119,12 +120,12 @@ impl From<u32> for Div {
         let pair_idx = ((v >> 6) & 0b1111) as u8;
 
         let kotsu_count = v & 0b111;
-        let kotsu_idxs: Vec<_> = (0..kotsu_count)
+        let kotsu_idxs = (0..kotsu_count)
             .map(|i| ((v >> (10 + i * 4)) & 0b1111) as u8)
             .collect();
 
         let shuntsu_count = (v >> 3) & 0b111;
-        let shuntsu_idxs: Vec<_> = (kotsu_count..kotsu_count + shuntsu_count)
+        let shuntsu_idxs = (kotsu_count..kotsu_count + shuntsu_count)
             .map(|i| ((v >> (10 + i * 4)) & 0b1111) as u8)
             .collect();
 
@@ -275,15 +276,15 @@ impl AgariCalculator<'_> {
     }
 }
 
-impl<'sup, 'a> DivWorker<'sup, 'a> {
-    fn new(calc: &'a AgariCalculator<'sup>, tile14: &'a [u8; 14], div: &'a Div) -> Self {
+impl<'a> DivWorker<'a> {
+    fn new(calc: &'a AgariCalculator<'a>, tile14: &'a [u8; 14], div: &'a Div) -> Self {
         let pair_tile = tile14[div.pair_idx as usize];
-        let menzen_kotsu: Vec<_> = div
+        let menzen_kotsu = div
             .kotsu_idxs
             .iter()
             .map(|&idx| tile14[idx as usize])
             .collect();
-        let menzen_shuntsu: Vec<_> = div
+        let menzen_shuntsu = div
             .shuntsu_idxs
             .iter()
             .map(|&idx| tile14[idx as usize])
