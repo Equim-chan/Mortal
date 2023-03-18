@@ -116,7 +116,7 @@ impl Agent for AkochanAgent {
                 can_act: Some(i == events.len() - 1),
             };
             json::to_writer(&mut self.stdin, &v)?;
-            self.stdin.write_all(&[b'\n'])?;
+            self.stdin.write_all(b"\n")?;
             self.stdin.flush()?;
         }
         self.event_idx = events.len();
@@ -158,14 +158,14 @@ impl Agent for AkochanAgent {
             "aka_flag": true,
         });
         json::to_writer(&mut self.stdin, &start_game)?;
-        self.stdin.write_all(&[b'\n'])?;
+        self.stdin.write_all(b"\n")?;
         self.stdin.flush()?;
         Ok(())
     }
 
     fn end_kyoku(&mut self) -> Result<()> {
         json::to_writer(&mut self.stdin, &Event::EndKyoku)?;
-        self.stdin.write_all(&[b'\n'])?;
+        self.stdin.write_all(b"\n")?;
         self.stdin.flush()?;
         self.event_idx = 0;
         self.naki_tx = None;
@@ -174,7 +174,7 @@ impl Agent for AkochanAgent {
 
     fn end_game(&mut self, _: &GameResult) -> Result<()> {
         json::to_writer(&mut self.stdin, &Event::EndGame)?;
-        self.stdin.write_all(&[b'\n'])?;
+        self.stdin.write_all(b"\n")?;
         self.stdin.flush()?;
         Ok(())
     }
