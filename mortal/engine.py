@@ -99,6 +99,7 @@ class ExampleMjaiLogEngine:
                 tile = state.last_self_tsumo()
                 res.append(json.dumps({
                     'type': 'dahai',
+                    'actor': player_id,
                     'pai': tile,
                     'tsumogiri': True,
                 }))
