@@ -21,7 +21,6 @@ use tinyvec::{ArrayVec, TinyVec};
 #[derive(Debug, Clone, Derivative)]
 #[derivative(Default)]
 pub struct PlayerState {
-    #[pyo3(get)]
     pub(super) player_id: u8,
 
     /// Does not include aka.

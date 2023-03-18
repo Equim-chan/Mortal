@@ -15,6 +15,7 @@ use ndarray::prelude::*;
 use rand::prelude::*;
 use rand_chacha::ChaCha12Rng;
 use sha3::{Digest, Sha3_256};
+use tinyvec::ArrayVec;
 
 /// The fields are all pub on purpose so the caller will be able to set the
 /// yama, doras, scores directly.
@@ -267,7 +268,7 @@ impl BoardState {
             });
 
         if !has_nagashi_mangan {
-            let tenpai_actors: Vec<_> = self
+            let tenpai_actors: ArrayVec<[_; 4]> = self
                 .player_states
                 .iter()
                 .enumerate()

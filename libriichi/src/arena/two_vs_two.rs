@@ -1,8 +1,8 @@
 use super::game::{BatchGame, Index};
 use super::result::GameResult;
-use crate::agent::{AkochanAgent, BatchAgent, MortalBatchAgent};
+use crate::agent::{new_py_agent, AkochanAgent, BoxedBatchAgent};
 use std::fs::{self, File};
-use std::io::prelude::*;
+use std::io;
 use std::iter;
 use std::path::PathBuf;
 use std::time::Duration;
@@ -45,8 +45,8 @@ impl TwoVsTwo {
         // tasks.
         py.allow_threads(move || {
             self.run_batch(
-                |player_ids| MortalBatchAgent::new(challenger, player_ids),
-                |player_ids| MortalBatchAgent::new(champion, player_ids),
+                |player_ids| new_py_agent(challenger, player_ids),
+                |player_ids| new_py_agent(champion, player_ids),
                 seed_start,
                 seed_count,
             )?;
@@ -63,8 +63,8 @@ impl TwoVsTwo {
     ) -> Result<()> {
         py.allow_threads(move || {
             self.run_batch(
-                AkochanAgent::new_batched,
-                |player_ids| MortalBatchAgent::new(engine, player_ids),
+                |player_ids| AkochanAgent::new_batched(player_ids).map(|a| Box::new(a) as _),
+                |player_ids| new_py_agent(engine, player_ids),
                 seed_start,
                 seed_count,
             )?;
@@ -81,8 +81,8 @@ impl TwoVsTwo {
     ) -> Result<()> {
         py.allow_threads(move || {
             self.run_batch(
-                |player_ids| MortalBatchAgent::new(engine, player_ids),
-                AkochanAgent::new_batched,
+                |player_ids| new_py_agent(engine, player_ids),
+                |player_ids| AkochanAgent::new_batched(player_ids).map(|a| Box::new(a) as _),
                 seed_start,
                 seed_count,
             )?;
@@ -99,8 +99,8 @@ impl TwoVsTwo {
     ) -> Result<()> {
         py.allow_threads(move || {
             self.run_one(
-                |player_ids| MortalBatchAgent::new(engine, player_ids),
-                AkochanAgent::new_batched,
+                |player_ids| new_py_agent(engine, player_ids),
+                |player_ids| AkochanAgent::new_batched(player_ids).map(|a| Box::new(a) as _),
                 seed,
                 split,
             )?;
@@ -110,7 +110,7 @@ impl TwoVsTwo {
 }
 
 impl TwoVsTwo {
-    pub fn run_batch<C, M, CA, MA>(
+    pub fn run_batch<C, M>(
         &self,
         new_challenger_agent: C,
         new_champion_agent: M,
@@ -118,10 +118,8 @@ impl TwoVsTwo {
         seed_count: u64,
     ) -> Result<Vec<GameResult>>
     where
-        C: FnOnce(&[u8]) -> Result<CA>,
-        M: FnOnce(&[u8]) -> Result<MA>,
-        CA: BatchAgent + 'static,
-        MA: BatchAgent + 'static,
+        C: FnOnce(&[u8]) -> Result<BoxedBatchAgent>,
+        M: FnOnce(&[u8]) -> Result<BoxedBatchAgent>,
     {
         if let Some(dir) = &self.log_dir {
             fs::create_dir_all(dir)?;
@@ -140,54 +138,56 @@ impl TwoVsTwo {
             .flat_map(|seed| iter::repeat((seed, seed_start.1)).take(2))
             .collect();
 
-        let challenger_player_ids: Vec<_> = [
-            0, 2, // A
-            1, 3, // B
-        ]
-        .into_iter()
-        .cycle()
-        .take(seed_count as usize * 4)
-        .collect();
-        let champion_player_ids: Vec<_> = [
-            1, 3, // A
-            0, 2, // B
-        ]
-        .into_iter()
-        .cycle()
-        .take(seed_count as usize * 4)
-        .collect();
+        let challenger_player_ids_per_seed = [
+            0, 2, // split A
+            1, 3, // split B
+        ];
+        let challenger_player_ids: Vec<_> = challenger_player_ids_per_seed
+            .into_iter()
+            .cycle()
+            .take(seed_count as usize * challenger_player_ids_per_seed.len())
+            .collect();
 
-        let mut agents: [Box<dyn BatchAgent>; 2] = [
-            Box::new(new_challenger_agent(&challenger_player_ids)?),
-            Box::new(new_champion_agent(&champion_player_ids)?),
+        let champion_player_ids_per_seed = [
+            1, 3, // split A
+            0, 2, // split B
+        ];
+        let champion_player_ids: Vec<_> = champion_player_ids_per_seed
+            .into_iter()
+            .cycle()
+            .take(seed_count as usize * champion_player_ids_per_seed.len())
+            .collect();
+
+        let mut agents = [
+            new_challenger_agent(&challenger_player_ids)?,
+            new_champion_agent(&champion_player_ids)?,
         ];
         let batch_game = BatchGame::tenhou_hanchan(self.disable_progress_bar);
 
         let mut challenger_idx = 0;
         let mut champion_idx = 0;
-        let mut make_idx_group = |agent_idxs: [_; 4]| {
-            agent_idxs.map(|agent_idx| {
-                let player_id_idx = if agent_idx == 0 {
-                    &mut challenger_idx
-                } else {
-                    &mut champion_idx
-                };
-                let ret = Index {
-                    agent_idx,
-                    player_id_idx: *player_id_idx,
-                };
-                *player_id_idx += 1;
-                ret
-            })
-        };
-        let indexes: Vec<_> = (0..seed_count)
-            .flat_map(|_| {
-                [
-                    // split A
-                    make_idx_group([0, 1, 0, 1]),
-                    // split B
-                    make_idx_group([1, 0, 1, 0]),
-                ]
+        let agent_idxs_per_seed = [
+            [0, 1, 0, 1], // split A
+            [1, 0, 1, 0], // split B
+        ];
+        let indexes: Vec<_> = agent_idxs_per_seed
+            .into_iter()
+            .cycle()
+            .take(seed_count as usize * agent_idxs_per_seed.len())
+            .map(|agent_idxs_per_split| {
+                agent_idxs_per_split.map(|agent_idx| {
+                    let player_id_idx = if agent_idx == 0 {
+                        &mut challenger_idx
+                    } else {
+                        &mut champion_idx
+                    };
+                    let ret = Index {
+                        agent_idx,
+                        player_id_idx: *player_id_idx,
+                    };
+                    *player_id_idx += 1;
+                    ret
+                })
             })
             .collect();
 
@@ -199,7 +199,7 @@ impl TwoVsTwo {
             let bar = if self.disable_progress_bar {
                 ProgressBar::hidden()
             } else {
-                ProgressBar::new(seed_count * 4)
+                ProgressBar::new(seed_count * 2)
             };
             const TEMPLATE: &str = "[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%";
             bar.set_style(ProgressStyle::with_template(TEMPLATE)?.progress_chars("#-"));
@@ -223,12 +223,8 @@ impl TwoVsTwo {
 
                     let log = game_result.dump_json_log()?;
                     let mut comp = GzEncoder::new(log.as_bytes(), Compression::best());
-                    let mut data = vec![];
-                    comp.read_to_end(&mut data)?;
-
                     let mut f = File::create(filename)?;
-                    f.write_all(&data)?;
-                    f.sync_all()?;
+                    io::copy(&mut comp, &mut f)?;
 
                     anyhow::Ok(())
                 })?;
@@ -237,18 +233,16 @@ impl TwoVsTwo {
         Ok(results)
     }
 
-    pub fn run_one<T, R, TA, RA>(
+    pub fn run_one<C, M>(
         &self,
-        new_challenger_agent: T,
-        new_champion_agent: R,
+        new_challenger_agent: C,
+        new_champion_agent: M,
         seed: (u64, u64),
         split: usize, // must be within 0..2
     ) -> Result<GameResult>
     where
-        T: FnOnce(&[u8]) -> Result<TA>,
-        R: FnOnce(&[u8]) -> Result<RA>,
-        TA: BatchAgent + 'static,
-        RA: BatchAgent + 'static,
+        C: FnOnce(&[u8]) -> Result<BoxedBatchAgent>,
+        M: FnOnce(&[u8]) -> Result<BoxedBatchAgent>,
     {
         if let Some(dir) = &self.log_dir {
             fs::create_dir_all(dir)?;
@@ -264,9 +258,9 @@ impl TwoVsTwo {
         let challenger_player_ids = if split == 0 { [0, 2] } else { [1, 3] };
         let champion_player_ids = if split == 0 { [1, 3] } else { [0, 2] };
 
-        let mut agents: [Box<dyn BatchAgent>; 2] = [
-            Box::new(new_challenger_agent(&challenger_player_ids)?),
-            Box::new(new_champion_agent(&champion_player_ids)?),
+        let mut agents = [
+            new_challenger_agent(&challenger_player_ids)?,
+            new_champion_agent(&champion_player_ids)?,
         ];
         let batch_game = BatchGame::tenhou_hanchan(self.disable_progress_bar);
 
@@ -322,12 +316,8 @@ impl TwoVsTwo {
 
             let log = results[0].dump_json_log()?;
             let mut comp = GzEncoder::new(log.as_bytes(), Compression::best());
-            let mut data = vec![];
-            comp.read_to_end(&mut data)?;
-
             let mut f = File::create(filename)?;
-            f.write_all(&data)?;
-            f.sync_all()?;
+            io::copy(&mut comp, &mut f)?;
         }
 
         Ok(results.into_iter().next().unwrap())

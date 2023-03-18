@@ -1,6 +1,6 @@
 use super::board::{Board, BoardState, Poll};
 use super::result::GameResult;
-use crate::agent::BatchAgent;
+use crate::agent::BoxedBatchAgent;
 use crate::mjai::EventExt;
 use std::collections::VecDeque;
 use std::mem;
@@ -56,7 +56,7 @@ struct Game {
 }
 
 impl Game {
-    fn poll(&mut self, agents: &mut [Box<dyn BatchAgent>]) -> Result<()> {
+    fn poll(&mut self, agents: &mut [BoxedBatchAgent]) -> Result<()> {
         if self.ended {
             return Ok(());
         }
@@ -174,7 +174,7 @@ impl Game {
         Ok(())
     }
 
-    fn commit(&mut self, agents: &mut [Box<dyn BatchAgent>]) -> Result<Option<GameResult>> {
+    fn commit(&mut self, agents: &mut [BoxedBatchAgent]) -> Result<Option<GameResult>> {
         if self.ended {
             if self.kyotaku > 0 {
                 *self.scores.iter_mut().min_by_key(|s| -**s).unwrap() += self.kyotaku as i32 * 1000;
@@ -231,7 +231,7 @@ impl BatchGame {
 
     pub fn run(
         &self,
-        agents: &mut [Box<dyn BatchAgent>],
+        agents: &mut [BoxedBatchAgent],
         indexes: &[[Index; 4]],
         seeds: &[(u64, u64)],
     ) -> Result<Vec<GameResult>> {
@@ -320,14 +320,14 @@ impl BatchGame {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::agent::{BatchAgent, Tsumogiri};
+    use crate::agent::Tsumogiri;
 
     #[test]
     fn tsumogiri() {
         let g = BatchGame::tenhou_hanchan(true);
-        let mut agents: Vec<Box<dyn BatchAgent>> = vec![
-            Box::new(Tsumogiri::new_batched(&[0, 1, 2, 3]).unwrap()),
-            Box::new(Tsumogiri::new_batched(&[3, 2, 1, 0]).unwrap()),
+        let mut agents = [
+            Box::new(Tsumogiri::new_batched(&[0, 1, 2, 3]).unwrap()) as _,
+            Box::new(Tsumogiri::new_batched(&[3, 2, 1, 0]).unwrap()) as _,
         ];
         let indexes = &[
             [
