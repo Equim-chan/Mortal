@@ -13,5 +13,3 @@ pub use mjai_log::MjaiLogBatchAgent;
 pub use mortal::MortalBatchAgent;
 pub use py_agent::new_py_agent;
 pub use tsumogiri::Tsumogiri;
-
-pub type BoxedBatchAgent = Box<dyn BatchAgent + 'static>;

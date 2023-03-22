@@ -73,7 +73,6 @@ impl MjaiLogBatchAgent {
             let ev = json::from_str(&s)?;
             self.reactions.push(Some(ev));
         }
-        ensure!(self.reactions.iter().all(|s| s.is_some()));
 
         Ok(())
     }

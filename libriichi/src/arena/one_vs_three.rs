@@ -1,6 +1,6 @@
 use super::game::{BatchGame, Index};
 use super::result::GameResult;
-use crate::agent::{new_py_agent, AkochanAgent, BoxedBatchAgent};
+use crate::agent::{new_py_agent, AkochanAgent, BatchAgent};
 use std::fs::{self, File};
 use std::io;
 use std::iter;
@@ -121,8 +121,8 @@ impl OneVsThree {
         seed_count: u64,
     ) -> Result<Vec<GameResult>>
     where
-        C: FnOnce(&[u8]) -> Result<BoxedBatchAgent>,
-        M: FnOnce(&[u8]) -> Result<BoxedBatchAgent>,
+        C: FnOnce(&[u8]) -> Result<Box<dyn BatchAgent>>,
+        M: FnOnce(&[u8]) -> Result<Box<dyn BatchAgent>>,
     {
         if let Some(dir) = &self.log_dir {
             fs::create_dir_all(dir)?;

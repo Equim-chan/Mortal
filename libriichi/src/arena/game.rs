@@ -1,6 +1,6 @@
 use super::board::{Board, BoardState, Poll};
 use super::result::GameResult;
-use crate::agent::BoxedBatchAgent;
+use crate::agent::BatchAgent;
 use crate::mjai::EventExt;
 use std::collections::VecDeque;
 use std::mem;
@@ -56,7 +56,7 @@ struct Game {
 }
 
 impl Game {
-    fn poll(&mut self, agents: &mut [BoxedBatchAgent]) -> Result<()> {
+    fn poll(&mut self, agents: &mut [Box<dyn BatchAgent>]) -> Result<()> {
         if self.ended {
             return Ok(());
         }
@@ -174,7 +174,7 @@ impl Game {
         Ok(())
     }
 
-    fn commit(&mut self, agents: &mut [BoxedBatchAgent]) -> Result<Option<GameResult>> {
+    fn commit(&mut self, agents: &mut [Box<dyn BatchAgent>]) -> Result<Option<GameResult>> {
         if self.ended {
             if self.kyotaku > 0 {
                 *self.scores.iter_mut().min_by_key(|s| -**s).unwrap() += self.kyotaku as i32 * 1000;
@@ -231,7 +231,7 @@ impl BatchGame {
 
     pub fn run(
         &self,
-        agents: &mut [BoxedBatchAgent],
+        agents: &mut [Box<dyn BatchAgent>],
         indexes: &[[Index; 4]],
         seeds: &[(u64, u64)],
     ) -> Result<Vec<GameResult>> {

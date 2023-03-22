@@ -1,4 +1,4 @@
-use super::{BoxedBatchAgent, MjaiLogBatchAgent, MortalBatchAgent};
+use super::{BatchAgent, MjaiLogBatchAgent, MortalBatchAgent};
 use std::str::FromStr;
 
 use anyhow::{bail, Error, Result};
@@ -21,7 +21,7 @@ impl FromStr for EngineType {
     }
 }
 
-pub fn new_py_agent(engine: PyObject, player_ids: &[u8]) -> Result<BoxedBatchAgent> {
+pub fn new_py_agent(engine: PyObject, player_ids: &[u8]) -> Result<Box<dyn BatchAgent>> {
     let engine_type = Python::with_gil(|py| {
         engine
             .as_ref(py)
