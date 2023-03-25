@@ -22,6 +22,7 @@ class State:
     dir_lock: Lock
     param_lock: Lock
     buffer_size: int
+    submission_id: int
     oracle_param: Optional[OrderedDict]
     mortal_param: Optional[OrderedDict]
     dqn_param: Optional[OrderedDict]
@@ -76,10 +77,11 @@ class Handler(BaseRequestHandler):
     def submit_replay(self, msg):
         with S.dir_lock:
             for filename, content in msg['logs'].items():
-                filepath = path.join(S.buffer_dir, filename)
+                filepath = path.join(S.buffer_dir, f'{S.submission_id}_{filename}')
                 with open(filepath, 'wb') as f:
                     f.write(content)
             S.buffer_size += len(msg['logs'])
+            S.submission_id += 1
             logging.info(f'total buffer size: {S.buffer_size}')
 
     def submit_param(self, msg):
@@ -137,6 +139,7 @@ def main():
         dir_lock = Lock(),
         param_lock = Lock(),
         buffer_size = 0, # protected by dir_lock
+        submission_id = 0, # protected by dir_lock
         oracle_param = None, # protected by param_lock
         mortal_param = None, # protected by param_lock
         dqn_param = None, # protected by param_lock
