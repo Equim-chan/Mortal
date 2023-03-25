@@ -211,15 +211,10 @@ impl TwoVsTwo {
                 .enumerate()
                 .try_for_each(|(i, game_result)| {
                     let split_name = ["a", "b"][i % 2];
-                    let filename: PathBuf = [
-                        dir,
-                        &format!(
-                            "{}_{}_{split_name}.json.gz",
-                            game_result.seed.0, game_result.seed.1,
-                        ),
-                    ]
-                    .iter()
-                    .collect();
+                    let (seed, key) = game_result.seed;
+                    let filename: PathBuf = [dir, &format!("{seed}_{key}_{split_name}.json.gz")]
+                        .iter()
+                        .collect();
 
                     let log = game_result.dump_json_log()?;
                     let mut comp = GzEncoder::new(log.as_bytes(), Compression::best());
@@ -310,7 +305,8 @@ impl TwoVsTwo {
             log::info!("dumping game logs");
 
             let split_name = ["a", "b"][split];
-            let filename: PathBuf = [dir, &format!("{}_{}_{split_name}.json.gz", seed.0, seed.1)]
+            let (seed, key) = seed;
+            let filename: PathBuf = [dir, &format!("{seed}_{key}_{split_name}.json.gz")]
                 .iter()
                 .collect();
 
