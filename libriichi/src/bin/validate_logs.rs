@@ -62,8 +62,7 @@ fn process_path(path: &Path) -> Result<()> {
     let mut raw_log = String::new();
     if path
         .extension()
-        .filter(|s| s.eq_ignore_ascii_case("gz"))
-        .is_some()
+        .is_some_and(|s| s.eq_ignore_ascii_case("gz"))
     {
         let mut gz = GzDecoder::new(File::open(path)?);
         gz.read_to_string(&mut raw_log)?;
