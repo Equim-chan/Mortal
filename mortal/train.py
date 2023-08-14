@@ -72,7 +72,7 @@ def train():
 
     decay_params = []
     no_decay_params = []
-    for model in (mortal, current_dqn):
+    for model in (mortal, current_dqn, next_rank_pred):
         params_dict = {}
         to_decay = set()
         for mod_name, mod in model.named_modules():
