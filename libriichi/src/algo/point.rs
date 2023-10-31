@@ -1,150 +1,85 @@
-const OYA_RON_POINTS: &[&[i32]] = &[
-    &[],
-    &[],
-    &[],
-    &[15, 29, 58, 116], // 30
-    &[20, 39, 77],      // 40
-    &[24, 48, 96],      // 50
-    &[],
-    &[34, 68], // 70
-    &[],
-    &[44, 87], // 90
-    &[],
-    &[53, 106], // 110
-];
-
-const OYA_TSUMO_POINTS: &[&[i32]] = &[
-    &[],
-    &[],
-    &[],
-    &[5, 10, 20, 39], // 30
-    &[7, 13, 26],     // 40
-    &[8, 16, 32],     // 50
-    &[],
-    &[12, 23], // 70
-    &[],
-    &[15, 29], // 90
-    &[],
-    &[i32::MIN, 36], // 110
-];
-
-const KODOMO_RON_POINTS: &[&[i32]] = &[
-    &[],
-    &[],
-    &[],
-    &[10, 20, 39, 77], // 30
-    &[13, 26, 52],     // 40
-    &[16, 32, 64],     // 50
-    &[],
-    &[23, 45], // 70
-    &[],
-    &[29, 58], // 90
-    &[],
-    &[36, 71], // 110
-];
-
-const KODOMO_TSUMO_POINTS: &[&[(i32, i32)]] = &[
-    &[],
-    &[],
-    &[],
-    &[(3, 5), (5, 10), (10, 20), (20, 39)], // 30
-    &[(4, 7), (7, 13), (13, 26)],           // 40
-    &[(4, 8), (8, 16), (16, 32)],           // 50
-    &[],
-    &[(6, 12), (12, 13)], // 70
-    &[],
-    &[(8, 15), (15, 29)], // 90
-    &[],
-    &[(i32::MIN, i32::MIN), (18, 36)], // 110
-];
-
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct Point {
     pub ron: i32,
-    pub tsumo_oya: i32,
     pub tsumo_ko: i32,
+    pub tsumo_oya: i32,
 }
 
 impl Point {
-    #[inline]
+    /// Panics if the combinition is not possible.
+    ///
+    /// If `is_oya` holds, the `tsumo_oya` of the return value will always be `0`.
     #[must_use]
-    pub const fn tsumo_total(self, is_oya: bool) -> i32 {
-        if is_oya {
-            self.tsumo_ko * 3
-        } else {
-            self.tsumo_ko * 2 + self.tsumo_oya
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    pub const fn mangan(is_oya: bool) -> Self {
-        if is_oya {
-            Self {
-                ron: 12000,
-                tsumo_oya: 0,
-                tsumo_ko: 4000,
-            }
-        } else {
-            Self {
-                ron: 8000,
-                tsumo_oya: 4000,
-                tsumo_ko: 2000,
-            }
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    pub const fn haneman(is_oya: bool) -> Self {
-        if is_oya {
-            Self {
-                ron: 18000,
-                tsumo_oya: 0,
-                tsumo_ko: 6000,
-            }
-        } else {
-            Self {
-                ron: 12000,
-                tsumo_oya: 6000,
-                tsumo_ko: 3000,
-            }
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    pub const fn baiman(is_oya: bool) -> Self {
-        if is_oya {
-            Self {
-                ron: 24000,
-                tsumo_oya: 0,
-                tsumo_ko: 8000,
+    pub fn calc(is_oya: bool, fu: u8, han: u8) -> Self {
+        let (ron, tsumo_ko, tsumo_oya) = if is_oya {
+            match (fu, han) {
+                (20, 2) | (40, 1) => (2000, 700, 0),
+                (20, 3) | (40, 2) | (80, 1) => (3900, 1300, 0),
+                (20, 4) | (40, 3) | (80, 2) => (7700, 2600, 0),
+                // ---
+                (25, 2) | (50, 1) => (2400, 800, 0),
+                (25, 3) | (50, 2) | (100, 1) => (4800, 1600, 0),
+                (25, 4) | (50, 3) | (100, 2) => (9600, 3200, 0),
+                // ---
+                (30, 1) => (1500, 500, 0),
+                (30, 2) | (60, 1) => (2900, 1000, 0),
+                (30, 3) | (60, 2) => (5800, 2000, 0),
+                (30, 4) | (60, 3) => (11600, 3900, 0),
+                // ---
+                (70, 1) => (3400, 1200, 0),
+                (70, 2) => (6800, 2300, 0),
+                // ---
+                (90, 1) => (4400, 1500, 0),
+                (90, 2) => (8700, 2900, 0),
+                // ---
+                // theoretical value, since 110/1 tsumo is not possible
+                (110, 1) => (5300, 1800, 0),
+                (110, 2) => (10600, 3600, 0),
+                // ---
+                (_, 5) | (40.., 4) | (70.., 3) => (12000, 4000, 0),
+                (_, 6..=7) => (18000, 6000, 0),
+                (_, 8..=10) => (24000, 8000, 0),
+                (_, 11..=12) => (36000, 12000, 0),
+                (_, 13..) => (48000, 16000, 0),
+                _ => panic!("impossible combinition of {fu} fu and {han} han"),
             }
         } else {
-            Self {
-                ron: 16000,
-                tsumo_oya: 8000,
-                tsumo_ko: 4000,
+            match (fu, han) {
+                (20, 2) | (40, 1) => (1300, 400, 700),
+                (20, 3) | (40, 2) | (80, 1) => (2600, 700, 1300),
+                (20, 4) | (40, 3) | (80, 2) => (5200, 1300, 2600),
+                // ---
+                (25, 2) | (50, 1) => (1600, 400, 800),
+                (25, 3) | (50, 2) | (100, 1) => (3200, 800, 1600),
+                (25, 4) | (50, 3) | (100, 2) => (6400, 1600, 3200),
+                // ---
+                (30, 1) => (1000, 300, 500),
+                (30, 2) | (60, 1) => (2000, 500, 1000),
+                (30, 3) | (60, 2) => (3900, 1000, 2000),
+                (30, 4) | (60, 3) => (7700, 2000, 3900),
+                // ---
+                (70, 1) => (2300, 600, 1200),
+                (70, 2) => (4500, 1200, 2300),
+                // ---
+                (90, 1) => (2900, 800, 1500),
+                (90, 2) => (5800, 1500, 2900),
+                // ---
+                // theoretical value, since 110/1 tsumo is not possible
+                (110, 1) => (3600, 900, 1800),
+                (110, 2) => (7100, 1800, 3600),
+                // ---
+                (_, 5) | (40.., 4) | (70.., 3) => (8000, 2000, 4000),
+                (_, 6..=7) => (12000, 3000, 6000),
+                (_, 8..=10) => (16000, 4000, 8000),
+                (_, 11..=12) => (24000, 6000, 12000),
+                (_, 13..) => (32000, 8000, 16000),
+                _ => panic!("impossible combinition of {fu} fu and {han} han"),
             }
-        }
-    }
-
-    #[inline]
-    #[must_use]
-    pub const fn sanbaiman(is_oya: bool) -> Self {
-        if is_oya {
-            Self {
-                ron: 36000,
-                tsumo_oya: 0,
-                tsumo_ko: 12000,
-            }
-        } else {
-            Self {
-                ron: 24000,
-                tsumo_oya: 12000,
-                tsumo_ko: 6000,
-            }
+        };
+        Self {
+            ron,
+            tsumo_ko,
+            tsumo_oya,
         }
     }
 
@@ -154,65 +89,66 @@ impl Point {
         if is_oya {
             Self {
                 ron: 48000 * count,
-                tsumo_oya: 0,
                 tsumo_ko: 16000 * count,
+                tsumo_oya: 0,
             }
         } else {
             Self {
                 ron: 32000 * count,
-                tsumo_oya: 16000 * count,
                 tsumo_ko: 8000 * count,
+                tsumo_oya: 16000 * count,
             }
         }
     }
 
-    const fn mangan_up(han: u8, is_oya: bool) -> Self {
-        match han {
-            3..=5 => Self::mangan(is_oya),
-            6..=7 => Self::haneman(is_oya),
-            8..=10 => Self::baiman(is_oya),
-            11..=12 => Self::sanbaiman(is_oya),
-            _ => Self::yakuman(is_oya, 1),
-        }
-    }
-
-    /// If `is_oya` holds, the `tsumo_oya` of the return value will always be `0`.
+    #[inline]
     #[must_use]
-    pub fn calc(fu: u8, han: u8, is_oya: bool) -> Self {
-        if han >= 5 || fu >= 40 && han >= 4 {
-            return Self::mangan_up(han, is_oya);
+    pub const fn tsumo_total(self, is_oya: bool) -> i32 {
+        if is_oya {
+            self.tsumo_ko * 3
+        } else {
+            self.tsumo_ko * 2 + self.tsumo_oya
         }
+    }
+}
 
-        let (key, idx) = match fu {
-            20 | 25 => (fu as usize / 5, han as usize - 2),
-            60 | 80 | 100 => (fu as usize / 20, han as usize),
-            _ => (fu as usize / 10, han as usize - 1),
-        };
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::iter::once;
 
-        let ron_table = if is_oya {
-            OYA_RON_POINTS
-        } else {
-            KODOMO_RON_POINTS
-        };
-
-        if let Some(ron) = ron_table[key].get(idx).copied() {
-            if is_oya {
-                let tsumo = OYA_TSUMO_POINTS[key][idx];
-                Self {
-                    ron: ron * 100,
-                    tsumo_oya: 0,
-                    tsumo_ko: tsumo * 100,
+    #[test]
+    fn table() {
+        for fu in (20..=110).step_by(10).chain(once(25)) {
+            for han in 1..=14 {
+                if han == 1 && fu < 30 {
+                    continue;
                 }
-            } else {
-                let (tsumo_ko, tsumo_oya) = KODOMO_TSUMO_POINTS[key][idx];
-                Self {
-                    ron: ron * 100,
-                    tsumo_oya: tsumo_oya * 100,
-                    tsumo_ko: tsumo_ko * 100,
-                }
+
+                let base_points = if han >= 13 {
+                    8000
+                } else if han >= 11 {
+                    6000
+                } else if han >= 8 {
+                    4000
+                } else if han >= 6 {
+                    3000
+                } else if han >= 5 {
+                    2000
+                } else {
+                    (fu * 2_i32.pow(2 + han)).min(2000)
+                };
+                let get_points = |mult| (base_points * mult + 99) / 100 * 100;
+
+                let points_ko = Point::calc(false, fu as u8, han as u8);
+                assert_eq!(points_ko.tsumo_ko, get_points(1), "{fu}/{han}");
+                assert_eq!(points_ko.tsumo_oya, get_points(2), "{fu}/{han}");
+                assert_eq!(points_ko.ron, get_points(4), "{fu}/{han}");
+
+                let points_oya = Point::calc(true, fu as u8, han as u8);
+                assert_eq!(points_oya.tsumo_ko, get_points(2), "{fu}/{han}");
+                assert_eq!(points_oya.ron, get_points(6), "{fu}/{han}");
             }
-        } else {
-            Self::mangan_up(han, is_oya)
         }
     }
 }

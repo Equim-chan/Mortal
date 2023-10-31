@@ -1,12 +1,15 @@
 use super::action::ActionCandidate;
 use super::item::{ChiPon, KawaItem, Sutehai};
+use crate::algo::sp::{Candidate, ShantenCache};
 use crate::hand::tiles_to_string;
 use crate::must_tile;
 use crate::tile::Tile;
 use std::iter;
+use std::sync::Arc;
 
 use anyhow::Result;
 use derivative::Derivative;
+use parking_lot::Mutex;
 use pyo3::prelude::*;
 use serde_json as json;
 use tinyvec::{ArrayVec, TinyVec};
@@ -18,7 +21,7 @@ use tinyvec::{ArrayVec, TinyVec};
 /// Notably, `PlayerState` encodes observation features into numpy arrays which
 /// serve as inputs for deep learning model.
 #[pyclass]
-#[derive(Debug, Clone, Derivative)]
+#[derive(Clone, Derivative)]
 #[derivative(Default)]
 pub struct PlayerState {
     pub(super) player_id: u8,
@@ -35,9 +38,12 @@ pub struct PlayerState {
     #[derivative(Default(value = "[0; 34]"))]
     pub(super) dora_factor: [u8; 34],
 
-    /// For calculating `waits` and `doras_seen`.
+    /// For calculating `waits` and `doras_seen`, also for SPCalculator.
     #[derivative(Default(value = "[0; 34]"))]
     pub(super) tiles_seen: [u8; 34],
+
+    /// For SPCalculator.
+    pub(super) akas_seen: [bool; 3],
 
     #[derivative(Default(value = "[false; 34]"))]
     pub(super) keep_shanten_discards: [bool; 34],
@@ -58,12 +64,12 @@ pub struct PlayerState {
     pub(super) kyoku: u8,
     pub(super) honba: u8,
     pub(super) kyotaku: u8,
-    /// Rotated, `scores[0]` is the score of the player.
+    /// Rotated to be relative, so `scores[0]` is the score of the player.
     pub(super) scores: [i32; 4],
     pub(super) rank: u8,
     /// Relative to `player_id`.
     pub(super) oya: u8,
-    /// Including 西入 sudden deatch.
+    /// Including 西入 sudden death.
     pub(super) is_all_last: bool,
     pub(super) dora_indicators: ArrayVec<[Tile; 5]>,
 
@@ -130,8 +136,18 @@ pub struct PlayerState {
     /// For shanten calc.
     pub(super) tehai_len_div3: u8,
 
-    /// Used in can_riichi.
+    /// Used in can_riichi, also in single-player features to get the shanten
+    /// for 3n+2.
     pub(super) has_next_shanten_discard: bool,
+
+    /// Despite of its name, it is for single-player calculations only.
+    ///
+    /// The cache will be cleared at a StartKyoku event and also every time
+    /// `tehai_len_div3` changes.
+    ///
+    /// Arc Mutex is used here because we want interior mutability and also make
+    /// it trivial to Clone.
+    pub(super) shanten_cache: Arc<Mutex<ShantenCache>>,
 }
 
 #[pymethods]
@@ -198,6 +214,15 @@ impl PlayerState {
             .collect::<Vec<_>>()
             .join("\n");
 
+        let can_discard = self.last_cans.can_discard;
+        let mut sp_tables = Candidate::csv_header(can_discard).join("\t");
+        if let Ok(tables) = self.single_player_tables() {
+            for candidate in tables.max_ev_table {
+                sp_tables.push('\n');
+                sp_tables.push_str(&candidate.csv_row(can_discard).join("\t"));
+            }
+        }
+
         format!(
             r#"player (abs): {}
 oya (rel): {}
@@ -209,7 +234,7 @@ tehai: {}
 fuuro: {:?}
 ankan: {:?}
 tehai len: {}
-shanten: {}
+shanten: {} (actual: {})
 furiten: {}
 waits: {waits:?}
 dora indicators: {:?}
@@ -220,7 +245,9 @@ last self tsumo: {:?}
 last kawa tile: {:?}
 tiles left: {}
 kawa:
-{zipped_kawa}"#,
+{zipped_kawa}
+single player table (max EV):
+{sp_tables}"#,
             self.player_id,
             self.oya,
             self.bakaze,
@@ -234,6 +261,7 @@ kawa:
             self.ankan_overview[0],
             self.tehai_len_div3,
             self.shanten,
+            self.real_time_shanten(),
             self.at_furiten,
             self.dora_indicators,
             self.doras_owned,

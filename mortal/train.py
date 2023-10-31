@@ -23,7 +23,7 @@ def train():
     from player import TestPlayer
     from dataloader import FileDatasetsIter, worker_init_fn
     from lr_scheduler import LinearWarmUpCosineAnnealingLR
-    from model import Brain, DQN, NextRankPredictor
+    from model import Brain, DQN, AuxNet
     from libriichi.consts import obs_shape
     from config import config
 
@@ -44,10 +44,12 @@ def train():
     device = torch.device(config['control']['device'])
     torch.backends.cudnn.benchmark = config['control']['enable_cudnn_benchmark']
     enable_amp = config['control']['enable_amp']
+    enable_compile = config['control']['enable_compile']
 
     pts = config['env']['pts']
     gamma = config['env']['gamma']
     file_batch_size = config['dataset']['file_batch_size']
+    reserve_ratio = config['dataset']['reserve_ratio']
     num_workers = config['dataset']['num_workers']
     num_epochs = config['dataset']['num_epochs']
     enable_augmentation = config['dataset']['enable_augmentation']
@@ -58,21 +60,24 @@ def train():
     max_grad_norm = config['optim']['max_grad_norm']
 
     mortal = Brain(version=version, **config['resnet']).to(device)
-    current_dqn = DQN(version=version).to(device)
-    next_rank_pred = NextRankPredictor().to(device)
+    dqn = DQN(version=version).to(device)
+    aux_net = AuxNet((4,)).to(device)
+    all_models = (mortal, dqn, aux_net)
+    if enable_compile:
+        for m in all_models:
+            m.compile()
 
     logging.info(f'version: {version}')
-    logging.info(f'mortal params: {parameter_count(mortal):,}')
-    logging.info(f'dqn params: {parameter_count(current_dqn):,}')
-    logging.info(f'next_rank_pred params: {parameter_count(next_rank_pred):,}')
     logging.info(f'obs shape: {obs_shape(version)}')
+    logging.info(f'mortal params: {parameter_count(mortal):,}')
+    logging.info(f'dqn params: {parameter_count(dqn):,}')
+    logging.info(f'aux params: {parameter_count(aux_net):,}')
 
     mortal.freeze_bn(config['freeze_bn']['mortal'])
-    mortal.set_bn_attrs(**config['bn_attrs'])
 
     decay_params = []
     no_decay_params = []
-    for model in (mortal, current_dqn, next_rank_pred):
+    for model in all_models:
         params_dict = {}
         to_decay = set()
         for mod_name, mod in model.named_modules():
@@ -103,8 +108,8 @@ def train():
         timestamp = datetime.fromtimestamp(state['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
         logging.info(f'loaded: {timestamp}')
         mortal.load_state_dict(state['mortal'])
-        current_dqn.load_state_dict(state['current_dqn'])
-        next_rank_pred.load_state_dict(state['next_rank_pred'])
+        dqn.load_state_dict(state['current_dqn'])
+        aux_net.load_state_dict(state['aux_net'])
         if not online or state['config']['control']['online']:
             optimizer.load_state_dict(state['optimizer'])
             scheduler.load_state_dict(state['scheduler'])
@@ -122,7 +127,7 @@ def train():
         logging.info(f'device: {device}')
 
     if online:
-        submit_param(None, mortal, current_dqn, is_idle=True)
+        submit_param(None, mortal, dqn, is_idle=True)
         logging.info('param has been submitted')
 
     writer = SummaryWriter(config['control']['tensorboard_dir'])
@@ -145,10 +150,10 @@ def train():
             dirname = drain()
             file_list = list(map(lambda p: path.join(dirname, p), os.listdir(dirname)))
         else:
+            player_names_set = set()
             for filename in config['dataset']['player_names_files']:
                 with open(filename) as f:
-                    player_names.extend(filtered_trimmed_lines(f))
-            player_names_set = set(player_names)
+                    player_names_set.update(filtered_trimmed_lines(f))
             player_names = list(player_names_set)
             logging.info(f'loaded {len(player_names):,} players')
 
@@ -183,6 +188,7 @@ def train():
             file_list = file_list,
             pts = pts,
             file_batch_size = file_batch_size,
+            reserve_ratio = reserve_ratio,
             player_names = player_names,
             num_epochs = num_epochs,
             enable_augmentation = enable_augmentation,
@@ -212,15 +218,21 @@ def train():
 
             with torch.autocast(device.type, enabled=enable_amp):
                 phi = mortal(obs)
-                q_out = current_dqn(phi, masks)
+                q_out = dqn(phi, masks)
                 q = q_out[range(batch_size), actions]
                 dqn_loss = 0.5 * mse(q, q_target_mc)
                 cql_loss = 0
                 if not online:
                     cql_loss = q_out.logsumexp(-1).mean() - q.mean()
-                next_rank_logits = next_rank_pred(phi)
+
+                next_rank_logits, = aux_net(phi)
                 next_rank_loss = ce(next_rank_logits, player_ranks)
-                loss = dqn_loss + cql_loss * min_q_weight + next_rank_loss * next_rank_weight
+
+                loss = sum((
+                    dqn_loss,
+                    cql_loss * min_q_weight,
+                    next_rank_loss * next_rank_weight,
+                ))
             scaler.scale(loss / opt_step_every).backward()
 
             with torch.no_grad():
@@ -245,7 +257,7 @@ def train():
             pb.update(1)
 
             if online and steps % submit_every == 0:
-                submit_param(None, mortal, current_dqn, is_idle=False)
+                submit_param(None, mortal, dqn, is_idle=False)
                 logging.info('param has been submitted')
 
             if steps % save_every == 0:
@@ -273,8 +285,8 @@ def train():
 
                 state = {
                     'mortal': mortal.state_dict(),
-                    'current_dqn': current_dqn.state_dict(),
-                    'next_rank_pred': next_rank_pred.state_dict(),
+                    'current_dqn': dqn.state_dict(),
+                    'aux_net': aux_net.state_dict(),
                     'optimizer': optimizer.state_dict(),
                     'scheduler': scheduler.state_dict(),
                     'scaler': scaler.state_dict(),
@@ -286,13 +298,13 @@ def train():
                 torch.save(state, state_file)
 
                 if online and steps % submit_every != 0:
-                    submit_param(None, mortal, current_dqn, is_idle=False)
+                    submit_param(None, mortal, dqn, is_idle=False)
                     logging.info('param has been submitted')
 
                 if steps % test_every == 0:
-                    stat = test_player.test_play(test_games // 4, mortal, current_dqn, device)
+                    stat = test_player.test_play(test_games // 4, mortal, dqn, device)
                     mortal.train()
-                    current_dqn.train()
+                    dqn.train()
 
                     avg_pt = stat.avg_pt([90, 45, 0, -135]) # for display only, never used in training
                     better = avg_pt >= best_perf['avg_pt'] and stat.avg_rank <= best_perf['avg_rank']
@@ -365,7 +377,7 @@ def train():
         pb.close()
 
         if online:
-            submit_param(None, mortal, current_dqn, is_idle=True)
+            submit_param(None, mortal, dqn, is_idle=True)
             logging.info('param has been submitted')
 
     while True:

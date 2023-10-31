@@ -184,9 +184,7 @@ impl Event {
         )
     }
 
-    #[inline]
     pub fn augment(&mut self) {
-        #[inline]
         fn swap_tile(t: &mut Tile) {
             *t = t.augment();
         }

@@ -4,6 +4,7 @@ mod getter;
 mod item;
 mod obs_repr;
 mod player_state;
+mod sp_tables;
 mod update;
 
 #[cfg(test)]
@@ -12,6 +13,7 @@ mod test;
 use crate::py_helper::add_submodule;
 pub use action::ActionCandidate;
 pub use player_state::PlayerState;
+pub use sp_tables::SinglePlayerTables;
 
 use pyo3::prelude::*;
 

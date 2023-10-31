@@ -103,15 +103,23 @@ struct DivWorker<'a> {
     menzen_kotsu: ArrayVec<[u8; 4]>,
     menzen_shuntsu: ArrayVec<[u8; 4]>,
 
-    /// Used in fu calc and sanankou condition.
+    /// Used in fu calc and sanankou condition, indicating whether or not the
+    /// winning tile should build a minkou instead of shuntsu in an ambiguous
+    /// pattern.
     ///
-    /// If the winning tile can be just fit in a shuntsu, it always makes higher
-    /// score than it turning an existing ankou into minkou, because a penchan
-    /// or kanchan only adds 2 fu, and will not bring extra yaku (except for
-    /// pinfu, but since we have ankous it can never be pinfu), but an ankou
-    /// adds 2 or more fu and brings extra yakus like sanankou.
+    /// The winning tile should try its best to fit into a shuntsu, because that
+    /// always gives a higher score than using that winning tile to turn an
+    /// existing ankou into a minkou, because a shuntsu can only add at most 2
+    /// fu (penchan or kanchan) and does not bring extra yaku (except for pinfu,
+    /// but since we have ankou it can never be pinfu), but an ankou adds at
+    /// least 2 fu and can bring extra yakus like sanankou.
     ///
-    /// An example of this is 45556 + 5, a test case covers this.
+    /// An example of this is 45556 + 5, which could be either 456 + (55 + 5) or
+    /// 555 + (46 + 5). `menzen_kotsu` will contain 555 while `menzen_shuntsu`
+    /// will also contain 456, making it ambiguous whether the winning tile 5
+    /// should be a part of either the minkou 55 + 5 or the shuntsu 46 + 5. In
+    /// practice, the latter should be preferred because it preserves the ankou.
+    /// A test case covers this.
     winning_tile_makes_minkou: bool,
 }
 
@@ -184,9 +192,9 @@ impl Ord for Agari {
 
 impl Agari {
     #[must_use]
-    pub fn into_point(self, is_oya: bool) -> Point {
+    pub fn point(self, is_oya: bool) -> Point {
         match self {
-            Self::Normal { fu, han } => Point::calc(fu, han, is_oya),
+            Self::Normal { fu, han } => Point::calc(is_oya, fu, han),
             Self::Yakuman(n) => Point::yakuman(is_oya, n as i32),
         }
     }
@@ -205,13 +213,13 @@ impl AgariCalculator<'_> {
         self.search_yakus_impl(false)
     }
 
-    /// `additional_hans` consists of 門前清自摸和, (両)立直, 槍槓, 嶺上開花, 海
-    /// 底摸月 and 河底撈魚. 天和 and 地和 are supposed to be checked somewhere
+    /// `additional_hans` includes 門前清自摸和, (両)立直, 槍槓, 嶺上開花, 海底
+    /// 摸月 and 河底撈魚. 天和 and 地和 are supposed to be checked somewhere
     /// else other than here.
     ///
     /// `None` is returned iff `!self.has_yaku() && additional_hans == 0` holds.
     ///
-    /// This function is designed to be called by only callers who have the
+    /// This function is only supposed to be called by callers who have the
     /// knowledge of the ura doras.
     #[must_use]
     pub fn agari(&self, additional_hans: u8, doras: u8) -> Option<Agari> {
@@ -252,8 +260,8 @@ impl AgariCalculator<'_> {
             self.chis.is_empty() && self.pons.is_empty() && self.minkans.is_empty(),
         );
 
-        // Special case, because kokushi is a special shape and also cannot be combined
-        // with other div-han.
+        // Kokushi has a special pattern and cannot be combined with other
+        // pattern-based yakus.
         if self.is_menzen && shanten::calc_kokushi(self.tehai) == -1 {
             // 国士無双
             return Some(Agari::Yakuman(1));
@@ -303,21 +311,29 @@ impl<'a> DivWorker<'a> {
         ret
     }
 
+    /// For init only.
     fn winning_tile_makes_minkou(&self) -> bool {
         if !self.sup.is_ron {
+            // Tsumo agari, no way to make a minkou from the winning tile.
             return false;
         }
         if !self.menzen_kotsu.contains(&self.sup.winning_tile) {
+            // No ankou that contains the winning tile, so no ambiguous pattern
+            // at all.
             return false;
         }
 
         if self.sup.winning_tile >= 3 * 9 {
+            // If the ron winning tile is jihai and makes a kotsu, then it must
+            // be a minkou.
             return true;
         }
         let kind = self.sup.winning_tile / 9;
         let num = self.sup.winning_tile % 9;
         let low = kind * 9 + num.saturating_sub(2);
         let high = kind * 9 + num.min(6);
+        // If there is a shuntsu that can cover the winning tile, then always
+        // put the winning tile into that shuntsu.
         !(low..=high).any(|t| self.menzen_shuntsu.contains(&t))
     }
 
@@ -353,6 +369,8 @@ impl<'a> DivWorker<'a> {
             .menzen_kotsu
             .iter()
             .map(|&t| {
+                // `menzen_kotsu` are usually ankou, except when the winning
+                // tile makes a minkou and the tile is the winning tile.
                 let is_minkou = self.winning_tile_makes_minkou && t == self.sup.winning_tile;
                 match (is_minkou, must_tile!(t).is_yaokyuu()) {
                     (false, true) => 8,
@@ -418,6 +436,7 @@ impl<'a> DivWorker<'a> {
 
         if !self.winning_tile_makes_minkou {
             if self.pair_tile == self.sup.winning_tile {
+                // tanki wait
                 fu += 2;
             } else {
                 let is_kanchan_penchan = self.menzen_shuntsu.iter().any(|&s| {
@@ -687,7 +706,7 @@ impl<'a> DivWorker<'a> {
                     }
                 }
 
-                let winds = (0..4).filter(|&i| has_jihai[i]).count() as u8;
+                let winds = (0..4).filter(|&i| has_jihai[i]).count();
                 #[allow(clippy::if_same_then_else)]
                 if winds == 4 {
                     // 大四喜
@@ -701,7 +720,7 @@ impl<'a> DivWorker<'a> {
 
         if !has_tanyao {
             let mut has_jihai = false;
-            let iter_fn = |k| {
+            let is_yaokyuu = |k| {
                 let kind = k / 9;
                 if kind >= 3 {
                     has_jihai = true;
@@ -712,11 +731,11 @@ impl<'a> DivWorker<'a> {
                 }
             };
             let is_junchan_or_chanta_or_chinroutou_or_honroutou = if self.div.has_chitoi {
-                self.chitoi_pairs().all(iter_fn)
+                self.chitoi_pairs().all(is_yaokyuu)
             } else {
                 self.all_kotsu_and_kantsu()
                     .chain(iter::once(self.pair_tile))
-                    .all(iter_fn)
+                    .all(is_yaokyuu)
             };
             if is_junchan_or_chanta_or_chinroutou_or_honroutou {
                 if self.div.has_chitoi || has_toitoi {
@@ -972,7 +991,7 @@ mod test {
             winning_tile: tu8!(3m),
             is_ron: false,
         };
-        let points = calc.agari(2, 0).unwrap().into_point(true);
+        let points = calc.agari(2, 0).unwrap().point(true);
         // 立直, 門前清自摸和
         assert_eq!(
             points,
@@ -998,7 +1017,7 @@ mod test {
         };
         let yaku = calc.search_yakus().unwrap();
         assert_eq!(yaku, Agari::Normal { fu: 25, han: 3 });
-        assert_eq!(yaku.into_point(false).ron, 3200);
+        assert_eq!(yaku.point(false).ron, 3200);
 
         let tehai = hand("22334m 33p 4m").unwrap();
         let calc = AgariCalculator {

@@ -151,8 +151,8 @@ macro_rules! tuz {
 #[macro_export]
 macro_rules! t {
     ($s:tt) => {
-        // SAFETY: All possible values of `tu8!` are valid for `Tile`.
-        unsafe { $crate::tile::Tile::new_unchecked($crate::tu8!($s)) }
+        // All possible values of `tu8!` are valid for `Tile`.
+        $crate::tile::Tile::new_unchecked($crate::tu8!($s))
     };
     ($first:tt, $($left:tt),*) => {
         [$crate::t!($first), $($crate::t!($left)),*]
@@ -179,9 +179,12 @@ macro_rules! matches_tu8 {
 /// ```
 #[macro_export]
 macro_rules! must_tile {
-    ($($id:tt)*) => {
-        $crate::tile::Tile::try_from($($id)*).unwrap()
-    };
+    ($($id:tt)*) => {{
+        #[cfg(debug_assertions)]
+        { $crate::tile::Tile::try_from($($id)*).unwrap() }
+        #[cfg(not(debug_assertions))]
+        { $crate::tile::Tile::new_unchecked(($($id)*) as u8) }
+    }};
 }
 
 #[cfg(doctest)]

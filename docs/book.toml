@@ -7,7 +7,7 @@ title = "🀄️Mortal Documentation"
 description = "Mortal - a free and open source AI for Japanese mahjong"
 
 [preprocessor.admonish]
-assets_version = "2.0.0" # do not edit: managed by `mdbook-admonish install`
+assets_version = "3.0.0" # do not edit: managed by `mdbook-admonish install`
 
 [preprocessor.pagetoc]
 

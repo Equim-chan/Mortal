@@ -1,10 +1,10 @@
-use super::invisible::Invisible;
-use super::Grp;
+use super::{Grp, Invisible};
 use crate::chi_type::ChiType;
 use crate::mjai::Event;
 use crate::state::PlayerState;
+use std::array;
 use std::fs::File;
-use std::io::prelude::*;
+use std::io;
 use std::mem;
 
 use ahash::AHashSet;
@@ -46,7 +46,7 @@ pub struct GameplayLoader {
 #[pyclass]
 #[derive(Clone, Default)]
 pub struct Gameplay {
-    // one per move
+    // per move
     pub obs: Vec<Array2<f32>>,
     pub invisible_obs: Vec<Array2<f32>>,
     pub actions: Vec<i64>,
@@ -57,8 +57,8 @@ pub struct Gameplay {
     pub at_turns: Vec<u8>,
     pub shantens: Vec<i8>,
 
-    // one per game
-    pub grp: Grp, // actually per kyoku
+    // per game
+    pub grp: Grp, // actually per kyoku though
     pub player_id: u8,
     pub player_name: String,
 }
@@ -69,6 +69,7 @@ struct LoaderContext<'a> {
 
     state: PlayerState,
     kyoku_idx: usize,
+
     // fields below are only used for oracle
     opponent_states: [PlayerState; 3],
     from_rinshan: bool,
@@ -87,7 +88,7 @@ impl GameplayLoader {
         excludes = None,
         trust_seed = false,
         always_include_kan_select = true,
-        augmented = false
+        augmented = false,
     ))]
     fn new(
         version: u32,
@@ -99,10 +100,9 @@ impl GameplayLoader {
         augmented: bool,
     ) -> Self {
         let player_names = player_names.unwrap_or_default();
-        let player_names_set = player_names.clone().into_iter().collect();
+        let player_names_set = player_names.iter().cloned().collect();
         let excludes = excludes.unwrap_or_default();
-        let excludes_set = excludes.clone().into_iter().collect();
-
+        let excludes_set = excludes.iter().cloned().collect();
         Self {
             version,
             oracle,
@@ -130,7 +130,7 @@ impl GameplayLoader {
     }
 
     #[pyo3(name = "load_gz_log_files")]
-    fn load_gz_log_files_py(&self, gzip_filenames: Vec<String>) -> Result<Vec<Gameplay>> {
+    fn load_gz_log_files_py(&self, gzip_filenames: Vec<String>) -> Result<Vec<Vec<Gameplay>>> {
         self.load_gz_log_files(gzip_filenames)
     }
 
@@ -140,50 +140,47 @@ impl GameplayLoader {
 }
 
 impl GameplayLoader {
-    pub fn load_gz_log_files<V, S>(&self, gzip_filenames: V) -> Result<Vec<Gameplay>>
+    pub fn load_gz_log_files<V, S>(&self, gzip_filenames: V) -> Result<Vec<Vec<Gameplay>>>
     where
         V: IntoParallelIterator<Item = S>,
         S: AsRef<str>,
     {
-        let res: Result<Vec<Vec<_>>> = gzip_filenames
+        gzip_filenames
             .into_par_iter()
             .map(|f| {
                 let filename = f.as_ref();
                 let inner = || {
                     let file = File::open(filename)?;
-                    let mut gz = GzDecoder::new(file);
-                    let mut raw = String::new();
-                    gz.read_to_string(&mut raw)?;
+                    let gz = GzDecoder::new(file);
+                    let raw = io::read_to_string(gz)?;
                     self.load_log(&raw)
                 };
                 inner().with_context(|| format!("error when reading {filename}"))
             })
-            .collect();
-        Ok(res?.into_iter().flatten().collect())
+            .collect()
     }
 
     pub fn load_events(&self, events: &[Event]) -> Result<Vec<Gameplay>> {
         let invisibles = self.oracle.then(|| Invisible::new(events, self.trust_seed));
 
-        let idxs: ArrayVec<[u8; 4]> = match events {
-            [Event::StartGame { names, .. }, ..] => names
-                .iter()
-                .enumerate()
-                .filter(|(_, name)| {
-                    if !self.player_names_set.is_empty() {
-                        return self.player_names_set.contains(*name);
-                    }
-                    if !self.excludes_set.is_empty() {
-                        return !self.excludes_set.contains(*name);
-                    }
-                    true
-                })
-                .map(|(i, _)| i as u8)
-                .collect(),
-            _ => bail!("empty or invalid game log"),
+        let [Event::StartGame { names, .. }, ..] = events else {
+            bail!("empty or invalid game log");
         };
-
-        idxs.into_par_iter()
+        names
+            .iter()
+            .enumerate()
+            .filter(|(_, name)| {
+                if !self.player_names_set.is_empty() {
+                    return self.player_names_set.contains(*name);
+                }
+                if !self.excludes_set.is_empty() {
+                    return !self.excludes_set.contains(*name);
+                }
+                true
+            })
+            .map(|(i, _)| i as u8)
+            .collect::<ArrayVec<[_; 4]>>()
+            .into_par_iter()
             .map(|&player_id| {
                 Gameplay::load_events_by_player(self, events, player_id, invisibles.as_deref())
             })
@@ -259,11 +256,8 @@ impl Gameplay {
             invisibles,
             state: PlayerState::new(player_id),
             kyoku_idx: 0,
-            opponent_states: [
-                PlayerState::new((player_id + 1) % 4),
-                PlayerState::new((player_id + 2) % 4),
-                PlayerState::new((player_id + 3) % 4),
-            ],
+            // end_state: EndState::Passive,
+            opponent_states: array::from_fn(|i| PlayerState::new((player_id + i as u8 + 1) % 4)),
             from_rinshan: false,
             yama_idx: 0,
             rinshan_idx: 0,
@@ -281,8 +275,6 @@ impl Gameplay {
         Ok(data)
     }
 
-    // Inlined because its callsite is extremely hot.
-    #[inline(always)]
     fn extend_from_event_window(&mut self, ctx: &mut LoaderContext<'_>, wnd: &[Event; 4]) {
         let LoaderContext {
             config,
@@ -306,9 +298,7 @@ impl Gameplay {
             Event::StartGame { names, .. } => {
                 self.player_name = names[self.player_id as usize].clone();
             }
-            Event::EndKyoku => {
-                *kyoku_idx += 1;
-            }
+            Event::EndKyoku => *kyoku_idx += 1,
             _ => (),
         }
 
@@ -380,9 +370,8 @@ impl Gameplay {
             _ => {
                 let mut ret = None;
 
-                let mut has_any_ron = false;
-                if let Event::Hora { .. } = &wnd[1] {
-                    has_any_ron = true;
+                let has_any_ron = matches!(wnd[1], Event::Hora { .. });
+                if has_any_ron {
                     // Check if the POV is one of those who made Hora.
                     for ev in &wnd[1..] {
                         match *ev {

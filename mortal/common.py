@@ -10,17 +10,6 @@ from config import config
 
 tqdm = partial(orig_tqdm, unit='batch', dynamic_ncols=True, ascii=True)
 
-@torch.jit.script
-def normal_kl_div(mu_p, logsig_p, mu_q, logsig_q):
-    # KL(N(\mu_p, \sigma_p^2) \| N(\mu_q, \sigma_q^2)) = \log \frac{\sigma_q}{\sigma_p} + \frac{\sigma_p^2 + (\mu_p - \mu_q)^2}{2 \sigma_q^2} - \frac{1}{2}
-    return logsig_q - logsig_p + \
-        ((2 * logsig_p).exp() + (mu_p - mu_q) ** 2) / \
-        (2 * (2 * logsig_q).exp()) - \
-        0.5
-
-def hard_update(src, dst):
-    dst.load_state_dict(src.state_dict())
-
 def parameter_count(module):
     return sum(p.numel() for p in module.parameters() if p.requires_grad)
 

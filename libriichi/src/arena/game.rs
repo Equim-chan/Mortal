@@ -2,9 +2,8 @@ use super::board::{Board, BoardState, Poll};
 use super::result::GameResult;
 use crate::agent::BatchAgent;
 use crate::mjai::EventExt;
-use std::collections::VecDeque;
-use std::mem;
 use std::time::Duration;
+use std::{array, mem};
 
 use anyhow::{ensure, Result};
 use indicatif::{ProgressBar, ProgressStyle};
@@ -19,9 +18,9 @@ pub struct BatchGame {
 
 #[derive(Clone, Copy, Default)]
 pub struct Index {
-    /// For `Game` to find a specific `Agent`.
+    /// For `Game` to find a specific `Agent` (game -> agent).
     pub agent_idx: usize,
-    /// For `Agent` to find a specific player ID accordingly.
+    /// For `Agent` to find a specific player ID (agent -> game).
     pub player_id_idx: usize,
 }
 
@@ -56,15 +55,20 @@ struct Game {
 }
 
 impl Game {
+    /// Returns iff any player in the game can act or the game has ended.
     fn poll(&mut self, agents: &mut [Box<dyn BatchAgent>]) -> Result<()> {
         if self.ended {
             return Ok(());
         }
 
         if !self.kyoku_started {
-            if self.kyoku >= self.length + 4 // no 北入
-                || self.kyoku >= self.length // in 西入
-                    && !self.in_renchan // oya is not in renchan
+            // after W4
+            // or, after all-last
+            //   and, oya is not in renchan (if oya is in renchan, it would already have been ended in the renchan owari check)
+            //   and, anyone has more than 30k
+            if self.kyoku >= self.length + 4
+                || self.kyoku >= self.length
+                    && !self.in_renchan
                     && self.scores.iter().any(|&s| s >= 30000)
             {
                 self.ended = true;
@@ -130,7 +134,7 @@ impl Game {
 
                 if kyoku_result.has_abortive_ryukyoku {
                     self.honba += 1;
-                    return Ok(());
+                    return self.poll(agents);
                 }
 
                 if !kyoku_result.can_renchan {
@@ -140,12 +144,10 @@ impl Game {
                     } else {
                         self.honba += 1;
                     }
-                    return Ok(());
+                    return self.poll(agents);
                 }
 
-                // renchan owari
-                //
-                // Conditions:
+                // renchan owari conditions:
                 // 1. can renchan
                 // 2. is at all-last
                 // 3. oya has at least 30000
@@ -168,6 +170,7 @@ impl Game {
                 // renchan
                 self.in_renchan = true;
                 self.honba += 1;
+                return self.poll(agents);
             }
         };
 
@@ -180,12 +183,7 @@ impl Game {
                 *self.scores.iter_mut().min_by_key(|s| -**s).unwrap() += self.kyotaku as i32 * 1000;
             }
 
-            let names = [
-                agents[self.indexes[0].agent_idx].name(),
-                agents[self.indexes[1].agent_idx].name(),
-                agents[self.indexes[2].agent_idx].name(),
-                agents[self.indexes[3].agent_idx].name(),
-            ];
+            let names = array::from_fn(|i| agents[self.indexes[i].agent_idx].name());
             let game_result = GameResult {
                 names,
                 scores: self.scores,
@@ -265,55 +263,56 @@ impl BatchGame {
                 });
                 Ok((game_idx, game))
             })
-            .collect::<Result<VecDeque<_>>>()?;
+            .collect::<Result<Vec<_>>>()?;
 
-        let mut records = vec![GameResult::default(); games.len()];
+        let mut game_results = vec![GameResult::default(); games.len()];
         let mut to_remove = vec![];
-        let mut steps = 0; // for stats only
+        let mut cycles = 0;
+        let mut actions = 0;
 
         let bar = if self.disable_progress_bar {
             ProgressBar::hidden()
         } else {
             ProgressBar::new(games.len() as u64)
         };
-        const TEMPLATE: &str = "{spinner:.cyan} steps: {msg}\n[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%";
-        bar.set_style(
-            ProgressStyle::with_template(TEMPLATE)?
-                .tick_chars(".oO°Oo*")
-                .progress_chars("#-"),
-        );
+        const TEMPLATE: &str =
+            "{spinner:.cyan} {msg}\n[{elapsed_precise}] [{wide_bar}] {pos}/{len} {percent:>3}%";
+        let style = ProgressStyle::with_template(TEMPLATE)?
+            .tick_chars(".oO°Oo*")
+            .progress_chars("#-");
+        bar.set_style(style);
         bar.enable_steady_tick(Duration::from_millis(150));
 
         while !games.is_empty() {
             for (_, game) in &mut games {
-                loop {
-                    game.poll(agents)?;
-                    if game.ended || game.kyoku_started {
-                        break;
-                    }
-                }
+                game.poll(agents)?;
             }
 
             for (idx_for_rm, (game_idx, game)) in games.iter_mut().enumerate() {
-                if let Some(record) = game.commit(agents)? {
-                    records[*game_idx] = record;
+                if let Some(game_result) = game.commit(agents)? {
+                    game_results[*game_idx] = game_result;
                     to_remove.push(idx_for_rm);
                 }
             }
+
             for idx_for_rm in to_remove.drain(..).rev() {
-                games.remove(idx_for_rm);
+                games.swap_remove(idx_for_rm);
                 bar.inc(1);
             }
 
-            steps += 1;
+            cycles += 1;
+            actions += games.len();
+
+            let secs = bar.elapsed().as_secs_f64();
             bar.set_message(format!(
-                "{steps} ({:.3} step/s)",
-                steps as f64 / bar.elapsed().as_secs_f64(),
+                "cycles: {cycles} ({:.3} cycle/s), actions: {actions} ({:.3} action/s)",
+                cycles as f64 / secs,
+                actions as f64 / secs,
             ));
         }
         bar.abandon();
 
-        Ok(records)
+        Ok(game_results)
     }
 }
 

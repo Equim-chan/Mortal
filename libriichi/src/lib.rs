@@ -48,6 +48,7 @@
     clippy::map_unwrap_or,
     clippy::match_bool,
     clippy::match_same_arms,
+    clippy::missing_const_for_fn,
     clippy::mut_mut,
     clippy::mutex_atomic,
     clippy::mutex_integer,
@@ -93,6 +94,7 @@
 )]
 
 mod arena;
+mod array;
 mod consts;
 mod dataset;
 mod macros;
@@ -134,6 +136,8 @@ static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 #[pymodule]
 fn libriichi(py: Python<'_>, m: &PyModule) -> PyResult<()> {
     pyo3_log::init();
+    algo::shanten::ensure_init();
+    algo::agari::ensure_init();
 
     let name = m.name()?;
     if cfg!(debug_assertions) {
@@ -143,9 +147,6 @@ fn libriichi(py: Python<'_>, m: &PyModule) -> PyResult<()> {
         m.add("__profile__", "release")?;
     }
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
-
-    algo::shanten::ensure_init();
-    algo::agari::ensure_init();
 
     consts::register_module(py, name, m)?;
     state::register_module(py, name, m)?;

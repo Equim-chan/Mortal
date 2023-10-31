@@ -1,4 +1,5 @@
 use crate::{matches_tu8, t, tu8};
+use std::cmp::Ordering;
 use std::error::Error;
 use std::fmt;
 use std::str::FromStr;
@@ -13,8 +14,16 @@ const MJAI_PAI_STRINGS: [&str; MJAI_PAI_STRINGS_LEN] = [
     "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", // p
     "1s", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", // s
     "E", "S", "W", "N", "P", "F", "C", // z
-    "5mr", "5pr", "5sr", // a
+    "5mr", "5pr", "5sr", // aka
     "?",   // unknown
+];
+const DISCARD_PRIORITIES: [u8; 38] = [
+    6, 5, 4, 3, 2, 3, 4, 5, 6, // m
+    6, 5, 4, 3, 2, 3, 4, 5, 6, // p
+    6, 5, 4, 3, 2, 3, 4, 5, 6, // s
+    7, 7, 7, 7, 7, 7, 7, // z
+    1, 1, 1, // aka
+    0, // unknown
 ];
 
 static MJAI_PAI_STRINGS_MAP: Lazy<AHashMap<&'static str, Tile>> = Lazy::new(|| {
@@ -39,7 +48,7 @@ impl Tile {
     /// Calling this method with an out-of-bounds tile ID is undefined behavior.
     #[inline]
     #[must_use]
-    pub const unsafe fn new_unchecked(id: u8) -> Self {
+    pub const fn new_unchecked(id: u8) -> Self {
         Self(id)
     }
 
@@ -160,6 +169,18 @@ impl Tile {
             ret
         }
     }
+
+    /// `Ordering::Equal` iff `self == other`
+    #[inline]
+    #[must_use]
+    pub fn cmp_discard_priority(self, other: Self) -> Ordering {
+        let l = self.0 as usize;
+        let r = other.0 as usize;
+        match DISCARD_PRIORITIES[l].cmp(&DISCARD_PRIORITIES[r]) {
+            Ordering::Equal => r.cmp(&l),
+            o => o,
+        }
+    }
 }
 
 impl Default for Tile {
@@ -183,9 +204,7 @@ impl TryFrom<usize> for Tile {
         if v >= MJAI_PAI_STRINGS_LEN {
             Err(InvalidTile::Number(v))
         } else {
-            // SAFETY: `v` has been proven to be in bound.
-            let tile = unsafe { Self::new_unchecked(v as u8) };
-            Ok(tile)
+            Ok(Self(v as u8))
         }
     }
 }
@@ -209,9 +228,7 @@ impl fmt::Debug for Tile {
 
 impl fmt::Display for Tile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // SAFETY: `Tile` is in-bound iff it is constructed safely.
-        let s = unsafe { MJAI_PAI_STRINGS.get_unchecked(self.0 as usize) };
-        f.write_str(s)
+        f.write_str(MJAI_PAI_STRINGS[self.0 as usize])
     }
 }
 

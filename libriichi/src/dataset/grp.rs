@@ -4,7 +4,7 @@ use crate::rankings::Rankings;
 use crate::tu8;
 use crate::vec_ops::vec_add_assign;
 use std::fs::File;
-use std::io::prelude::*;
+use std::io;
 use std::mem;
 
 use anyhow::{Context, Result};
@@ -77,9 +77,8 @@ impl Grp {
                 let filename = f.as_ref();
                 let inner = || {
                     let file = File::open(filename)?;
-                    let mut gz = GzDecoder::new(file);
-                    let mut raw = String::new();
-                    gz.read_to_string(&mut raw)?;
+                    let gz = GzDecoder::new(file);
+                    let raw = io::read_to_string(gz)?;
                     Self::load_log(&raw)
                 };
                 inner().with_context(|| format!("error when reading {filename}"))

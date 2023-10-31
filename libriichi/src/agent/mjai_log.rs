@@ -5,6 +5,7 @@ use crate::state::PlayerState;
 use std::mem;
 
 use anyhow::{ensure, Context, Result};
+use pyo3::intern;
 use pyo3::prelude::*;
 use serde_json as json;
 
@@ -35,7 +36,12 @@ impl MjaiLogBatchAgent {
 
         let name = Python::with_gil(|py| {
             let obj = engine.as_ref(py);
-            ensure!(obj.getattr("react_batch")?.is_callable());
+            for method in ["react_batch", "start_game", "end_kyoku", "end_game"] {
+                ensure!(
+                    obj.getattr(method)?.is_callable(),
+                    "missing method {method}",
+                );
+            }
 
             let name = obj.getattr("name")?.extract()?;
             obj.call_method1("set_player_ids", (player_ids,))?;
@@ -63,7 +69,7 @@ impl MjaiLogBatchAgent {
             let game_states = mem::take(&mut self.game_states);
             self.engine
                 .as_ref(py)
-                .call_method1("react_batch", (game_states,))
+                .call_method1(intern!(py, "react_batch"), (game_states,))
                 .context("failed to execute `react_batch` on Python engine")?
                 .extract()
                 .context("failed to extract to Rust type")
@@ -127,14 +133,16 @@ impl BatchAgent for MjaiLogBatchAgent {
         Python::with_gil(|py| {
             self.engine
                 .as_ref(py)
-                .call_method1("start_game", (index,))?;
+                .call_method1(intern!(py, "start_game"), (index,))?;
             Ok(())
         })
     }
 
     fn end_kyoku(&mut self, index: usize) -> Result<()> {
         Python::with_gil(|py| {
-            self.engine.as_ref(py).call_method1("end_kyoku", (index,))?;
+            self.engine
+                .as_ref(py)
+                .call_method1(intern!(py, "end_kyoku"), (index,))?;
             Ok(())
         })
     }
@@ -143,7 +151,7 @@ impl BatchAgent for MjaiLogBatchAgent {
         Python::with_gil(|py| {
             self.engine
                 .as_ref(py)
-                .call_method1("end_game", (index, game_result.scores))?;
+                .call_method1(intern!(py, "end_game"), (index, game_result.scores))?;
             Ok(())
         })
     }

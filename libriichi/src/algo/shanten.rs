@@ -110,7 +110,7 @@ pub fn calc_chitoi(tiles: &[u8; 34]) -> i8 {
         }
     });
 
-    let redunct = if kinds < 7 { 7 - kinds } else { 0 };
+    let redunct = 7_u8.saturating_sub(kinds) as i8;
     7 - pairs + redunct - 1
 }
 
@@ -130,7 +130,7 @@ pub fn calc_kokushi(tiles: &[u8; 34]) -> i8 {
             }
         });
 
-    let redunct = i8::from(pairs > 0);
+    let redunct = (pairs > 0) as i8;
     14 - kinds - redunct - 1
 }
 
@@ -170,6 +170,10 @@ mod test {
         assert_eq!(calc_all(&tehai, 0), 0);
         let tehai = hand("15559m 19p 19s 1234z").unwrap();
         assert_eq!(calc_all(&tehai, 4), 3);
+        let tehai = hand("9999m 6677p 88s 355z").unwrap();
+        assert_eq!(calc_all(&tehai, 4), 2);
+        let tehai = hand("19m 19p 159s 123456z").unwrap();
+        assert_eq!(calc_all(&tehai, 4), 1);
     }
 
     #[test]

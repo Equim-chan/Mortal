@@ -18,9 +18,14 @@ def main():
     version = config['control']['version']
     num_blocks = config['resnet']['num_blocks']
     conv_channels = config['resnet']['conv_channels']
+
     oracle = None
     mortal = Brain(version=version, num_blocks=num_blocks, conv_channels=conv_channels).to(device).eval()
     dqn = DQN(version=version).to(device)
+    if config['online']['enable_compile']:
+        mortal.compile()
+        dqn.compile()
+
     train_player = TrainPlayer()
     param_version = -1
 
@@ -47,15 +52,15 @@ def main():
         logging.info('param has been updated')
 
         rankings, file_list = train_player.train_play(oracle, mortal, dqn, device)
-        avg_rank = (rankings * np.arange(1, 5)).sum() / rankings.sum()
-        avg_pt = (rankings * pts).sum() / rankings.sum()
+        avg_rank = rankings @ np.arange(1, 5) / rankings.sum()
+        avg_pt = rankings @ pts / rankings.sum()
 
         history.append(np.array(rankings))
         if len(history) > history_window:
             del history[0]
         sum_rankings = np.sum(history, axis=0)
-        ma_avg_rank = (sum_rankings * np.arange(1, 5)).sum() / sum_rankings.sum()
-        ma_avg_pt = (sum_rankings * pts).sum() / sum_rankings.sum()
+        ma_avg_rank = sum_rankings @ np.arange(1, 5) / sum_rankings.sum()
+        ma_avg_pt = sum_rankings @ pts / sum_rankings.sum()
 
         logging.info(f'trainee rankings: {rankings} ({avg_rank:.6}, {avg_pt:.6}pt)')
         logging.info(f'last {len(history)} sessions: {sum_rankings} ({ma_avg_rank:.6}, {ma_avg_pt:.6}pt)')

@@ -19,6 +19,7 @@ class MortalEngine:
         name = 'NoName',
         boltzmann_epsilon = 0,
         boltzmann_temp = 1,
+        top_p = 1,
     ):
         self.engine_type = 'mortal'
         self.device = device or torch.device('cpu')
@@ -36,6 +37,7 @@ class MortalEngine:
 
         self.boltzmann_epsilon = boltzmann_epsilon
         self.boltzmann_temp = boltzmann_temp
+        self.top_p = top_p
 
     def react_batch(self, obs, masks, invisible_obs):
         with (
@@ -60,19 +62,33 @@ class MortalEngine:
                 else:
                     latent = mu
                 q_out = self.dqn(latent, masks)
-            case 2 | 3:
+            case 2 | 3 | 4:
                 phi = self.brain(obs)
                 q_out = self.dqn(phi, masks)
 
         if self.boltzmann_epsilon > 0:
             is_greedy = torch.full((batch_size,), 1-self.boltzmann_epsilon, device=self.device).bernoulli().to(torch.bool)
             logits = (q_out / self.boltzmann_temp).masked_fill(~masks, -torch.inf)
-            actions = torch.where(is_greedy, q_out.argmax(-1), Categorical(logits=logits).sample())
+            sampled = sample_top_p(logits, self.top_p)
+            actions = torch.where(is_greedy, q_out.argmax(-1), sampled)
         else:
             is_greedy = torch.ones(batch_size, dtype=torch.bool, device=self.device)
             actions = q_out.argmax(-1)
 
         return actions.tolist(), q_out.tolist(), masks.tolist(), is_greedy.tolist()
+
+def sample_top_p(logits, p):
+    if p >= 1:
+        return Categorical(logits=logits).sample()
+    if p <= 0:
+        return logits.argmax(-1)
+    probs = logits.softmax(-1)
+    probs_sort, probs_idx = probs.sort(-1, descending=True)
+    probs_sum = probs_sort.cumsum(-1)
+    mask = probs_sum - probs_sort > p
+    probs_sort[mask] = 0.
+    sampled = probs_idx.gather(-1, probs_sort.multinomial(1)).squeeze(-1)
+    return sampled
 
 class ExampleMjaiLogEngine:
     def __init__(self, name: str):

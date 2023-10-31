@@ -2,7 +2,7 @@ use crate::py_helper::add_submodule;
 
 use pyo3::prelude::*;
 
-pub const MAX_VERSION: u32 = 3;
+pub const MAX_VERSION: u32 = 4;
 
 pub const ACTION_SPACE: usize = 37 // discard | kan (choice)
                               + 1  // riichi
@@ -22,6 +22,7 @@ pub const fn obs_shape(version: u32) -> (usize, usize) {
         1 => (938, 34),
         2 => (942, 34),
         3 => (934, 34),
+        4 => (1012, 34),
         _ => unreachable!(),
     }
 }
@@ -31,7 +32,7 @@ pub const fn obs_shape(version: u32) -> (usize, usize) {
 pub const fn oracle_obs_shape(version: u32) -> (usize, usize) {
     match version {
         1 => (211, 34),
-        2 | 3 => (217, 34),
+        2 | 3 | 4 => (217, 34),
         _ => unreachable!(),
     }
 }

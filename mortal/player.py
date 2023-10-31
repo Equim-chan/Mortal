@@ -25,6 +25,10 @@ class TestPlayer:
         stable_dqn = DQN(version=version).eval()
         stable_mortal.load_state_dict(state['mortal'])
         stable_dqn.load_state_dict(state['current_dqn'])
+        if baseline_cfg['enable_compile']:
+            stable_mortal.compile()
+            stable_dqn.compile()
+
         self.baseline_engine = MortalEngine(
             stable_mortal,
             stable_dqn,
@@ -60,7 +64,7 @@ class TestPlayer:
         env.py_vs_py(
             challenger = engine_chal,
             champion = self.baseline_engine,
-            seed_start = (10000, 2000),
+            seed_start = (10000, 0x2000),
             seed_count = seed_count,
         )
 
@@ -82,6 +86,10 @@ class TrainPlayer:
         stable_dqn = DQN(version=version).eval()
         stable_mortal.load_state_dict(state['mortal'])
         stable_dqn.load_state_dict(state['current_dqn'])
+        if baseline_cfg['enable_compile']:
+            stable_mortal.compile()
+            stable_dqn.compile()
+
         self.baseline_engine = MortalEngine(
             stable_mortal,
             stable_dqn,
@@ -104,6 +112,7 @@ class TrainPlayer:
         self.seed_count = cfg['games'] // 4
         self.boltzmann_epsilon = cfg['boltzmann_epsilon']
         self.boltzmann_temp = cfg['boltzmann_temp']
+        self.top_p = cfg['top_p']
         self.stochastic_latent = cfg.get('stochastic_latent', True)
 
         self.repeats = cfg['repeats']
@@ -119,6 +128,7 @@ class TrainPlayer:
             stochastic_latent = self.stochastic_latent,
             boltzmann_epsilon = self.boltzmann_epsilon,
             boltzmann_temp = self.boltzmann_temp,
+            top_p = self.top_p,
             device = device,
             enable_amp = True,
             name = 'trainee',

@@ -2,7 +2,7 @@
 # types; they are often not optimal and must be tuned.
 
 [control]
-version = 3
+version = 4
 online = false
 
 state_file = '/path/to/mortal.pth'
@@ -12,6 +12,7 @@ tensorboard_dir = '/path/to/dir'
 device = 'cuda:0'
 enable_cudnn_benchmark = false
 enable_amp = false
+enable_compile = false
 
 batch_size = 512
 opt_step_every = 1
@@ -26,7 +27,8 @@ games = 800
 log_dir = '/path/to/train_play'
 boltzmann_epsilon = 0.005
 boltzmann_temp = 0.05
-repeats = 2
+top_p = 1.0
+repeats = 1
 
 [test_play]
 games = 3000
@@ -36,6 +38,7 @@ log_dir = '/path/to/test_play'
 globs = ['/path/to/dataset/**/*.json.gz']
 file_index = '/path/to/file_index.pth'
 file_batch_size = 15
+reserve_ratio = 0.0
 num_workers = 1
 player_names_files = []
 num_epochs = 1
@@ -44,7 +47,7 @@ augmented_first = false
 
 [env]
 gamma = 1
-pts = [3.0, 1.5, 0.0, -4.5]
+pts = [6.0, 4.0, 2.0, 0.0]
 
 [resnet]
 conv_channels = 192
@@ -60,10 +63,6 @@ next_rank_weight = 0.2
 # `true` in online training
 mortal = false
 
-[bn_attrs]
-momentum = 0.01
-eps = 1e-3
-
 [optim]
 eps = 1e-8
 betas = [0.9, 0.999]
@@ -78,14 +77,17 @@ max_steps = 0
 
 [baseline.train]
 device = 'cuda:0'
+enable_compile = false
 state_file = '/path/to/baseline.pth'
 
 [baseline.test]
 device = 'cuda:0'
+enable_compile = false
 state_file = '/path/to/baseline.pth'
 
 [online]
 history_window = 50
+enable_compile = false
 
 [online.remote]
 host = '127.0.0.1'
@@ -99,10 +101,8 @@ sample_reuse_threshold = 0
 capacity = 1600
 force_sequential = false
 
-[test]
-stochastic_latent = false
-
 [1v3]
+seed_key = -1
 games_per_iter = 2000
 iters = 500
 log_dir = '/path/to/1v3'
@@ -112,6 +112,7 @@ device = 'cuda:0'
 name = 'mortal'
 state_file = '/path/to/challenger.pth'
 stochastic_latent = false
+enable_compile = false
 enable_amp = true
 enable_rule_based_agari_guard = true
 
@@ -120,6 +121,7 @@ device = 'cuda:0'
 name = 'baseline'
 state_file = '/path/to/baseline.pth'
 stochastic_latent = false
+enable_compile = false
 enable_amp = true
 enable_rule_based_agari_guard = true
 

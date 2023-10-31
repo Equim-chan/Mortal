@@ -23,14 +23,6 @@ pub struct GameResult {
     pub game_log: Vec<Vec<EventExt>>,
 }
 
-#[derive(Clone, Copy)]
-pub enum KyokuEndState {
-    Passive = 0,
-    Draw = 1,
-    Win = 2,
-    DealIn = 3,
-}
-
 impl GameResult {
     #[inline]
     pub fn rankings(&self) -> Rankings {
@@ -56,34 +48,5 @@ impl GameResult {
         v.push(b'\n');
 
         Ok(String::from_utf8(v)?)
-    }
-
-    pub fn kyoku_end_states(&self, perspective: u8) -> Vec<KyokuEndState> {
-        self.game_log
-            .iter()
-            .map(|log| {
-                let mut ret = KyokuEndState::Passive;
-                for ev in log.iter().rev() {
-                    match ev.event {
-                        Event::EndKyoku => continue,
-                        Event::Ryukyoku { .. } => {
-                            ret = KyokuEndState::Draw;
-                        }
-                        Event::Hora { actor, target, .. } => {
-                            if actor == perspective {
-                                ret = KyokuEndState::Win;
-                            } else if target == perspective {
-                                ret = KyokuEndState::DealIn;
-                            } else {
-                                continue;
-                            }
-                        }
-                        _ => (),
-                    };
-                    break;
-                }
-                ret
-            })
-            .collect()
     }
 }

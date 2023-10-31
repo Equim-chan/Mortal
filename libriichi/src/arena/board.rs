@@ -1,13 +1,13 @@
 use super::result::KyokuResult;
+use crate::array::Simple2DArray;
 use crate::consts::oracle_obs_shape;
 use crate::mjai::{Event, EventExt};
 use crate::state::PlayerState;
 use crate::tile::Tile;
 use crate::vec_ops::vec_add_assign;
 use crate::{matches_tu8, must_tile, t, tu8};
-use std::array;
 use std::convert::TryInto;
-use std::mem;
+use std::{array, mem};
 
 use anyhow::{bail, Context, Result};
 use derivative::Derivative;
@@ -130,12 +130,7 @@ impl Board {
         BoardState {
             board: self,
             oya,
-            player_states: [
-                PlayerState::new(0),
-                PlayerState::new(1),
-                PlayerState::new(2),
-                PlayerState::new(3),
-            ],
+            player_states: array::from_fn(|i| PlayerState::new(i as u8)),
             dora_indicators_full,
             ..Default::default()
         }
@@ -143,6 +138,7 @@ impl Board {
 }
 
 impl BoardState {
+    /// Returns iff any player on the board can act or the kyoku has ended.
     pub fn poll(&mut self, mut reactions: [EventExt; 4]) -> Result<Poll> {
         loop {
             let poll = self.step(&reactions)?;
@@ -684,7 +680,7 @@ impl BoardState {
 
     pub fn encode_oracle_obs(&self, perspective: u8, version: u32) -> Array2<f32> {
         let shape = oracle_obs_shape(version);
-        let mut arr = Array2::zeros(shape);
+        let mut arr = Simple2DArray::<34, f32>::new(shape.0);
         let mut idx = 0;
 
         self.player_states
@@ -699,8 +695,7 @@ impl BoardState {
                     .enumerate()
                     .filter(|(_, &count)| count > 0)
                     .for_each(|(tile_id, &count)| {
-                        arr.slice_mut(s![idx..idx + count as usize, tile_id])
-                            .fill(1.);
+                        arr.assign_rows(idx, tile_id, count as usize, 1.);
                     });
                 idx += 4;
 
@@ -709,23 +704,21 @@ impl BoardState {
                     .iter()
                     .enumerate()
                     .filter(|(_, &has_it)| has_it)
-                    .for_each(|(i, _)| {
-                        arr.slice_mut(s![idx + i, ..]).fill(1.);
-                    });
+                    .for_each(|(i, _)| arr.fill(idx + i, 1.));
                 idx += 3;
 
                 let n = state.shanten() as usize;
                 match version {
                     1 => {
-                        arr.slice_mut(s![idx..idx + n, ..]).fill(1.);
+                        arr.fill_rows(idx, n, 1.);
                         idx += 6;
                     }
-                    2 | 3 => {
-                        arr.slice_mut(s![idx + n, ..]).fill(1.);
+                    2 | 3 | 4 => {
+                        arr.fill(idx + n, 1.);
                         idx += 7;
 
                         let v = n as f32 / 6.;
-                        arr.slice_mut(s![idx, ..]).fill(v);
+                        arr.fill(idx, v);
                         idx += 1;
                     }
                     _ => unreachable!(),
@@ -736,20 +729,20 @@ impl BoardState {
                     .iter()
                     .enumerate()
                     .filter(|(_, &c)| c)
-                    .for_each(|(t, _)| arr[[idx, t]] = 1.);
+                    .for_each(|(t, _)| arr.assign(idx, t, 1.));
                 idx += 1;
 
                 if state.at_furiten() {
-                    arr.slice_mut(s![idx, ..]).fill(1.);
+                    arr.fill(idx, 1.);
                 }
                 idx += 1;
             });
 
         let mut encode_tile = |idx: usize, tile: Tile| {
             let tile_id = tile.deaka().as_usize();
-            arr[[idx, tile_id]] = 1.;
+            arr.assign(idx, tile_id, 1.);
             if tile.is_aka() {
-                arr.slice_mut(s![idx + 1, ..]).fill(1.);
+                arr.fill(idx + 1, 1.);
             }
         };
 
@@ -786,7 +779,7 @@ impl BoardState {
         });
 
         assert_eq!(idx, shape.0);
-        arr
+        arr.build()
     }
 }
 

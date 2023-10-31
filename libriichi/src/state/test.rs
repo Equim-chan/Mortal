@@ -1,26 +1,70 @@
 use super::{ActionCandidate, PlayerState};
+use crate::algo::shanten;
 use crate::consts::MAX_VERSION;
 use crate::hand::{hand, hand_with_aka, tile37_to_vec};
 use crate::mjai::Event;
-use crate::{must_tile, t, tuz};
-use std::convert::TryInto;
+use crate::{matches_tu8, must_tile, t, tuz};
 use std::mem;
 
-// This is not only a helper but it also tests `encode_obs`.
-fn state_from_log(player_id: u8, log: &str) -> PlayerState {
-    let mut ps = PlayerState::new(player_id);
-    for line in log.trim().split('\n') {
-        let cans = ps.update_json(line).unwrap();
-        if cans.can_act() {
+impl PlayerState {
+    fn test_update(&mut self, event: &Event) -> ActionCandidate {
+        let cans = self.update(event);
+        self.validate();
+        cans
+    }
+
+    fn test_update_json(&mut self, mjai_json: &str) -> ActionCandidate {
+        let cans = self.update_json(mjai_json).unwrap();
+        self.validate();
+        cans
+    }
+
+    fn from_log(player_id: u8, log: &str) -> Self {
+        let mut ps = Self::new(player_id);
+        for line in log.trim().split('\n') {
+            ps.test_update_json(line);
+        }
+        ps
+    }
+
+    fn num_doras_in_hand(&self) -> u8 {
+        self.tehai
+            .iter()
+            .zip(self.dora_factor.iter())
+            .map(|(&count, &f)| count * f)
+            .chain(self.akas_in_hand.iter().map(|&b| b as u8))
+            .chain(
+                self.fuuro_overview[0]
+                    .iter()
+                    .flatten()
+                    .map(|t| self.dora_factor[t.deaka().as_usize()] + t.is_aka() as u8),
+            )
+            .chain(self.ankan_overview[0].iter().map(|t| {
+                self.dora_factor[t.deaka().as_usize()] * 4
+                    + matches_tu8!(t.as_u8(), 5m | 5p | 5s) as u8
+            }))
+            .sum()
+    }
+
+    fn validate(&self) {
+        assert_eq!(
+            self.real_time_shanten(),
+            shanten::calc_all(&self.tehai, self.tehai_len_div3),
+        );
+        assert_eq!(
+            self.is_menzen,
+            self.chis.is_empty() && self.pons.is_empty() && self.minkans.is_empty()
+        );
+        assert_eq!(self.doras_owned[0], self.num_doras_in_hand());
+        if self.last_cans.can_act() {
             for version in 1..=MAX_VERSION {
-                let _encoded = ps.encode_obs(version, false);
-                if cans.can_daiminkan || cans.can_kakan || cans.can_ankan {
-                    let _encoded = ps.encode_obs(version, true);
+                let _encoded = self.encode_obs(version, false);
+                if self.last_cans.can_kakan || self.last_cans.can_ankan {
+                    let _encoded = self.encode_obs(version, true);
                 }
             }
         }
     }
-    ps
 }
 
 #[test]
@@ -179,7 +223,7 @@ fn can_chi() {
 #[test]
 fn furiten() {
     let mut ps = PlayerState::new(0);
-    ps.update(&Event::StartKyoku {
+    ps.test_update(&Event::StartKyoku {
         bakaze: t!(E),
         kyoku: 1,
         honba: 0,
@@ -196,13 +240,13 @@ fn furiten() {
             [t!(?); 13],
         ],
     });
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 0,
         pai: t!(8s),
     });
     assert!(ps.shanten == 1);
     assert!(ps.waits.iter().all(|&b| !b));
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 0,
         pai: t!(5s),
         tsumogiri: false,
@@ -211,11 +255,11 @@ fn furiten() {
     assert!(ps.waits[tuz!(1m)] && ps.waits[tuz!(4m)] && ps.waits[tuz!(7m)]);
     assert!(!ps.at_furiten);
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 1,
         pai: t!(?),
     });
-    let cans = ps.update(&Event::Dahai {
+    let cans = ps.test_update(&Event::Dahai {
         actor: 1,
         pai: t!(1m),
         tsumogiri: false,
@@ -223,22 +267,22 @@ fn furiten() {
     assert!(!ps.at_furiten);
     assert!(cans.can_ron_agari);
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 2,
         pai: t!(?),
     });
     assert!(ps.at_furiten);
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 2,
         pai: t!(1s),
         tsumogiri: true,
     });
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 3,
         pai: t!(?),
     });
-    let cans = ps.update(&Event::Dahai {
+    let cans = ps.test_update(&Event::Dahai {
         actor: 3,
         pai: t!(1m),
         tsumogiri: false,
@@ -248,42 +292,42 @@ fn furiten() {
     assert!(ps.at_furiten);
     assert!(!cans.can_ron_agari);
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 0,
         pai: t!(3s),
     });
     assert!(ps.at_furiten);
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 0,
         pai: t!(3s),
         tsumogiri: true,
     });
     assert!(!ps.at_furiten);
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 1,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 1,
         pai: t!(P),
         tsumogiri: true,
     });
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 2,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 2,
         pai: t!(C),
         tsumogiri: true,
     });
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 3,
         pai: t!(?),
     });
-    let cans = ps.update(&Event::Dahai {
+    let cans = ps.test_update(&Event::Dahai {
         actor: 3,
         pai: t!(1m),
         tsumogiri: false,
@@ -293,85 +337,85 @@ fn furiten() {
     assert_eq!(ps.agari_points(true, &[]).unwrap().ron, 5800);
 
     // riichi furiten test
-    let cans = ps.update(&Event::Tsumo {
+    let cans = ps.test_update(&Event::Tsumo {
         actor: 0,
         pai: t!(N),
     });
     assert!(cans.can_riichi);
-    ps.update(&Event::Reach { actor: 0 });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Reach { actor: 0 });
+    ps.test_update(&Event::Dahai {
         actor: 0,
         pai: t!(N),
         tsumogiri: true,
     });
-    ps.update(&Event::ReachAccepted { actor: 0 });
+    ps.test_update(&Event::ReachAccepted { actor: 0 });
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 1,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 1,
         pai: t!(9m),
         tsumogiri: true,
     });
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 2,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 2,
         pai: t!(9m),
         tsumogiri: true,
     });
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 3,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 3,
         pai: t!(9m),
         tsumogiri: true,
     });
 
     // tsumo agari minogashi
-    let cans = ps.update(&Event::Tsumo {
+    let cans = ps.test_update(&Event::Tsumo {
         actor: 0,
         pai: t!(1m),
     });
     assert!(ps.waits[tuz!(1m)] && ps.waits[tuz!(4m)] && ps.waits[tuz!(7m)]);
     assert!(!ps.at_furiten);
     assert!(cans.can_tsumo_agari);
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 0,
         pai: t!(1m),
         tsumogiri: true,
     });
     assert!(ps.at_furiten); // furiten forever from now on
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 1,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 1,
         pai: t!(4s),
         tsumogiri: true,
     });
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 2,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 2,
         pai: t!(4s),
         tsumogiri: true,
     });
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 3,
         pai: t!(?),
     });
-    let cans = ps.update(&Event::Dahai {
+    let cans = ps.test_update(&Event::Dahai {
         actor: 3,
         pai: t!(7m),
         tsumogiri: true,
@@ -380,49 +424,49 @@ fn furiten() {
     assert!(ps.at_furiten);
     assert!(!cans.can_ron_agari);
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 0,
         pai: t!(8m),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 0,
         pai: t!(8m),
         tsumogiri: true,
     });
     assert!(ps.at_furiten); // still furiten
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 1,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 1,
         pai: t!(E),
         tsumogiri: true,
     });
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 2,
         pai: t!(?),
     });
-    let cans = ps.update(&Event::Dahai {
+    let cans = ps.test_update(&Event::Dahai {
         actor: 2,
         pai: t!(4m),
         tsumogiri: true,
     });
     assert!(ps.at_furiten);
     assert!(!cans.can_ron_agari);
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 3,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 3,
         pai: t!(E),
         tsumogiri: true,
     });
 
     // tsumo agari is always possible regardless of furiten
-    let cans = ps.update(&Event::Tsumo {
+    let cans = ps.test_update(&Event::Tsumo {
         actor: 0,
         pai: t!(4m),
     });
@@ -435,7 +479,7 @@ fn furiten() {
 #[test]
 fn dora_count_after_kan() {
     let mut ps = PlayerState::new(0);
-    ps.update(&Event::StartKyoku {
+    ps.test_update(&Event::StartKyoku {
         bakaze: t!(E),
         kyoku: 1,
         honba: 0,
@@ -452,83 +496,83 @@ fn dora_count_after_kan() {
             [t!(?); 13],
         ],
     });
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 0,
         pai: t!(8s),
     });
     assert_eq!(ps.doras_owned[0], 2);
 
-    ps.update(&Event::Ankan {
+    ps.test_update(&Event::Ankan {
         actor: 0,
         consumed: [t!(1s); 4],
     });
-    ps.update(&Event::Dora {
+    ps.test_update(&Event::Dora {
         dora_marker: t!(9s),
     });
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 0,
         pai: t!(5pr),
     });
     assert_eq!(ps.doras_owned[0], 7);
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 0,
         pai: t!(E),
         tsumogiri: true,
     });
     assert_eq!(ps.doras_owned[0], 6);
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 1,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 1,
         pai: t!(5p),
         tsumogiri: true,
     });
 
-    ps.update(&Event::Pon {
+    ps.test_update(&Event::Pon {
         actor: 0,
         target: 1,
         pai: t!(5p),
         consumed: t![5pr, 5p],
     });
     assert_eq!(ps.doras_owned[0], 6);
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 0,
         pai: t!(E),
         tsumogiri: false,
     });
     assert_eq!(ps.doras_owned[0], 5);
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 1,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 1,
         pai: t!(P),
         tsumogiri: true,
     });
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 2,
         pai: t!(?),
     });
-    ps.update(&Event::Dahai {
+    ps.test_update(&Event::Dahai {
         actor: 2,
         pai: t!(P),
         tsumogiri: true,
     });
 
-    ps.update(&Event::Tsumo {
+    ps.test_update(&Event::Tsumo {
         actor: 3,
         pai: t!(?),
     });
-    ps.update(&Event::Ankan {
+    ps.test_update(&Event::Ankan {
         actor: 3,
         consumed: [t!(1m); 4],
     });
-    ps.update(&Event::Dora {
+    ps.test_update(&Event::Dora {
         dora_marker: t!(4p),
     });
     assert_eq!(ps.doras_owned[0], 8);
@@ -616,7 +660,7 @@ fn rule_based_agari_all_last_minogashi() {
         {"type":"dahai","actor":0,"pai":"2s","tsumogiri":true}
         {"type":"tsumo","actor":1,"pai":"8p"}
     "#;
-    let mut ps = state_from_log(1, log);
+    let mut ps = PlayerState::from_log(1, log);
 
     assert!(ps.last_cans.can_tsumo_agari);
     let should_hora = ps.rule_based_agari();
@@ -750,7 +794,7 @@ fn rule_based_agari_all_last_minogashi() {
         {"type":"tsumo","actor":0,"pai":"7s"}
         {"type":"dahai","actor":0,"pai":"6m","tsumogiri":false}
     "#;
-    let ps = state_from_log(2, log);
+    let ps = PlayerState::from_log(2, log);
     assert!(ps.rule_based_agari());
 }
 
@@ -861,7 +905,7 @@ fn kakan_from_hand() {
         {"type":"kakan","actor":1,"pai":"S","consumed":["S","S","S"]}
         {"type":"tsumo","actor":1,"pai":"4s"}
     "#;
-    let ps = state_from_log(1, log);
+    let ps = PlayerState::from_log(1, log);
 
     assert!(ps.last_cans.can_tsumo_agari);
 }
@@ -1006,7 +1050,7 @@ fn discard_candidates_with_unconditional_tenpai() {
         {"type":"dahai","actor":0,"pai":"N","tsumogiri":true}
         {"type":"tsumo","actor":1,"pai":"3s"}
     "#;
-    let ps = state_from_log(1, log);
+    let ps = PlayerState::from_log(1, log);
 
     let expected = t![7p, 8p];
     ps.discard_candidates_with_unconditional_tenpai()
@@ -1164,7 +1208,7 @@ fn discard_candidates_with_unconditional_tenpai() {
         {"type":"dahai","actor":0,"pai":"1s","tsumogiri":true}
         {"type":"tsumo","actor":1,"pai":"6s"}
     "#;
-    let ps = state_from_log(1, log);
+    let ps = PlayerState::from_log(1, log);
 
     let expected = t![5p, 8p];
     for (idx, &b) in ps.waits.iter().enumerate() {
@@ -1334,17 +1378,41 @@ fn double_chankan_ron() {
         {"type":"dahai","actor":2,"pai":"3s","tsumogiri":true}
         {"type":"tsumo","actor":3,"pai":"2m"}
     "#;
-    let mut ps = state_from_log(2, log);
+    let mut ps = PlayerState::from_log(2, log);
 
     let mut ps_kakan = ps.clone();
     let cans = ps_kakan
-        .update_json(r#"{"type":"kakan","actor":3,"pai":"2m","consumed":["2m","2m","2m"]}"#)
-        .unwrap();
+        .test_update_json(r#"{"type":"kakan","actor":3,"pai":"2m","consumed":["2m","2m","2m"]}"#);
     assert!(cans.can_ron_agari);
     assert_eq!(ps_kakan.agari_points(true, &[]).unwrap().ron, 1000);
 
-    let cans = ps
-        .update_json(r#"{"type":"dahai","actor":3,"pai":"2m","tsumogiri":true}"#)
-        .unwrap();
+    let cans = ps.test_update_json(r#"{"type":"dahai","actor":3,"pai":"2m","tsumogiri":true}"#);
     assert!(!cans.can_ron_agari);
+}
+
+#[test]
+fn chi_at_0_shanten() {
+    let log = r#"
+        {"type":"start_kyoku","bakaze":"E","dora_marker":"W","kyoku":1,"honba":0,"kyotaku":0,"oya":0,"scores":[25000,25000,25000,25000],"tehais":[["1m","2m","3m","5p","5p","4s","5s","E","E","E","S","S","S"],["?","?","?","?","?","?","?","?","?","?","?","?","?"],["?","?","?","?","?","?","?","?","?","?","?","?","?"],["?","?","?","?","?","?","?","?","?","?","?","?","?"]]}
+        {"type":"tsumo","actor":0,"pai":"P"}
+        {"type":"dahai","actor":0,"pai":"P","tsumogiri":true}
+        {"type":"tsumo","actor":1,"pai":"?"}
+        {"type":"dahai","actor":1,"pai":"P","tsumogiri":true}
+        {"type":"tsumo","actor":2,"pai":"?"}
+        {"type":"dahai","actor":2,"pai":"P","tsumogiri":true}
+        {"type":"tsumo","actor":3,"pai":"?"}
+        {"type":"dahai","actor":3,"pai":"6s","tsumogiri":false}
+    "#;
+    let mut ps = PlayerState::from_log(0, log);
+
+    assert_eq!(ps.shanten, 0);
+    assert_eq!(ps.real_time_shanten(), 0);
+    assert!(ps.last_cans.can_ron_agari);
+    assert!(ps.last_cans.can_chi_high);
+
+    ps.test_update_json(r#"{"type":"chi","actor":0,"target":3,"consumed":["4s","5s"],"pai":"6s"}"#);
+    assert_eq!(ps.shanten, 0);
+    assert_eq!(ps.real_time_shanten(), -1);
+    assert!(ps.at_furiten);
+    assert!(!ps.has_next_shanten_discard);
 }

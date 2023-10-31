@@ -5,7 +5,7 @@ use crate::rankings::Rankings;
 use crate::vec_ops::vec_add_assign;
 use std::fmt;
 use std::fs::File;
-use std::io::prelude::*;
+use std::io;
 use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
@@ -462,17 +462,14 @@ impl Stat {
                 bar.inc(1);
                 let path = path?;
 
-                let mut raw_log = String::new();
-                if path
+                let raw_log = if path
                     .extension()
                     .is_some_and(|s| s.eq_ignore_ascii_case("gz"))
                 {
-                    let mut gz = GzDecoder::new(File::open(path)?);
-                    gz.read_to_string(&mut raw_log)?;
+                    io::read_to_string(GzDecoder::new(File::open(path)?))?
                 } else {
-                    let mut f = File::open(path)?;
-                    f.read_to_string(&mut raw_log)?;
-                }
+                    io::read_to_string(File::open(path)?)?
+                };
 
                 let events = raw_log
                     .lines()

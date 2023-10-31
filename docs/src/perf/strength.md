@@ -17,13 +17,23 @@ The "rank pt" in all the tables are calculated using a distribution of [90, 45, 
 
 The name of the <span class="best-model">current best model</span> is highlighted.
 
+## Aliases
+| Model tag | Alias |
+|---|---|
+| mortal1-b40c192-t22040618 | "1.0" |
+| mortal2-b75c256-t22100115 | "2.0" |
+| mortal2-b75c256-t22092920 | "2.1" |
+| mortal3-b24c512-t22121413 | "3.0" |
+| mortal3-b24c512-t22122709 | "3.1" |
+| mortal4-b24c512-t23102603 | <span class="best-model">"4.0"</span> |
+
 ## Mortal vs akochan (jun_pt = [90, 45, 0, -135])
 Challenger is akochan and Champion is Mortal.
 
-### mortal1-b40c192-t22040618
+### "1.0"
 <details>
 
-|  | akochan (x1) | **mortal1-b40c192-t22040618** (x3) |
+|  | akochan (x1) | **"1.0"** (x3) |
 |---:|:---|:---|
 | Games | 23432 | 70296 |
 | Rounds | 250168 | 750504 |
@@ -86,10 +96,10 @@ Challenger is akochan and Champion is Mortal.
 
 </details>
 
-### <span class="best-model">mortal3-b24c512-t22122709</span>
+### "3.1"
 <details>
 
-|  | akochan (x1) | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x3) |
+|  | akochan (x1) | **"3.1"** (x3) |
 |---:|:---|:---|
 | Games | 13152 | 39456 |
 | Rounds | 140132 | 420396 |
@@ -153,10 +163,10 @@ Challenger is akochan and Champion is Mortal.
 </details>
 
 ## Mortal vs akochan (jun_pt = [90, 30, -30, -90])
-### mortal1-b40c192-t22040618
+### "1.0"
 <details>
 
-|  | akochan (x1) | **mortal1-b40c192-t22040618** (x3) |
+|  | akochan (x1) | **"1.0"** (x3) |
 |---:|:---|:---|
 | Games | 24388 | 73164 |
 | Rounds | 259986 | 779958 |
@@ -220,10 +230,10 @@ Challenger is akochan and Champion is Mortal.
 </details>
 
 ## Mortal vs Mortal
-### mortal2-b75c256-t22092920 and mortal1-b40c192-t22040618
+### "2.1" and "1.0"
 <details>
 
-|  | **mortal2-b75c256-t22092920** (x1) | mortal1-b40c192-t22040618 (x3) |
+|  | **"2.1"** (x1) | "1.0" (x3) |
 |---:|:---|:---|
 | Games | 426000 | 1278000 |
 | Rounds | 4568485 | 13705455 |
@@ -290,7 +300,7 @@ Swapping Challenger and Champion.
 
 <details>
 
-|  | **mortal1-b40c192-t22040618** (x1) | mortal2-b75c256-t22092920 (x3) |
+|  | **"1.0"** (x1) | "2.1" (x3) |
 |---:|:---|:---|
 | Games | 404000 | 1212000 |
 | Rounds | 4364061 | 13092183 |
@@ -353,10 +363,10 @@ Swapping Challenger and Champion.
 
 </details>
 
-### mortal2-b75c256-t22100115 and mortal1-b40c192-t22040618
+### "2.0" and "1.0"
 <details>
 
-|  | mortal2-b75c256-t22100115 (x1) | **mortal1-b40c192-t22040618** (x3) |
+|  | "2.0" (x1) | **"1.0"** (x3) |
 |---:|:---|:---|
 | Games | 88000 | 264000 |
 | Rounds | 938739 | 2816217 |
@@ -423,7 +433,7 @@ Swapping Challenger and Champion.
 
 <details>
 
-|  | **mortal1-b40c192-t22040618** (x1) | mortal2-b75c256-t22100115 (x3) |
+|  | **"1.0"** (x1) | "2.0" (x3) |
 |---:|:---|:---|
 | Games | 184000 | 552000 |
 | Rounds | 1949267 | 5847801 |
@@ -486,10 +496,10 @@ Swapping Challenger and Champion.
 
 </details>
 
-### mortal2-b75c256-t22092920 and mortal2-b75c256-t22100115
+### "2.1" and "2.0"
 <details>
 
-|  | **mortal2-b75c256-t22100115** (x1) | mortal2-b75c256-t22092920 (x3) |
+|  | **"2.0"** (x1) | "2.1" (x3) |
 |---:|:---|:---|
 | Games | 186000 | 558000 |
 | Rounds | 2000904 | 6002712 |
@@ -556,7 +566,7 @@ Swapping Challenger and Champion.
 
 <details>
 
-|  | **mortal2-b75c256-t22092920** (x1) | mortal2-b75c256-t22100115 (x3) |
+|  | **"2.1"** (x1) | "2.0" (x3) |
 |---:|:---|:---|
 | Games | 468000 | 1404000 |
 | Rounds | 4970641 | 14911923 |
@@ -619,12 +629,12 @@ Swapping Challenger and Champion.
 
 </details>
 
-### <span class="best-model">mortal3-b24c512-t22122709</span> and mortal1-b40c192-t22040618
+### "3.1" and "1.0"
 <details>
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x1) | mortal1-b40c192-t22040618 (x3) |
+|  | **"3.1"** (x1) | "1.0" (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10695634 | 32086902 |
@@ -693,7 +703,7 @@ Swapping Challenger and Champion.
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | mortal1-b40c192-t22040618 (x1) | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x3) |
+|  | "1.0" (x1) | **"3.1"** (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10681846 | 32045538 |
@@ -756,12 +766,12 @@ Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
 </details>
 
-### <span class="best-model">mortal3-b24c512-t22122709</span> and mortal2-b75c256-t22092920
+### "3.1" and "2.1"
 <details>
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x1) | mortal2-b75c256-t22092920 (x3) |
+|  | **"3.1"** (x1) | "2.1" (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10794074 | 32382222 |
@@ -830,7 +840,7 @@ Swapping Challenger and Champion.
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | mortal2-b75c256-t22092920 (x1) | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x3) |
+|  | "2.1" (x1) | **"3.1"** (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10709917 | 32129751 |
@@ -894,12 +904,12 @@ Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 </details>
 
 
-### <span class="best-model">mortal3-b24c512-t22122709</span> and mortal2-b75c256-t22100115
+### "3.1" and "2.0"
 <details>
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x1) | mortal2-b75c256-t22100115 (x3) |
+|  | **"3.1"** (x1) | "2.0" (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10580180 | 31740540 |
@@ -968,7 +978,7 @@ Swapping Challenger and Champion.
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | mortal2-b75c256-t22100115 (x1) | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x3) |
+|  | "2.0" (x1) | **"3.1"** (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10643651 | 31930953 |
@@ -1031,12 +1041,12 @@ Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
 </details>
 
-### <span class="best-model">mortal3-b24c512-t22122709</span> and mortal3-b24c512-t22121413
+### "3.1" and "3.0"
 <details>
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x1) | mortal3-b24c512-t22121413 (x3) |
+|  | **"3.1"** (x1) | "3.0" (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10672820 | 32018460 |
@@ -1105,7 +1115,7 @@ Swapping Challenger and Champion.
 
 Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
-|  | mortal3-b24c512-t22121413 (x1) | **<span class="best-model">mortal3-b24c512-t22122709</span>** (x3) |
+|  | "3.0" (x1) | **"3.1"** (x3) |
 |---:|:---|:---|
 | Games | 1000000 | 3000000 |
 | Rounds | 10669992 | 32009976 |
@@ -1168,9 +1178,145 @@ Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
 </details>
 
+### <span class="best-model">"4.0"</span> and "1.0"
+<details>
+
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
+
+|  | **<span class="best-model">"4.0"</span>** (x1) | "1.0" (x3) |
+|---:|:---|:---|
+| Games | 1000000 | 3000000 |
+| Rounds | 10681142 | 32043426 |
+| Rounds as dealer | 2675325 | 8005817 |
+|  |  |  |
+| 1st (rate) | 255916 (0.255916) | 744084 (0.248028) |
+| 2nd (rate) | 251793 (0.251793) | 748207 (0.249402) |
+| 3rd (rate) | 246605 (0.246605) | 753395 (0.251132) |
+| 4th (rate) | 245686 (0.245686) | 754314 (0.251438) |
+| Tobi(rate) | 65952 (0.065952) | 198118 (0.066039) |
+| Avg rank | 2.482061 | 2.505980 |
+| Total rank pt | 1195515 | -1195515 |
+| Avg rank pt | **1.195515** 👑 | -0.398505 |
+| Total Δscore | 143426800 | -143426800 |
+| Avg game Δscore | 143.426800 | -47.808933 |
+| Avg round Δscore | 13.428040 | -4.476013 |
+|  |  |  |
+| Win rate | 0.212953 | 0.210039 |
+| Deal-in rate | 0.122632 | 0.120540 |
+| Call rate | 0.297608 | 0.295206 |
+| Riichi rate | 0.183219 | 0.181151 |
+| Ryukyoku rate | 0.161597 | 0.161597 |
+|  |  |  |
+| Avg winning Δscore | 6385.163534 | 6415.484964 |
+| Avg winning Δscore as dealer | 8308.739788 | 8354.622420 |
+| Avg winning Δscore as non-dealer | 5669.506111 | 5681.806898 |
+| Avg riichi winning Δscore | 7972.385876 | 7999.813387 |
+| Avg open winning Δscore | 4878.183372 | 4911.148109 |
+| Avg dama winning Δscore | 6480.166352 | 6426.358211 |
+| Avg ryukyoku Δscore | 67.185698 | -22.395233 |
+|  |  |  |
+| Avg winning turn | 11.098600 | 11.094691 |
+| Avg riichi winning turn | 11.125445 | 11.098854 |
+| Avg open winning turn | 11.060374 | 11.047727 |
+| Avg dama winning turn | 11.139987 | 11.225684 |
+|  |  |  |
+| Avg deal-in turn | 11.471292 | 11.451375 |
+| Avg deal-in Δscore | -5224.828320 | -5256.421733 |
+| Avg deal-in Δscore to dealer | -6911.214317 | -6969.045449 |
+| Avg deal-in Δscore to non-dealer | -4628.841772 | -4661.858052 |
+|  |  |  |
+| Chasing riichi rate | 0.175903 | 0.165083 |
+| Riichi chased rate | 0.169040 | 0.174968 |
+| Winning rate after riichi | 0.480447 | 0.482631 |
+| Deal-in rate after riichi | 0.151189 | 0.151559 |
+| Avg riichi turn | 7.824200 | 7.778551 |
+| Avg riichi Δscore | 3105.525782 | 3128.929053 |
+|  |  |  |
+| Avg number of calls | 1.453992 | 1.445618 |
+| Winning rate after call | 0.317950 | 0.312653 |
+| Deal-in rate after call | 0.138158 | 0.137563 |
+| Avg call Δscore | 880.944467 | 846.499740 |
+|  |  |  |
+| Dealer wins/all dealer rounds | 0.230543 | 0.230765 |
+| Dealer wins/all wins | 0.271161 | 0.274496 |
+| Deal-in to dealer/all deal-ins | 0.261126 | 0.257701 |
+|  |  |  |
+| Yakuman (rate) | 1448 (0.000135566) | 5058 (0.000157848) |
+| Nagashi mangan (rate) | 301 (0.000028181) | 925 (0.000028867) |
+
+</details>
+
+### <span class="best-model">"4.0"</span> and "3.1"
+<details>
+
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
+
+|  | **<span class="best-model">"4.0"</span>** (x1) | "3.1" (x3) |
+|---:|:---|:---|
+| Games | 1000000 | 3000000 |
+| Rounds | 10659812 | 31979436 |
+| Rounds as dealer | 2689688 | 7970124 |
+|  |  |  |
+| 1st (rate) | 254761 (0.254761) | 745239 (0.248413) |
+| 2nd (rate) | 253873 (0.253873) | 746127 (0.248709) |
+| 3rd (rate) | 245997 (0.245997) | 754003 (0.251334) |
+| 4th (rate) | 245369 (0.245369) | 754631 (0.251544) |
+| Tobi(rate) | 64226 (0.064226) | 195212 (0.065071) |
+| Avg rank | 2.481974 | 2.506009 |
+| Total rank pt | 1227960 | -1227960 |
+| Avg rank pt | **1.227960** 👑 | -0.409320 |
+| Total Δscore | 241923400 | -241923400 |
+| Avg game Δscore | 241.923400 | -80.641133 |
+| Avg round Δscore | 22.694903 | -7.564968 |
+|  |  |  |
+| Win rate | 0.213805 | 0.208195 |
+| Deal-in rate | 0.121572 | 0.118406 |
+| Call rate | 0.296185 | 0.292370 |
+| Riichi rate | 0.184166 | 0.188881 |
+| Ryukyoku rate | 0.165987 | 0.165987 |
+|  |  |  |
+| Avg winning Δscore | 6412.783376 | 6456.604381 |
+| Avg winning Δscore as dealer | 8347.812759 | 8426.135863 |
+| Avg winning Δscore as non-dealer | 5689.489302 | 5722.201538 |
+| Avg riichi winning Δscore | 8014.887322 | 8050.625607 |
+| Avg open winning Δscore | 4872.051109 | 4802.765267 |
+| Avg dama winning Δscore | 6522.613756 | 6710.076644 |
+| Avg ryukyoku Δscore | 83.550735 | -27.850245 |
+|  |  |  |
+| Avg winning turn | 11.096734 | 11.110697 |
+| Avg riichi winning turn | 11.136705 | 11.137135 |
+| Avg open winning turn | 11.035215 | 11.063737 |
+| Avg dama winning turn | 11.170597 | 11.185110 |
+|  |  |  |
+| Avg deal-in turn | 11.518893 | 11.426851 |
+| Avg deal-in Δscore | -5232.710024 | -5227.023222 |
+| Avg deal-in Δscore to dealer | -6948.553210 | -6950.445843 |
+| Avg deal-in Δscore to non-dealer | -4637.234735 | -4634.994855 |
+|  |  |  |
+| Chasing riichi rate | 0.186112 | 0.167329 |
+| Riichi chased rate | 0.171768 | 0.179958 |
+| Winning rate after riichi | 0.481747 | 0.482011 |
+| Deal-in rate after riichi | 0.151522 | 0.150626 |
+| Avg riichi turn | 7.842044 | 7.801800 |
+| Avg riichi Δscore | 3144.559847 | 3157.812419 |
+|  |  |  |
+| Avg number of calls | 1.456339 | 1.432336 |
+| Winning rate after call | 0.318854 | 0.313497 |
+| Deal-in rate after call | 0.137677 | 0.132873 |
+| Avg call Δscore | 887.920473 | 842.461163 |
+|  |  |  |
+| Dealer wins/all dealer rounds | 0.230554 | 0.226890 |
+| Dealer wins/all wins | 0.272087 | 0.271605 |
+| Deal-in to dealer/all deal-ins | 0.257634 | 0.255686 |
+|  |  |  |
+| Yakuman (rate) | 1497 (0.000140434) | 4077 (0.000127488) |
+| Nagashi mangan (rate) | 293 (0.000027486) | 2328 (0.000072797) |
+
+</details>
+
 ## Tenhou
 Tenhou does not allow AI to play in ranked lobby without their permission, therefore I only compared how close Mortal's decisions matched those of other verified AIs that had previously played in Tenhou tokujou. I also sampled some tokujou and houou games to check against Mortal.
 
-The model used in the statistic experiment was mortal1-b40c192-t22040618.
+The model used in the statistic experiment was "1.0".
 
 [![](../assets/match-rate.png)](../assets/match-rate.png)

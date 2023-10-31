@@ -3,12 +3,16 @@ use crate::consts::ACTION_SPACE;
 use crate::mjai::{Event, EventExt, Metadata};
 use crate::state::PlayerState;
 use crate::{must_tile, tu8};
-use std::array;
+use std::mem;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use anyhow::{ensure, Context, Result};
+use crossbeam::sync::WaitGroup;
 use ndarray::prelude::*;
 use numpy::{PyArray1, PyArray2};
+use parking_lot::Mutex;
+use pyo3::intern;
 use pyo3::prelude::*;
 
 pub struct MortalBatchAgent {
@@ -20,11 +24,7 @@ pub struct MortalBatchAgent {
     name: String,
     player_ids: Vec<u8>,
 
-    states: Vec<Array2<f32>>,
-    invisible_states: Vec<Array2<f32>>,
-    masks: Vec<Array1<bool>>,
     actions: Vec<usize>,
-
     q_values: Vec<[f32; ACTION_SPACE]>,
     masks_recv: Vec<[bool; ACTION_SPACE]>,
     is_greedy: Vec<bool>,
@@ -32,9 +32,18 @@ pub struct MortalBatchAgent {
     last_batch_size: usize,
 
     evaluated: bool,
+    quick_eval_reactions: Vec<Option<Event>>,
+
+    wg: WaitGroup,
+    sync_fields: Arc<Mutex<SyncFields>>,
+}
+
+struct SyncFields {
+    states: Vec<Array2<f32>>,
+    invisible_states: Vec<Array2<f32>>,
+    masks: Vec<Array1<bool>>,
     action_idxs: Vec<usize>,
     kan_action_idxs: Vec<Option<usize>>,
-    quick_eval_reactions: Vec<Option<Event>>,
 }
 
 impl MortalBatchAgent {
@@ -44,7 +53,10 @@ impl MortalBatchAgent {
         let (name, is_oracle, version, enable_quick_eval, enable_rule_based_agari_guard) =
             Python::with_gil(|py| {
                 let obj = engine.as_ref(py);
-                ensure!(obj.getattr("react_batch")?.is_callable());
+                ensure!(
+                    obj.getattr("react_batch")?.is_callable(),
+                    "missing method react_batch",
+                );
 
                 let name = obj.getattr("name")?.extract()?;
                 let is_oracle = obj.getattr("is_oracle")?.extract()?;
@@ -62,6 +74,19 @@ impl MortalBatchAgent {
             })?;
 
         let size = player_ids.len();
+        let quick_eval_reactions = if enable_quick_eval {
+            vec![None; size]
+        } else {
+            vec![]
+        };
+        let sync_fields = Arc::new(Mutex::new(SyncFields {
+            states: vec![],
+            invisible_states: vec![],
+            masks: vec![],
+            action_idxs: vec![0; size],
+            kan_action_idxs: vec![None; size],
+        }));
+
         Ok(Self {
             engine,
             is_oracle,
@@ -71,11 +96,7 @@ impl MortalBatchAgent {
             name,
             player_ids: player_ids.to_vec(),
 
-            states: vec![],
-            invisible_states: vec![],
-            masks: vec![],
             actions: vec![],
-
             q_values: vec![],
             masks_recv: vec![],
             is_greedy: vec![],
@@ -83,37 +104,39 @@ impl MortalBatchAgent {
             last_batch_size: 0,
 
             evaluated: false,
-            action_idxs: vec![0; size],
-            kan_action_idxs: vec![None; size],
-            quick_eval_reactions: if enable_quick_eval {
-                vec![None; size]
-            } else {
-                vec![]
-            },
+            quick_eval_reactions,
+
+            wg: WaitGroup::new(),
+            sync_fields,
         })
     }
 
     fn evaluate(&mut self) -> Result<()> {
-        if self.states.is_empty() {
+        // Wait for all feature encodings to be completed.
+        mem::take(&mut self.wg).wait();
+        let mut sync_fields = self.sync_fields.lock();
+
+        if sync_fields.states.is_empty() {
             return Ok(());
         }
 
         let start = Instant::now();
-        self.last_batch_size = self.states.len();
+        self.last_batch_size = sync_fields.states.len();
 
         (self.actions, self.q_values, self.masks_recv, self.is_greedy) = Python::with_gil(|py| {
-            let states: Vec<_> = self
+            let states: Vec<_> = sync_fields
                 .states
                 .drain(..)
                 .map(|v| PyArray2::from_owned_array(py, v))
                 .collect();
-            let masks: Vec<_> = self
+            let masks: Vec<_> = sync_fields
                 .masks
                 .drain(..)
                 .map(|v| PyArray1::from_owned_array(py, v))
                 .collect();
             let invisible_states: Option<Vec<_>> = self.is_oracle.then(|| {
-                self.invisible_states
+                sync_fields
+                    .invisible_states
                     .drain(..)
                     .map(|v| PyArray2::from_owned_array(py, v))
                     .collect()
@@ -122,7 +145,7 @@ impl MortalBatchAgent {
             let args = (states, masks, invisible_states);
             self.engine
                 .as_ref(py)
-                .call_method1("react_batch", args)
+                .call_method1(intern!(py, "react_batch"), args)
                 .context("failed to execute `react_batch` on Python engine")?
                 .extract()
                 .context("failed to extract to Rust type")
@@ -198,17 +221,16 @@ impl BatchAgent for MortalBatchAgent {
                 if !flag {
                     continue;
                 }
-                if only_candidate.is_some() {
-                    only_candidate = None;
-                    break;
+                match only_candidate.take() {
+                    None => only_candidate = Some(tile),
+                    Some(_) => break,
                 }
-                only_candidate = Some(tile);
             }
 
             if let Some(tile_id) = only_candidate {
                 let actor = self.player_ids[index];
                 let pai = must_tile!(tile_id);
-                let tsumogiri = matches!(state.last_self_tsumo(), Some(t) if t == pai);
+                let tsumogiri = state.last_self_tsumo().is_some_and(|t| t == pai);
                 let ev = Event::Dahai {
                     actor,
                     pai,
@@ -219,35 +241,50 @@ impl BatchAgent for MortalBatchAgent {
             }
         }
 
-        let need_kan_select = if cans.can_ankan || cans.can_kakan {
-            if !self.enable_quick_eval {
-                true
-            } else {
-                let a = state.ankan_candidates();
-                let k = state.kakan_candidates();
-                a.len() + k.len() > 1
-            }
-        } else {
+        let need_kan_select = if !cans.can_ankan && !cans.can_kakan {
             false
+        } else if !self.enable_quick_eval {
+            true
+        } else {
+            state.ankan_candidates().len() + state.kakan_candidates().len() > 1
         };
 
-        if need_kan_select {
-            let (kan_feature, kan_mask) = state.encode_obs(self.version, true);
-            self.states.push(kan_feature);
-            self.masks.push(kan_mask);
-            if let Some(invisible_state) = invisible_state.clone() {
-                self.invisible_states.push(invisible_state);
-            }
-            self.kan_action_idxs[index] = Some(self.states.len() - 1);
-        }
+        let version = self.version;
+        let state = state.clone();
+        let sync_fields = Arc::clone(&self.sync_fields);
+        let wg = self.wg.clone();
+        rayon::spawn(move || {
+            let _wg = wg;
 
-        let (feature, mask) = state.encode_obs(self.version, false);
-        self.states.push(feature);
-        self.masks.push(mask);
-        if let Some(invisible_state) = invisible_state {
-            self.invisible_states.push(invisible_state);
-        }
-        self.action_idxs[index] = self.states.len() - 1;
+            // Do feature encoding in parallel in the game batch to utilize
+            // multiple cores, as it can be very CPU intensive when using the sp
+            // feature (since v4).
+            let kan = need_kan_select.then(|| state.encode_obs(version, true));
+            let (feature, mask) = state.encode_obs(version, false);
+
+            let SyncFields {
+                states,
+                invisible_states,
+                masks,
+                action_idxs,
+                kan_action_idxs,
+            } = &mut *sync_fields.lock();
+            if let Some((kan_feature, kan_mask)) = kan {
+                kan_action_idxs[index] = Some(states.len());
+                states.push(kan_feature);
+                masks.push(kan_mask);
+                if let Some(invisible_state) = invisible_state.clone() {
+                    invisible_states.push(invisible_state);
+                }
+            }
+
+            action_idxs[index] = states.len();
+            states.push(feature);
+            masks.push(mask);
+            if let Some(invisible_state) = invisible_state {
+                invisible_states.push(invisible_state);
+            }
+        });
 
         Ok(())
     }
@@ -271,8 +308,9 @@ impl BatchAgent for MortalBatchAgent {
         }
         let start = Instant::now();
 
-        let action_idx = self.action_idxs[index];
-        let kan_select_idx = self.kan_action_idxs[index].take();
+        let mut sync_fields = self.sync_fields.lock();
+        let action_idx = sync_fields.action_idxs[index];
+        let kan_select_idx = sync_fields.kan_action_idxs[index].take();
 
         let actor = self.player_ids[index];
         let akas_in_hand = state.akas_in_hand();
@@ -282,14 +320,17 @@ impl BatchAgent for MortalBatchAgent {
         let action =
             if self.enable_rule_based_agari_guard && orig_action == 43 && !state.rule_based_agari()
             {
-                // The engine says agari, but the rule-based engine says no.
-                // Under rule-based agari guard mode, it will be forced to use
-                // the second-best option other than agari.
-                let q_values = self.q_values[action_idx];
-                let mut v: [_; ACTION_SPACE] = array::from_fn(|i| (i, q_values[i]));
-                v[43].1 = f32::NEG_INFINITY;
-                v.sort_unstable_by(|(_, l), (_, r)| r.total_cmp(l));
-                v[0].0
+                // The engine wants agari, but the rule-based engine is against
+                // it. In rule-based agari guard mode, it will force to execute
+                // the best alternative option other than agari.
+                let mut q_values = self.q_values[action_idx];
+                q_values[43] = f32::MIN;
+                q_values
+                    .iter()
+                    .enumerate()
+                    .max_by(|(_, l), (_, r)| l.total_cmp(r))
+                    .unwrap()
+                    .0
             } else {
                 orig_action
             };
@@ -303,7 +344,7 @@ impl BatchAgent for MortalBatchAgent {
                 );
 
                 let pai = must_tile!(action);
-                let tsumogiri = matches!(state.last_self_tsumo(), Some(t) if t == pai);
+                let tsumogiri = state.last_self_tsumo().is_some_and(|t| t == pai);
                 Event::Dahai {
                     actor,
                     pai,

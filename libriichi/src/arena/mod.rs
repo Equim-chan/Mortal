@@ -5,7 +5,7 @@ mod result;
 mod two_vs_two;
 
 pub use board::Board;
-pub use result::{GameResult, KyokuEndState};
+pub use result::GameResult;
 
 use crate::py_helper::add_submodule;
 use one_vs_three::OneVsThree;

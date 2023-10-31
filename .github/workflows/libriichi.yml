@@ -2,6 +2,7 @@ name: build-libriichi
 
 on:
   push:
+    branches: [main]
     paths:
       - .github/workflows/libriichi.yml
       - Cargo*
@@ -63,7 +64,8 @@ jobs:
       - name: Run tests
         run: |
           cargo test --workspace --no-default-features --features flate2/zlib -- --nocapture
-          cargo test -p libriichi --no-default-features --bench bench
+          cargo test --workspace --no-default-features --features flate2/zlib,sp_reproduce_cpp_ver -- --nocapture
+          cargo test -p libriichi --no-default-features --benches
 
       - name: Run build
         run: |

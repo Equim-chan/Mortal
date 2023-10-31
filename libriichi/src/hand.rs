@@ -1,4 +1,4 @@
-//! Hand format convertions, usually only useful for testing and debugging.
+//! Hand format conversions, usually only useful for testing and debugging.
 //!
 //! Note that all functions in this mod that take or produce strings are dealing
 //! with tenhou.net/2 format tile description (like 0m 123z) instead of mjai (like

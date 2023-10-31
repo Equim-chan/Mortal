@@ -22,25 +22,32 @@ pub(super) enum MoveType {
 impl PlayerState {
     #[inline]
     pub fn update(&mut self, event: &Event) -> ActionCandidate {
-        self.update_with_skip(event, false)
+        self.update_with_keep_cans(event, false)
     }
 
-    pub fn update_with_skip(&mut self, event: &Event, skip_on_announce: bool) -> ActionCandidate {
-        if !skip_on_announce || !event.is_in_game_announce() {
+    /// If `keep_cans_on_announce` is true, then ReachAccepted, Dora and Hora
+    /// events will keep `self.last_cans`, `self.ankan_candidates` and
+    /// `self.kakan_candidates` unchanged from the last update. Currently
+    /// setting it to true is only useful in validate_logs.
+    pub fn update_with_keep_cans(
+        &mut self,
+        event: &Event,
+        keep_cans_on_announce: bool,
+    ) -> ActionCandidate {
+        if !keep_cans_on_announce || !event.is_in_game_announce() {
             self.last_cans = ActionCandidate {
                 target_actor: event.actor().unwrap_or(self.player_id),
                 ..Default::default()
             };
-
-            if self.to_mark_same_cycle_furiten.take().is_some() {
-                self.at_furiten = true;
-            }
-            if self.chankan_chance.take().is_some() {
-                self.at_ippatsu = false;
-            }
-
             self.ankan_candidates.clear();
             self.kakan_candidates.clear();
+        }
+
+        if self.to_mark_same_cycle_furiten.take().is_some() {
+            self.at_furiten = true;
+        }
+        if self.chankan_chance.take().is_some() {
+            self.at_ippatsu = false;
         }
 
         match *event {
@@ -58,6 +65,7 @@ impl PlayerState {
                 self.waits.fill(false);
                 self.dora_factor.fill(0);
                 self.tiles_seen.fill(0);
+                self.akas_seen.fill(false);
                 self.keep_shanten_discards.fill(false);
                 self.next_shanten_discards.fill(false);
                 self.forbidden_tiles.fill(false);
@@ -102,6 +110,7 @@ impl PlayerState {
 
                 self.kans_on_board = 0;
                 self.tehai_len_div3 = 4;
+                self.shanten_cache.lock().clear();
                 self.has_next_shanten_discard = false;
                 self.tiles_left = 70;
                 self.at_turn = 0;
@@ -372,6 +381,7 @@ impl PlayerState {
                 self.last_cans.can_discard = true;
                 self.is_menzen = false;
                 self.tehai_len_div3 -= 1;
+                self.shanten_cache.lock().clear();
                 // Marked explicitly as `None` to let `Agent` impls set
                 // `tsumogiri` to false in the Dahai after Chi
                 self.last_self_tsumo = None;
@@ -444,6 +454,7 @@ impl PlayerState {
                 self.last_cans.can_discard = true;
                 self.is_menzen = false;
                 self.tehai_len_div3 -= 1;
+                self.shanten_cache.lock().clear();
                 // Marked explicitly as `None` to let `Agent` impls set
                 // `tsumogiri` to false in the Dahai after Pon
                 self.last_self_tsumo = None;
@@ -492,6 +503,7 @@ impl PlayerState {
                 self.at_rinshan = true;
                 self.is_menzen = false;
                 self.tehai_len_div3 -= 1;
+                self.shanten_cache.lock().clear();
 
                 self.update_doras_owned(0, pai);
                 consumed
@@ -571,6 +583,7 @@ impl PlayerState {
 
                 self.at_rinshan = true;
                 self.tehai_len_div3 -= 1;
+                self.shanten_cache.lock().clear();
                 consumed
                     .into_iter()
                     .for_each(|t| self.move_tile(t, MoveType::FuuroConsume));
@@ -626,8 +639,20 @@ impl PlayerState {
         let tile_id = tile.deaka().as_usize();
         self.tiles_seen[tile_id] += 1;
         self.doras_seen += self.dora_factor[tile_id];
-        if tile.is_aka() {
-            self.doras_seen += 1;
+        match tile.as_u8() {
+            tu8!(5mr) => {
+                self.akas_seen[0] = true;
+                self.doras_seen += 1;
+            }
+            tu8!(5pr) => {
+                self.akas_seen[1] = true;
+                self.doras_seen += 1;
+            }
+            tu8!(5sr) => {
+                self.akas_seen[2] = true;
+                self.doras_seen += 1;
+            }
+            _ => (),
         }
     }
 
@@ -685,15 +710,14 @@ impl PlayerState {
 
         // Count new dora in everyone's fuuro
         for i in 0..4 {
-            let mut new_dora_count_in_fuuro = self.fuuro_overview[i]
+            self.doras_owned[i] += self.fuuro_overview[i]
                 .iter()
                 .flatten()
                 .filter(|t| t.deaka() == next)
                 .count() as u8;
             if self.ankan_overview[i].contains(&next) {
-                new_dora_count_in_fuuro += 4;
+                self.doras_owned[i] += 4;
             }
-            self.doras_owned[i] += new_dora_count_in_fuuro;
         }
 
         // Add `doras_seen` based on `tiles_seen`
@@ -778,24 +802,26 @@ impl PlayerState {
         self.keep_shanten_discards.fill(false);
         self.has_next_shanten_discard = false;
 
-        // benchmark result indicates it is too trivial to use rayon here.
-        for tile_id in self
-            .tehai
-            .iter()
-            .enumerate()
-            .filter(|(_, &c)| c > 0)
-            .map(|(t, _)| t)
-        {
-            let mut tehai = self.tehai;
-            tehai[tile_id] -= 1;
+        let mut tehai = self.tehai;
+        for (tid, &count) in self.tehai.iter().enumerate() {
+            // `self.forbidden_tiles[tid]` is not checked here, but it is
+            // acceptable because forbidden tiles are always keep-shanten
+            // discards, so it won't affect the result of
+            // `has_next_shanten_discard`. We will take forbidden_tiles into
+            // account when generating discard candidates.
+            if count == 0 {
+                continue;
+            }
+            tehai[tid] -= 1;
             let shanten_after = shanten::calc_all(&tehai, self.tehai_len_div3);
+            tehai[tid] += 1;
             match shanten_after.cmp(&self.shanten) {
                 Ordering::Less => {
-                    self.next_shanten_discards[tile_id] = true;
+                    self.next_shanten_discards[tid] = true;
                     self.has_next_shanten_discard = true;
                 }
                 Ordering::Equal => {
-                    self.keep_shanten_discards[tile_id] = true;
+                    self.keep_shanten_discards[tid] = true;
                 }
                 _ => (),
             };
@@ -808,8 +834,9 @@ impl PlayerState {
         assert!(!self.last_cans.can_discard, "tehai is not 3n+1");
 
         // Reset the furiten flag here for:
-        // 1. clearing same-cycle furiten
-        // 2. the fact that furiten is nonsense if we are no longer tenpai
+        // 1. Clearing same-cycle furiten.
+        // 2. The fact that furiten doesn't make sense if we are no longer
+        //    tenpai.
         self.at_furiten = false;
         self.waits.fill(false);
 
@@ -817,12 +844,12 @@ impl PlayerState {
             return;
         }
 
-        for (t, v) in self.waits.iter_mut().enumerate() {
+        for (t, is_wait) in self.waits.iter_mut().enumerate() {
             if self.tehai[t] == 4 {
                 // Cannot wait, not even furiten for the 5th tile.
                 //
-                // However waiting for the 5th tile with 4 of them lying in the
-                // kawa or fuuro makes a valid furiten.
+                // However waiting for the 5th tile when all 4 of them are
+                // already in the kawa or fuuro is a valid furiten.
                 //
                 // Note that although [karaten] is not considered as a wait and
                 // thus will not be written to the `waits` in this impl anyways,
@@ -834,8 +861,10 @@ impl PlayerState {
 
             if shanten::calc_all(&tehai_after, self.tehai_len_div3) == -1 {
                 // furiten is not affected by `tiles_seen`
-                self.at_furiten |= self.discarded_tiles[t];
-                *v = self.tiles_seen[t] < 4;
+                if self.discarded_tiles[t] {
+                    self.at_furiten = true;
+                }
+                *is_wait = self.tiles_seen[t] < 4;
             }
         }
     }

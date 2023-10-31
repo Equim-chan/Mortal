@@ -1,6 +1,6 @@
 import torch
 from torch import nn, Tensor
-from torch.nn import init, functional as F
+from torch.nn import functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_sequence
 from typing import *
 from functools import partial
@@ -8,16 +8,17 @@ from itertools import permutations
 from libriichi.consts import obs_shape, oracle_obs_shape, ACTION_SPACE, GRP_SIZE
 
 class ChannelAttention(nn.Module):
-    def __init__(self, channels, ratio=16, actv_builder=nn.ReLU):
+    def __init__(self, channels, ratio=16, actv_builder=nn.ReLU, bias=True):
         super().__init__()
         self.shared_mlp = nn.Sequential(
-            nn.Linear(channels, channels // ratio),
+            nn.Linear(channels, channels // ratio, bias=bias),
             actv_builder(),
-            nn.Linear(channels // ratio, channels),
+            nn.Linear(channels // ratio, channels, bias=bias),
         )
-        for mod in self.modules():
-            if isinstance(mod, nn.Linear):
-                init.constant_(mod.bias, 0)
+        if bias:
+            for mod in self.modules():
+                if isinstance(mod, nn.Linear):
+                    nn.init.constant_(mod.bias, 0)
 
     def forward(self, x):
         avg_out = self.shared_mlp(x.mean(-1))
@@ -34,30 +35,29 @@ class ResBlock(nn.Module):
         norm_builder = nn.Identity,
         actv_builder = nn.ReLU,
         pre_actv = False,
-        bias = True,
     ):
         super().__init__()
-        self.actv = actv_builder()
         self.pre_actv = pre_actv
 
         if pre_actv:
             self.res_unit = nn.Sequential(
                 norm_builder(),
                 actv_builder(),
-                nn.Conv1d(channels, channels, kernel_size=3, padding=1, bias=bias),
+                nn.Conv1d(channels, channels, kernel_size=3, padding=1, bias=False),
                 norm_builder(),
                 actv_builder(),
-                nn.Conv1d(channels, channels, kernel_size=3, padding=1, bias=bias),
+                nn.Conv1d(channels, channels, kernel_size=3, padding=1, bias=False),
             )
         else:
             self.res_unit = nn.Sequential(
-                nn.Conv1d(channels, channels, kernel_size=3, padding=1, bias=bias),
+                nn.Conv1d(channels, channels, kernel_size=3, padding=1, bias=False),
                 norm_builder(),
                 actv_builder(),
-                nn.Conv1d(channels, channels, kernel_size=3, padding=1, bias=bias),
+                nn.Conv1d(channels, channels, kernel_size=3, padding=1, bias=False),
                 norm_builder(),
             )
-        self.ca = ChannelAttention(channels, actv_builder=actv_builder)
+            self.actv = actv_builder()
+        self.ca = ChannelAttention(channels, actv_builder=actv_builder, bias=True)
 
     def forward(self, x):
         out = self.res_unit(x)
@@ -77,7 +77,6 @@ class ResNet(nn.Module):
         norm_builder = nn.Identity,
         actv_builder = nn.ReLU,
         pre_actv = False,
-        bias = True,
     ):
         super().__init__()
 
@@ -88,10 +87,9 @@ class ResNet(nn.Module):
                 norm_builder = norm_builder,
                 actv_builder = actv_builder,
                 pre_actv = pre_actv,
-                bias = bias,
             ))
 
-        layers = [nn.Conv1d(in_channels, conv_channels, kernel_size=3, padding=1, bias=bias)]
+        layers = [nn.Conv1d(in_channels, conv_channels, kernel_size=3, padding=1, bias=False)]
         if pre_actv:
             layers += [*blocks, norm_builder(), actv_builder()]
         else:
@@ -118,7 +116,6 @@ class Brain(nn.Module):
             in_channels += oracle_obs_shape(version)[0]
 
         norm_builder = partial(nn.BatchNorm1d, conv_channels, momentum=0.01)
-        bias = False
         actv_builder = partial(nn.Mish, inplace=True)
         pre_actv = True
 
@@ -134,7 +131,7 @@ class Brain(nn.Module):
                 self.logsig_head = nn.Linear(512, 512)
             case 2:
                 pass
-            case 3:
+            case 3 | 4:
                 norm_builder = partial(nn.BatchNorm1d, conv_channels, momentum=0.01, eps=1e-3)
             case _:
                 raise ValueError(f'Unexpected version {self.version}')
@@ -146,10 +143,10 @@ class Brain(nn.Module):
             norm_builder = norm_builder,
             actv_builder = actv_builder,
             pre_actv = pre_actv,
-            bias = bias,
         )
+        self.actv = actv_builder()
 
-        # when True, never updates running stats, weights and bias and always use EMA or CMA
+        # always use EMA or CMA when True
         self._freeze_bn = False
 
     def forward(self, obs, invisible_obs: Optional[Tensor] = None) -> Union[Tuple[Tensor, Tensor], Tensor]:
@@ -164,8 +161,8 @@ class Brain(nn.Module):
                 mu = self.mu_head(latent_out)
                 logsig = self.logsig_head(latent_out)
                 return mu, logsig
-            case 2 | 3:
-                return F.mish(phi)
+            case 2 | 3 | 4:
+                return self.actv(phi)
             case _:
                 raise ValueError(f'Unexpected version {self.version}')
 
@@ -184,29 +181,18 @@ class Brain(nn.Module):
             if isinstance(mod, nn.BatchNorm1d):
                 mod.reset_running_stats()
 
-    def set_bn_attrs(self, **kwargs):
-        for mod in self.modules():
-            if isinstance(mod, nn.BatchNorm1d):
-                for k, v in kwargs.items():
-                    if hasattr(mod, k):
-                        setattr(mod, k, v)
-
     def freeze_bn(self, value: bool):
         self._freeze_bn = value
         return self.train(self.training)
 
-class NextRankPredictor(nn.Module):
-    def __init__(self):
+class AuxNet(nn.Module):
+    def __init__(self, dims=None):
         super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(1024, 256),
-            nn.Mish(inplace=True),
-            nn.Linear(256, 4),
-        )
+        self.dims = dims
+        self.net = nn.Linear(1024, sum(dims), bias=False)
 
     def forward(self, x):
-        logits = self.net(x)
-        return logits
+        return self.net(x).split(self.dims, dim=-1)
 
 class DQN(nn.Module):
     def __init__(self, *, version=1):
@@ -228,10 +214,16 @@ class DQN(nn.Module):
                     nn.Mish(inplace=True),
                     nn.Linear(hidden_size, ACTION_SPACE),
                 )
+            case 4:
+                self.net = nn.Linear(1024, 1 + ACTION_SPACE)
+                nn.init.constant_(self.net.bias, 0)
 
     def forward(self, phi, mask):
-        v = self.v_head(phi)
-        a = self.a_head(phi)
+        if self.version == 4:
+            v, a = self.net(phi).split((1, ACTION_SPACE), dim=-1)
+        else:
+            v = self.v_head(phi)
+            a = self.a_head(phi)
         a_sum = a.masked_fill(~mask, 0.).sum(-1, keepdim=True)
         mask_sum = mask.sum(-1, keepdim=True)
         a_mean = a_sum / mask_sum
