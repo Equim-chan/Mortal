@@ -17,6 +17,9 @@ The "rank pt" in all the tables are calculated using a distribution of [90, 45, 
 
 The name of the <span class="best-model">current best model</span> is highlighted.
 
+### Seed
+The seed often used in the following experiments, 0xd5dfaa4cef265cd7, is derived from the first 8 bytes of the SHA-256 hash of `Mortal the mahjong AI`.
+
 ## Aliases
 | Model tag | Alias |
 |---|---|
