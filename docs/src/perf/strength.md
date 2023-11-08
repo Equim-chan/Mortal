@@ -1317,6 +1317,75 @@ Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
 
 </details>
 
+Swapping Challenger and Champion.
+
+<details>
+
+Seed: nonce=range(10000, 260000), key=0xd5dfaa4cef265cd7
+
+|  | "3.1" (x1) | **<span class="best-model">"4.0"</span>** (x3) |
+|---:|:---|:---|
+| Games | 1000000 | 3000000 |
+| Rounds | 10645881 | 31937643 |
+| Rounds as dealer | 2640955 | 8004926 |
+|  |  |  |
+| 1st (rate) | 246560 (0.246560) | 753440 (0.251147) |
+| 2nd (rate) | 247356 (0.247356) | 752644 (0.250881) |
+| 3rd (rate) | 251985 (0.251985) | 748015 (0.249338) |
+| 4th (rate) | 254099 (0.254099) | 745901 (0.248634) |
+| Tobi(rate) | 65222 (0.065222) | 193600 (0.064533) |
+| Avg rank | 2.513623 | 2.495459 |
+| Total rank pt | -981945 | 981945 |
+| Avg rank pt | -0.981945 | **0.327315** 👑 |
+| Total Δscore | -192367600 | 192367600 |
+| Avg game Δscore | -192.367600 | 64.122533 |
+| Avg round Δscore | -18.069674 | 6.023225 |
+|  |  |  |
+| Win rate | 0.207557 | 0.212490 |
+| Deal-in rate | 0.119152 | 0.122249 |
+| Call rate | 0.291623 | 0.295555 |
+| Riichi rate | 0.188835 | 0.183308 |
+| Ryukyoku rate | 0.159511 | 0.159511 |
+|  |  |  |
+| Avg winning Δscore | 6436.725100 | 6387.265120 |
+| Avg winning Δscore as dealer | 8402.001423 | 8310.774115 |
+| Avg winning Δscore as non-dealer | 5706.206657 | 5672.865299 |
+| Avg riichi winning Δscore | 8014.875145 | 7975.785029 |
+| Avg open winning Δscore | 4785.733847 | 4850.946225 |
+| Avg dama winning Δscore | 6677.160528 | 6494.779090 |
+| Avg ryukyoku Δscore | -81.207969 | 27.069323 |
+|  |  |  |
+| Avg winning turn | 11.114924 | 11.100321 |
+| Avg riichi winning turn | 11.116949 | 11.122194 |
+| Avg open winning turn | 11.098670 | 11.064756 |
+| Avg dama winning turn | 11.166078 | 11.146294 |
+|  |  |  |
+| Avg deal-in turn | 11.395169 | 11.483540 |
+| Avg deal-in Δscore | -5225.747211 | -5227.134841 |
+| Avg deal-in Δscore to dealer | -6927.709831 | -6930.896545 |
+| Avg deal-in Δscore to non-dealer | -4642.621155 | -4637.208128 |
+|  |  |  |
+| Chasing riichi rate | 0.159771 | 0.178058 |
+| Riichi chased rate | 0.185667 | 0.177677 |
+| Winning rate after riichi | 0.483532 | 0.482871 |
+| Deal-in rate after riichi | 0.151588 | 0.152968 |
+| Avg riichi turn | 7.779467 | 7.814632 |
+| Avg riichi Δscore | 3129.177567 | 3106.878124 |
+|  |  |  |
+| Avg number of calls | 1.424106 | 1.448587 |
+| Winning rate after call | 0.311916 | 0.316842 |
+| Deal-in rate after call | 0.133369 | 0.137960 |
+| Avg call Δscore | 817.885450 | 861.218298 |
+|  |  |  |
+| Dealer wins/all dealer rounds | 0.226726 | 0.229597 |
+| Dealer wins/all wins | 0.270984 | 0.270821 |
+| Deal-in to dealer/all deal-ins | 0.255187 | 0.257196 |
+|  |  |  |
+| Yakuman (rate) | 1321 (0.000124086) | 4357 (0.000136422) |
+| Nagashi mangan (rate) | 729 (0.000068477) | 830 (0.000025988) |
+
+</details>
+
 ## Tenhou
 Tenhou does not allow AI to play in ranked lobby without their permission, therefore I only compared how close Mortal's decisions matched those of other verified AIs that had previously played in Tenhou tokujou. I also sampled some tokujou and houou games to check against Mortal.
 
