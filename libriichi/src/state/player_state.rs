@@ -1,15 +1,13 @@
 use super::action::ActionCandidate;
 use super::item::{ChiPon, KawaItem, Sutehai};
-use crate::algo::sp::{Candidate, ShantenCache};
+use crate::algo::sp::Candidate;
 use crate::hand::tiles_to_string;
 use crate::must_tile;
 use crate::tile::Tile;
 use std::iter;
-use std::sync::Arc;
 
 use anyhow::Result;
 use derivative::Derivative;
-use parking_lot::Mutex;
 use pyo3::prelude::*;
 use serde_json as json;
 use tinyvec::{ArrayVec, TinyVec};
@@ -139,15 +137,6 @@ pub struct PlayerState {
     /// Used in can_riichi, also in single-player features to get the shanten
     /// for 3n+2.
     pub(super) has_next_shanten_discard: bool,
-
-    /// Despite of its name, it is for single-player calculations only.
-    ///
-    /// The cache will be cleared at a StartKyoku event and also every time
-    /// `tehai_len_div3` changes.
-    ///
-    /// Arc Mutex is used here because we want interior mutability and also make
-    /// it trivial to Clone.
-    pub(super) shanten_cache: Arc<Mutex<ShantenCache>>,
 }
 
 #[pymethods]

@@ -1,4 +1,3 @@
-use super::shanten_cache::ShantenCache;
 use super::tile::{DiscardTile, DrawTile, RequiredTile};
 use super::CALC_SHANTEN_FN;
 use crate::tile::Tile;
@@ -101,7 +100,6 @@ impl State {
         &self,
         shanten: i8,
         tehai_len_div3: u8,
-        shanten_cache: &mut ShantenCache,
     ) -> ArrayVec<[DiscardTile; 14]> {
         let mut discard_tiles = ArrayVec::default();
 
@@ -112,10 +110,7 @@ impl State {
             }
 
             tehai[tid] -= 1;
-            let shanten_after = *shanten_cache
-                .at_3n1
-                .entry(tehai)
-                .or_insert_with_key(|tehai| CALC_SHANTEN_FN(tehai, tehai_len_div3));
+            let shanten_after = CALC_SHANTEN_FN(&tehai, tehai_len_div3);
             tehai[tid] += 1;
 
             let shanten_diff = shanten_after - shanten;
@@ -137,7 +132,6 @@ impl State {
         &self,
         shanten: i8,
         tehai_len_div3: u8,
-        shanten_cache: &mut ShantenCache,
     ) -> ArrayVec<[DrawTile; 37]> {
         let mut draw_tiles = ArrayVec::default();
 
@@ -148,10 +142,7 @@ impl State {
             }
 
             tehai[tid] += 1;
-            let shanten_after = *shanten_cache
-                .at_3n2
-                .entry(tehai)
-                .or_insert_with_key(|tehai| CALC_SHANTEN_FN(tehai, tehai_len_div3));
+            let shanten_after = CALC_SHANTEN_FN(&tehai, tehai_len_div3);
             tehai[tid] -= 1;
 
             let shanten_diff = shanten_after - shanten;
@@ -183,17 +174,10 @@ impl State {
         draw_tiles
     }
 
-    pub(super) fn get_required_tiles(
-        &self,
-        tehai_len_div3: u8,
-        shanten_cache: &mut ShantenCache,
-    ) -> ArrayVec<[RequiredTile; 34]> {
+    pub(super) fn get_required_tiles(&self, tehai_len_div3: u8) -> ArrayVec<[RequiredTile; 34]> {
         let mut tehai = self.tehai;
 
-        let shanten = *shanten_cache
-            .at_3n1
-            .entry(tehai)
-            .or_insert_with_key(|tehai| CALC_SHANTEN_FN(tehai, tehai_len_div3));
+        let shanten = CALC_SHANTEN_FN(&tehai, tehai_len_div3);
         let mut required_tiles = ArrayVec::default();
 
         for (tid, &count) in self.tiles_in_wall.iter().enumerate() {
@@ -202,10 +186,7 @@ impl State {
             }
 
             tehai[tid] += 1;
-            let shanten_after = *shanten_cache
-                .at_3n2
-                .entry(tehai)
-                .or_insert_with_key(|tehai| CALC_SHANTEN_FN(tehai, tehai_len_div3));
+            let shanten_after = CALC_SHANTEN_FN(&tehai, tehai_len_div3);
             tehai[tid] -= 1;
 
             if shanten_after < shanten {

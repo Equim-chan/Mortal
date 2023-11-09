@@ -19,9 +19,6 @@
 //!   `tsumo_prob_table`.
 //!
 //! Other improvements:
-//! - Added shanten calculation cache. The number of shanten calculations can
-//!   easily reach 10 million at 3 shanten with tegawari and shantenmodori. The
-//!   added cache layers can usually provide a hit rate of around 80%.
 //! - More aggressive compile-time optimizations.
 //!
 //! To reproduce the behavior of the original C++ version, set feature
@@ -29,13 +26,11 @@
 
 mod calc;
 mod candidate;
-mod shanten_cache;
 mod state;
 mod tile;
 
 pub use calc::SPCalculator;
 pub use candidate::{Candidate, CandidateColumn};
-pub use shanten_cache::ShantenCache;
 pub use state::InitState;
 pub use tile::RequiredTile;
 

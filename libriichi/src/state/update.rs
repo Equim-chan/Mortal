@@ -110,7 +110,6 @@ impl PlayerState {
 
                 self.kans_on_board = 0;
                 self.tehai_len_div3 = 4;
-                self.shanten_cache.lock().clear();
                 self.has_next_shanten_discard = false;
                 self.tiles_left = 70;
                 self.at_turn = 0;
@@ -381,7 +380,6 @@ impl PlayerState {
                 self.last_cans.can_discard = true;
                 self.is_menzen = false;
                 self.tehai_len_div3 -= 1;
-                self.shanten_cache.lock().clear();
                 // Marked explicitly as `None` to let `Agent` impls set
                 // `tsumogiri` to false in the Dahai after Chi
                 self.last_self_tsumo = None;
@@ -454,7 +452,6 @@ impl PlayerState {
                 self.last_cans.can_discard = true;
                 self.is_menzen = false;
                 self.tehai_len_div3 -= 1;
-                self.shanten_cache.lock().clear();
                 // Marked explicitly as `None` to let `Agent` impls set
                 // `tsumogiri` to false in the Dahai after Pon
                 self.last_self_tsumo = None;
@@ -503,7 +500,6 @@ impl PlayerState {
                 self.at_rinshan = true;
                 self.is_menzen = false;
                 self.tehai_len_div3 -= 1;
-                self.shanten_cache.lock().clear();
 
                 self.update_doras_owned(0, pai);
                 consumed
@@ -583,7 +579,6 @@ impl PlayerState {
 
                 self.at_rinshan = true;
                 self.tehai_len_div3 -= 1;
-                self.shanten_cache.lock().clear();
                 consumed
                     .into_iter()
                     .for_each(|t| self.move_tile(t, MoveType::FuuroConsume));

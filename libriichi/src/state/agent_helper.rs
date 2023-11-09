@@ -584,13 +584,7 @@ impl PlayerState {
             calc_shanten_down: false,
         };
 
-        let mut max_ev_table = sp_calc.calc(
-            init_state,
-            can_discard,
-            tsumos_left,
-            cur_shanten,
-            &mut self.shanten_cache.lock(),
-        )?;
+        let mut max_ev_table = sp_calc.calc(init_state, can_discard, tsumos_left, cur_shanten)?;
         if is_discard_after_riichi {
             max_ev_table[0].tile = self.last_self_tsumo.unwrap();
         }

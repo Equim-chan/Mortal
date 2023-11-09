@@ -79,15 +79,8 @@ fn sp(c: &mut Criterion) {
     c.bench_function(&format!("sp {cur_shanten} shanten"), |b| {
         b.iter(|| {
             let state = black_box(init_state.clone());
-            let mut shanten_cache = Default::default();
             let candidates = black_box(&calc)
-                .calc(
-                    state,
-                    can_discard,
-                    tsumos_left,
-                    cur_shanten,
-                    &mut shanten_cache,
-                )
+                .calc(state, can_discard, tsumos_left, cur_shanten)
                 .unwrap();
             black_box(candidates);
         });
@@ -131,15 +124,8 @@ fn sp(c: &mut Criterion) {
     c.bench_function(&format!("sp {cur_shanten} shanten"), |b| {
         b.iter(|| {
             let state = black_box(init_state.clone());
-            let mut shanten_cache = Default::default();
             let candidates = black_box(&calc)
-                .calc(
-                    state,
-                    can_discard,
-                    tsumos_left,
-                    cur_shanten,
-                    &mut shanten_cache,
-                )
+                .calc(state, can_discard, tsumos_left, cur_shanten)
                 .unwrap();
             black_box(candidates);
         });
