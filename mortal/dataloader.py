@@ -103,7 +103,7 @@ class FileDatasetsIter(IterableDataset):
                 assert len(kyoku_rewards) >= at_kyoku[-1] + 1 # usually they are equal, unless there is no action in the last kyoku
 
                 final_scores = grp.take_final_scores()
-                scores_seq = np.concatenate((grp_feature[:, 3:] * 1e5, [final_scores]))
+                scores_seq = np.concatenate((grp_feature[:, 3:] * 1e4, [final_scores]))
                 rank_by_player_seq = (-scores_seq).argsort(-1, kind='stable').argsort(-1, kind='stable')
                 player_ranks = rank_by_player_seq[:, player_id]
 
