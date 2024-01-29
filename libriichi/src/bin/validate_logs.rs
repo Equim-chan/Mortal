@@ -233,10 +233,9 @@ fn process_path(path: &Path) -> Result<()> {
             _ => (),
         }
 
-        states
-            .iter_mut()
-            .zip(&mut cans)
-            .for_each(|(s, c)| *c = s.update_with_keep_cans(ev, true));
+        for (s, c) in states.iter_mut().zip(&mut cans) {
+            *c = s.update_with_keep_cans(ev, true)?;
+        }
     }
 
     Ok(())

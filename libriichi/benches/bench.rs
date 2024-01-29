@@ -237,7 +237,7 @@ fn encode_obs(c: &mut Criterion) {
     "#;
     let mut ps = PlayerState::new(3);
     for line in log.trim().split('\n') {
-        ps.update(&serde_json::from_str(line).unwrap());
+        ps.update(&serde_json::from_str(line).unwrap()).unwrap();
     }
 
     c.bench_function("encode obs", |b| {

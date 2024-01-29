@@ -266,7 +266,7 @@ impl Gameplay {
         // It is guaranteed that there are at least 4 events.
         // tsumo/dahai -> ryukyoku/hora -> end kyoku -> end game
         for wnd in events.windows(4) {
-            data.extend_from_event_window(&mut ctx, wnd.try_into().unwrap());
+            data.extend_from_event_window(&mut ctx, wnd.try_into().unwrap())?;
         }
 
         data.dones = data.at_kyoku.windows(2).map(|w| w[1] > w[0]).collect();
@@ -275,7 +275,11 @@ impl Gameplay {
         Ok(data)
     }
 
-    fn extend_from_event_window(&mut self, ctx: &mut LoaderContext<'_>, wnd: &[Event; 4]) {
+    fn extend_from_event_window(
+        &mut self,
+        ctx: &mut LoaderContext<'_>,
+        wnd: &[Event; 4],
+    ) -> Result<()> {
         let LoaderContext {
             config,
             invisibles,
@@ -324,13 +328,13 @@ impl Gameplay {
             };
 
             for s in opponent_states {
-                s.update(cur);
+                s.update(cur)?;
             }
         }
 
-        let cans = state.update(cur);
+        let cans = state.update(cur)?;
         if !cans.can_act() {
-            return;
+            return Ok(());
         }
 
         let mut kan_select = None;
@@ -412,6 +416,7 @@ impl Gameplay {
                 self.add_entry(ctx, true, kan);
             }
         }
+        Ok(())
     }
 
     fn add_entry(&mut self, ctx: &LoaderContext<'_>, at_kan_select: bool, label: usize) {

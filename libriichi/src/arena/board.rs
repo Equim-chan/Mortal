@@ -103,8 +103,7 @@ impl Board {
             .chain_update(key.to_le_bytes())
             .chain_update([self.kyoku, self.honba])
             .finalize()
-            .try_into()
-            .unwrap();
+            .into();
         let mut rng = ChaCha12Rng::from_seed(kyoku_seed);
         let mut seq = UNSHUFFLED;
         seq.shuffle(&mut rng);
@@ -200,7 +199,7 @@ impl BoardState {
     #[inline]
     fn broadcast(&mut self, ev: &Event) {
         for s in &mut self.player_states {
-            s.update(ev);
+            s.update(ev).expect("fatal internal bug in BoardState");
         }
     }
 

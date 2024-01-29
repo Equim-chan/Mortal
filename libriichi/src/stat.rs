@@ -477,7 +477,7 @@ impl Stat {
                     .collect::<Result<Vec<Event>, _>>()
                     .context("failed to parse log")?;
 
-                match events.get(0) {
+                match events.first() {
                     Some(Event::StartGame { names, .. }) => {
                         let log_stat = names
                             .iter()

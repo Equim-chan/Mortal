@@ -156,7 +156,7 @@ impl PlayerState {
     #[pyo3(name = "update")]
     pub(super) fn update_json(&mut self, mjai_json: &str) -> Result<ActionCandidate> {
         let event = json::from_str(mjai_json)?;
-        Ok(self.update(&event))
+        self.update(&event)
     }
 
     /// Raises an exception if the action is not valid.

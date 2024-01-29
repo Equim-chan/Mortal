@@ -8,7 +8,7 @@ use std::mem;
 
 impl PlayerState {
     fn test_update(&mut self, event: &Event) -> ActionCandidate {
-        let cans = self.update(event);
+        let cans = self.update(event).unwrap();
         self.validate();
         cans
     }
@@ -671,7 +671,7 @@ fn rule_based_agari_all_last_minogashi() {
     assert!(should_hora);
     ps.scores = orig_scores;
 
-    ps.add_dora_indicator(t!(5m));
+    ps.add_dora_indicator(t!(5m)).unwrap();
     let should_hora = ps.rule_based_agari();
     assert!(should_hora);
 
