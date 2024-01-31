@@ -10,7 +10,7 @@ use crate::{must_tile, tu8, tuz};
 use std::cmp::Ordering;
 use std::mem;
 
-use anyhow::{ensure, Result};
+use anyhow::{ensure, Context, Result};
 use tinyvec::array_vec;
 
 #[derive(Clone, Copy)]
@@ -31,6 +31,15 @@ impl PlayerState {
     /// `self.kakan_candidates` unchanged from the last update. Currently
     /// setting it to true is only useful in validate_logs.
     pub fn update_with_keep_cans(
+        &mut self,
+        event: &Event,
+        keep_cans_on_announce: bool,
+    ) -> Result<ActionCandidate> {
+        self.update_inner(event, keep_cans_on_announce)
+            .with_context(|| format!("on event {event:?}"))
+    }
+
+    fn update_inner(
         &mut self,
         event: &Event,
         keep_cans_on_announce: bool,
@@ -146,7 +155,7 @@ impl PlayerState {
             Event::Tsumo { actor, pai } => {
                 ensure!(
                     self.tiles_left > 0,
-                    "rule violation: tsumo event but there is no tiles left",
+                    "rule violation: tsumo but no more tiles in yama",
                 );
                 self.tiles_left -= 1;
                 if actor != self.player_id {
@@ -450,9 +459,9 @@ impl PlayerState {
                     for t in consumed {
                         self.witness_tile(t)?;
                     }
-                    result
-                        .into_iter()
-                        .for_each(|t| self.update_doras_owned(actor_rel, t));
+                    for t in result {
+                        self.update_doras_owned(actor_rel, t);
+                    }
                     self.can_w_riichi = false;
                     self.at_ippatsu = false;
                     return Ok(self.last_cans);
