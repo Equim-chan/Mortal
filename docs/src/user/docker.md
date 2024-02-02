@@ -13,7 +13,7 @@ $ sudo env DOCKER_BUILDKIT=1 docker build -t mortal:latest .
 ```
 
 ## Prepare a trained model
-The Docker image does not contain any model file of Model, therefore it must be prepared separately under a directory, which will be demostrated as `/path/to/model/dir` below. In this example, snapshot `mortal1-b40c192-t22040618` is used.
+The Docker image does not contain any model file of Model, therefore it must be prepared separately under a directory, which will be demonstrated as `/path/to/model/dir` below. In this example, snapshot `mortal1-b40c192-t22040618` is used.
 
 ## Example
 We are going to use Mortal to evaluate the next move for the scene shown in _Figure 1_.
@@ -25,7 +25,7 @@ First things first, we need to identify the POV's player ID. A player ID is an i
 
 In this case, the POV's player ID is 2, because his seat is West at E1.
 
-Mortal speaks mjai <!-- TODO: link to doc -->, a simple and easy-to-read stream format for mahjong records. From the perspective of player 2, the equivalant masked mjai events he has perceived so far are:
+Mortal speaks mjai <!-- TODO: link to doc -->, a simple and easy-to-read stream format for mahjong records. From the perspective of player 2, the equivalent masked mjai events he has perceived so far are:
 
 ```js
 {"type":"start_game"}

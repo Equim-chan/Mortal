@@ -1,0 +1,2 @@
+[files]
+extend-exclude = ["log-viewer/files/**"]

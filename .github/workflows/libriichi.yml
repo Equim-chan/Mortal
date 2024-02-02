@@ -29,6 +29,9 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Run typos
+        uses: crate-ci/typos@v1.18.0
+
       - name: Environment preparation
         id: prep
         run: |

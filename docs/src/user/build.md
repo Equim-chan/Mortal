@@ -13,7 +13,7 @@ $ git clone https://github.com/Equim-chan/Mortal.git
 $ cd Mortal
 ```
 
-From now on, the root directory of Mortal will be demostrated as `$MORTAL_ROOT`.
+From now on, the root directory of Mortal will be demonstrated as `$MORTAL_ROOT`.
 
 ### Create and activate a conda env
 > Working directory: `$MORTAL_ROOT`
@@ -25,7 +25,7 @@ $ conda activate mortal
 ### Install pytorch
 pytorch is not listed as a dependency in `environment.yml` on purpose so that users can install it with their favored ways as per their requirement, hardware and OS.
 
-Check [pytorch's doc](https://pytorch.org/get-started/locally/) on how to install pytorch in your environment. Personally, I recommand installing pytorch with pip.
+Check [pytorch's doc](https://pytorch.org/get-started/locally/) on how to install pytorch in your environment. Personally, I recommend installing pytorch with pip.
 
 ```admonish tip
 Only `torch` is needed. You can skip the installation of `torchvision` and `torchaudio`.

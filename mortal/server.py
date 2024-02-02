@@ -110,7 +110,7 @@ class Handler(BaseRequestHandler):
                     shutil.move(src, dst)
                 drained_size = raw_count
                 S.buffer_size = 0
-                logging.info(f'files transfered to trainer: {drained_size}')
+                logging.info(f'files transferred to trainer: {drained_size}')
                 logging.info(f'total buffer size: {S.buffer_size}')
         self.send_msg({
             'count': drained_size,

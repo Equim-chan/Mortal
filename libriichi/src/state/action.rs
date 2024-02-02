@@ -122,7 +122,7 @@ impl PlayerState {
                     if let Some(tile) = self.last_self_tsumo {
                         ensure!(tile == pai, "cannot tsumogiri");
                     } else {
-                        bail!("tsumogiri but the player has not dealed any tile yet");
+                        bail!("tsumogiri but the player has not dealt any tile yet");
                     }
                 }
             }
