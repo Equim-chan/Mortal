@@ -155,7 +155,7 @@ impl PlayerState {
             Event::Tsumo { actor, pai } => {
                 ensure!(
                     self.tiles_left > 0,
-                    "rule violation: tsumo but no more tiles in yama",
+                    "rule violation: attempt to tsumo from empty yama",
                 );
                 self.tiles_left -= 1;
                 if actor != self.player_id {
@@ -653,9 +653,17 @@ impl PlayerState {
     ///
     /// Returns an error if we have already witnessed 4 such tiles.
     pub(super) fn witness_tile(&mut self, tile: Tile) -> Result<()> {
+        ensure!(
+            !tile.is_unknown(),
+            "rule violation: attempt to witness an unknown tile",
+        );
         let tile_id = tile.deaka().as_usize();
+
         let seen = &mut self.tiles_seen[tile_id];
-        ensure!(*seen < 4, "rule violation: witness the fifth {tile}");
+        ensure!(
+            *seen < 4,
+            "rule violation: attempt to witness the fifth {tile}",
+        );
         *seen += 1;
 
         self.doras_seen += self.dora_factor[tile_id];
