@@ -7,9 +7,9 @@ This Docker image is only designed for inference with mjai interface and is not 
 
 ## Build
 ```shell
-$ git clone https://github.com/Equim-chan/Mortal.git
-$ cd Mortal
-$ sudo env DOCKER_BUILDKIT=1 docker build -t mortal:latest .
+git clone https://github.com/Equim-chan/Mortal.git
+cd Mortal
+sudo env DOCKER_BUILDKIT=1 docker build -t mortal:latest .
 ```
 
 ## Prepare a trained model
@@ -128,7 +128,7 @@ Mortal speaks mjai <!-- TODO: link to doc -->, a simple and easy-to-read stream 
 Save the mjai log content above into a file named `log.json`, then run:
 
 ```shell
-$ sudo docker run -i --rm -v /path/to/model/dir:/mnt mortal 2 < log.json
+sudo docker run -i --rm -v /path/to/model/dir:/mnt mortal 2 < log.json
 ```
 
 This will output a series of new-line-separated JSONs, each of which represents Mortal's reaction to an mjai event that it is able to react to, with the last line corresponding to the scene illustrated above:
