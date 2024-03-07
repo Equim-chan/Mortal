@@ -8,10 +8,9 @@ use crate::rankings::Rankings;
 use crate::tile::Tile;
 use crate::{must_tile, tu8, tuz};
 use std::cmp::Ordering;
-use std::mem;
+use std::{iter, mem};
 
 use anyhow::{ensure, Context, Result};
-use tinyvec::array_vec;
 
 #[derive(Clone, Copy)]
 pub(super) enum MoveType {
@@ -155,7 +154,7 @@ impl PlayerState {
             Event::Tsumo { actor, pai } => {
                 ensure!(
                     self.tiles_left > 0,
-                    "rule violation: attempt to tsumo from empty yama",
+                    "rule violation: attempt to tsumo from exhausted yama",
                 );
                 self.tiles_left -= 1;
                 if actor != self.player_id {
@@ -252,6 +251,11 @@ impl PlayerState {
                 tsumogiri,
             } => {
                 let actor_rel = self.rel(actor);
+                if actor_rel == 0 {
+                    self.move_tile(pai, MoveType::Discard)?;
+                } else {
+                    self.witness_tile(pai)?;
+                }
 
                 let is_riichi = self.riichi_declared[actor_rel] && !self.riichi_accepted[actor_rel];
                 let sutehai = Sutehai {
@@ -278,12 +282,9 @@ impl PlayerState {
 
                 if actor_rel == 0 {
                     self.forbidden_tiles.fill(false);
-                    self.move_tile(pai, MoveType::Discard)?;
-
                     self.at_rinshan = false;
                     self.at_ippatsu = false;
                     self.can_w_riichi = false;
-
                     self.discarded_tiles[pai.deaka().as_usize()] = true;
 
                     // Furiten state will be permanent once riichi is accepted,
@@ -307,7 +308,6 @@ impl PlayerState {
 
                     return Ok(self.last_cans);
                 }
-                self.witness_tile(pai)?;
 
                 if !self.at_furiten && self.waits[pai.deaka().as_usize()] {
                     if self.riichi_accepted[0] || self.tiles_left == 0 {
@@ -372,10 +372,8 @@ impl PlayerState {
                 ..
             } => {
                 let actor_rel = self.rel(actor);
-                let mut result = array_vec!();
-                result.extend_from_slice(&consumed);
-                result.push(pai);
-                self.fuuro_overview[actor_rel].push(result);
+                let full_set = consumed.into_iter().chain(iter::once(pai)).collect();
+                self.fuuro_overview[actor_rel].push(full_set);
                 self.intermediate_chi_pon = Some(ChiPon {
                     consumed,
                     target_tile: pai,
@@ -385,9 +383,9 @@ impl PlayerState {
                     for t in consumed {
                         self.witness_tile(t)?;
                     }
-                    result
-                        .into_iter()
-                        .for_each(|t| self.update_doras_owned(actor_rel, t));
+                    for t in full_set {
+                        self.update_doras_owned(actor_rel, t);
+                    }
                     self.can_w_riichi = false;
                     self.at_ippatsu = false;
                     return Ok(self.last_cans);
@@ -445,10 +443,8 @@ impl PlayerState {
                 pai,
             } => {
                 let actor_rel = self.rel(actor);
-                let mut result = array_vec!();
-                result.extend_from_slice(&consumed);
-                result.push(pai);
-                self.fuuro_overview[actor_rel].push(result);
+                let full_set = consumed.into_iter().chain(iter::once(pai)).collect();
+                self.fuuro_overview[actor_rel].push(full_set);
                 self.intermediate_chi_pon = Some(ChiPon {
                     consumed,
                     target_tile: pai,
@@ -459,7 +455,7 @@ impl PlayerState {
                     for t in consumed {
                         self.witness_tile(t)?;
                     }
-                    for t in result {
+                    for t in full_set {
                         self.update_doras_owned(actor_rel, t);
                     }
                     self.can_w_riichi = false;
@@ -497,10 +493,8 @@ impl PlayerState {
                 pai,
             } => {
                 let actor_rel = self.rel(actor);
-                let mut result = array_vec!();
-                result.extend_from_slice(&consumed);
-                result.push(pai);
-                self.fuuro_overview[actor_rel].push(result);
+                let full_set = consumed.into_iter().chain(iter::once(pai)).collect();
+                self.fuuro_overview[actor_rel].push(full_set);
                 self.intermediate_kan.push(pai);
                 self.pad_kawa_for_pon_or_daiminkan(actor, target);
                 self.kans_on_board += 1;
@@ -509,9 +503,9 @@ impl PlayerState {
                     for t in consumed {
                         self.witness_tile(t)?;
                     }
-                    result
-                        .into_iter()
-                        .for_each(|t| self.update_doras_owned(actor_rel, t));
+                    for t in full_set {
+                        self.update_doras_owned(actor_rel, t);
+                    }
                     self.can_w_riichi = false;
                     self.at_ippatsu = false;
                     return Ok(self.last_cans);
@@ -649,7 +643,7 @@ impl PlayerState {
         ((actor + 4 - self.player_id) % 4) as usize
     }
 
-    /// Updates `tiles_seen` and `doras_seen`.
+    /// Updates `tiles_seen`, `doras_seen` and `akas_seen`.
     ///
     /// Returns an error if we have already witnessed 4 such tiles.
     pub(super) fn witness_tile(&mut self, tile: Tile) -> Result<()> {
@@ -685,7 +679,7 @@ impl PlayerState {
         Ok(())
     }
 
-    /// Updates `akas_in_hand` and `doras_owned`, but does not update
+    /// Updates `tehai`, `akas_in_hand` and `doras_owned`, but does not update
     /// `tiles_seen` or `doras_seen`.
     ///
     /// Returns an error when trying to discard or consume a tile that the

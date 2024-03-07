@@ -217,12 +217,11 @@ impl Event {
     }
 }
 
-#[allow(clippy::use_self)] // false positive
 impl<const MIN: u8, const MAX: u8> TryFrom<BoundedU8<MIN, MAX>> for u8 {
     type Error = OutOfBoundError;
 
     fn try_from(value: BoundedU8<MIN, MAX>) -> Result<Self, Self::Error> {
-        if MIN <= value.0 && value.0 <= MAX {
+        if (MIN..=MAX).contains(&value.0) {
             Ok(value.0)
         } else {
             Err(OutOfBoundError(value.0))
