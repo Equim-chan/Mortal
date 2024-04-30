@@ -35,7 +35,7 @@ impl MjaiLogBatchAgent {
         ensure!(player_ids.iter().all(|&id| matches!(id, 0..=3)));
 
         let name = Python::with_gil(|py| {
-            let obj = engine.as_ref(py);
+            let obj = engine.bind_borrowed(py);
             for method in ["react_batch", "start_game", "end_kyoku", "end_game"] {
                 ensure!(
                     obj.getattr(method)?.is_callable(),
@@ -68,7 +68,7 @@ impl MjaiLogBatchAgent {
         let raw_reactions: Vec<String> = Python::with_gil(|py| {
             let game_states = mem::take(&mut self.game_states);
             self.engine
-                .as_ref(py)
+                .bind_borrowed(py)
                 .call_method1(intern!(py, "react_batch"), (game_states,))
                 .context("failed to execute `react_batch` on Python engine")?
                 .extract()
@@ -132,7 +132,7 @@ impl BatchAgent for MjaiLogBatchAgent {
     fn start_game(&mut self, index: usize) -> Result<()> {
         Python::with_gil(|py| {
             self.engine
-                .as_ref(py)
+                .bind_borrowed(py)
                 .call_method1(intern!(py, "start_game"), (index,))?;
             Ok(())
         })
@@ -141,7 +141,7 @@ impl BatchAgent for MjaiLogBatchAgent {
     fn end_kyoku(&mut self, index: usize) -> Result<()> {
         Python::with_gil(|py| {
             self.engine
-                .as_ref(py)
+                .bind_borrowed(py)
                 .call_method1(intern!(py, "end_kyoku"), (index,))?;
             Ok(())
         })
@@ -150,7 +150,7 @@ impl BatchAgent for MjaiLogBatchAgent {
     fn end_game(&mut self, index: usize, game_result: &GameResult) -> Result<()> {
         Python::with_gil(|py| {
             self.engine
-                .as_ref(py)
+                .bind_borrowed(py)
                 .call_method1(intern!(py, "end_game"), (index, game_result.scores))?;
             Ok(())
         })

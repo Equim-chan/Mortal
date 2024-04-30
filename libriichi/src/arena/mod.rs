@@ -13,9 +13,13 @@ use two_vs_two::TwoVsTwo;
 
 use pyo3::prelude::*;
 
-pub(crate) fn register_module(py: Python<'_>, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
-    let m = PyModule::new(py, "arena")?;
+pub(crate) fn register_module(
+    py: Python<'_>,
+    prefix: &str,
+    super_mod: &Bound<'_, PyModule>,
+) -> PyResult<()> {
+    let m = PyModule::new_bound(py, "arena")?;
     m.add_class::<OneVsThree>()?;
     m.add_class::<TwoVsTwo>()?;
-    add_submodule(py, prefix, super_mod, m)
+    add_submodule(py, prefix, super_mod, &m)
 }

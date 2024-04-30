@@ -12,6 +12,7 @@ use flate2::read::GzDecoder;
 use ndarray::prelude::*;
 use numpy::PyArray2;
 use pyo3::prelude::*;
+use pyo3::pybacked::PyBackedStr;
 use rayon::prelude::*;
 use serde_json as json;
 use tinyvec::array_vec;
@@ -39,13 +40,13 @@ impl Grp {
 
     #[staticmethod]
     #[pyo3(name = "load_gz_log_files")]
-    fn load_gz_log_files_py(gzip_filenames: Vec<&str>) -> Result<Vec<Self>> {
+    fn load_gz_log_files_py(gzip_filenames: Vec<PyBackedStr>) -> Result<Vec<Self>> {
         Self::load_gz_log_files(gzip_filenames)
     }
 
     /// Returns List[List[np.ndarray]]
-    pub fn take_feature<'py>(&mut self, py: Python<'py>) -> &'py PyArray2<f64> {
-        PyArray2::from_owned_array(py, mem::take(&mut self.feature))
+    pub fn take_feature<'py>(&mut self, py: Python<'py>) -> Bound<'py, PyArray2<f64>> {
+        PyArray2::from_owned_array_bound(py, mem::take(&mut self.feature))
     }
     pub const fn take_rank_by_player(&self) -> [u8; 4] {
         self.rank_by_player

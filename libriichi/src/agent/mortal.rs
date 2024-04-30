@@ -52,7 +52,7 @@ impl MortalBatchAgent {
 
         let (name, is_oracle, version, enable_quick_eval, enable_rule_based_agari_guard) =
             Python::with_gil(|py| {
-                let obj = engine.as_ref(py);
+                let obj = engine.bind_borrowed(py);
                 ensure!(
                     obj.getattr("react_batch")?.is_callable(),
                     "missing method react_batch",
@@ -127,24 +127,24 @@ impl MortalBatchAgent {
             let states: Vec<_> = sync_fields
                 .states
                 .drain(..)
-                .map(|v| PyArray2::from_owned_array(py, v))
+                .map(|v| PyArray2::from_owned_array_bound(py, v))
                 .collect();
             let masks: Vec<_> = sync_fields
                 .masks
                 .drain(..)
-                .map(|v| PyArray1::from_owned_array(py, v))
+                .map(|v| PyArray1::from_owned_array_bound(py, v))
                 .collect();
             let invisible_states: Option<Vec<_>> = self.is_oracle.then(|| {
                 sync_fields
                     .invisible_states
                     .drain(..)
-                    .map(|v| PyArray2::from_owned_array(py, v))
+                    .map(|v| PyArray2::from_owned_array_bound(py, v))
                     .collect()
             });
 
             let args = (states, masks, invisible_states);
             self.engine
-                .as_ref(py)
+                .bind_borrowed(py)
                 .call_method1(intern!(py, "react_batch"), args)
                 .context("failed to execute `react_batch` on Python engine")?
                 .extract()

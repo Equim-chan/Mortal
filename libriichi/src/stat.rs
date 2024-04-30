@@ -792,8 +792,12 @@ impl Stat {
     }
 }
 
-pub(crate) fn register_module(py: Python<'_>, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
-    let m = PyModule::new(py, "stat")?;
+pub(crate) fn register_module(
+    py: Python<'_>,
+    prefix: &str,
+    super_mod: &Bound<'_, PyModule>,
+) -> PyResult<()> {
+    let m = PyModule::new_bound(py, "stat")?;
     m.add_class::<Stat>()?;
-    add_submodule(py, prefix, super_mod, m)
+    add_submodule(py, prefix, super_mod, &m)
 }

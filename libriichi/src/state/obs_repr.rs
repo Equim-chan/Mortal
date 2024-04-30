@@ -782,10 +782,10 @@ impl PlayerState {
         version: u32,
         at_kan_select: bool,
         py: Python<'py>,
-    ) -> (&'py PyArray2<f32>, &'py PyArray1<bool>) {
+    ) -> (Bound<'py, PyArray2<f32>>, Bound<'py, PyArray1<bool>>) {
         let (obs, mask) = self.encode_obs(version, at_kan_select);
-        let obs = PyArray2::from_owned_array(py, obs);
-        let mask = PyArray1::from_owned_array(py, mask);
+        let obs = PyArray2::from_owned_array_bound(py, obs);
+        let mask = PyArray1::from_owned_array_bound(py, mask);
         (obs, mask)
     }
 }

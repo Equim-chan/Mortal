@@ -37,12 +37,16 @@ pub const fn oracle_obs_shape(version: u32) -> (usize, usize) {
     }
 }
 
-pub(crate) fn register_module(py: Python<'_>, prefix: &str, super_mod: &PyModule) -> PyResult<()> {
-    let m = PyModule::new(py, "consts")?;
-    m.add_function(wrap_pyfunction!(obs_shape, m)?)?;
-    m.add_function(wrap_pyfunction!(oracle_obs_shape, m)?)?;
+pub(crate) fn register_module(
+    py: Python<'_>,
+    prefix: &str,
+    super_mod: &Bound<'_, PyModule>,
+) -> PyResult<()> {
+    let m = PyModule::new_bound(py, "consts")?;
+    m.add_function(wrap_pyfunction!(obs_shape, &m)?)?;
+    m.add_function(wrap_pyfunction!(oracle_obs_shape, &m)?)?;
     m.add("MAX_VERSION", MAX_VERSION)?;
     m.add("ACTION_SPACE", ACTION_SPACE)?;
     m.add("GRP_SIZE", GRP_SIZE)?;
-    add_submodule(py, prefix, super_mod, m)
+    add_submodule(py, prefix, super_mod, &m)
 }

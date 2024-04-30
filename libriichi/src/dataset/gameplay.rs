@@ -190,25 +190,25 @@ impl GameplayLoader {
 
 #[pymethods]
 impl Gameplay {
-    fn take_obs<'py>(&mut self, py: Python<'py>) -> Vec<&'py PyArray2<f32>> {
+    fn take_obs<'py>(&mut self, py: Python<'py>) -> Vec<Bound<'py, PyArray2<f32>>> {
         mem::take(&mut self.obs)
             .into_iter()
-            .map(|v| PyArray2::from_owned_array(py, v))
+            .map(|v| PyArray2::from_owned_array_bound(py, v))
             .collect()
     }
-    fn take_invisible_obs<'py>(&mut self, py: Python<'py>) -> Vec<&'py PyArray2<f32>> {
+    fn take_invisible_obs<'py>(&mut self, py: Python<'py>) -> Vec<Bound<'py, PyArray2<f32>>> {
         mem::take(&mut self.invisible_obs)
             .into_iter()
-            .map(|v| PyArray2::from_owned_array(py, v))
+            .map(|v| PyArray2::from_owned_array_bound(py, v))
             .collect()
     }
     fn take_actions(&mut self) -> Vec<i64> {
         mem::take(&mut self.actions)
     }
-    fn take_masks<'py>(&mut self, py: Python<'py>) -> Vec<&'py PyArray1<bool>> {
+    fn take_masks<'py>(&mut self, py: Python<'py>) -> Vec<Bound<'py, PyArray1<bool>>> {
         mem::take(&mut self.masks)
             .into_iter()
-            .map(|v| PyArray1::from_owned_array(py, v))
+            .map(|v| PyArray1::from_owned_array_bound(py, v))
             .collect()
     }
     fn take_at_kyoku(&mut self) -> Vec<u8> {
