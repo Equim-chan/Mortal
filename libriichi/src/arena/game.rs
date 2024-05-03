@@ -99,7 +99,7 @@ impl Game {
 
                     let invisible_state = self.oracle_obs_versions[player_id]
                         .map(|ver| self.board.encode_oracle_obs(player_id as u8, ver));
-                    self.invisible_state_cache[player_id] = invisible_state.clone();
+                    self.invisible_state_cache[player_id].clone_from(&invisible_state);
 
                     let idx = self.indexes[player_id];
                     agents[idx.agent_idx].set_scene(

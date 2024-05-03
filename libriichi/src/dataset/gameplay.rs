@@ -300,7 +300,7 @@ impl Gameplay {
 
         match cur {
             Event::StartGame { names, .. } => {
-                self.player_name = names[self.player_id as usize].clone();
+                self.player_name.clone_from(&names[self.player_id as usize]);
             }
             Event::EndKyoku => *kyoku_idx += 1,
             _ => (),
