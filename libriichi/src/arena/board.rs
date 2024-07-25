@@ -172,7 +172,7 @@ impl BoardState {
     pub const fn end(&self) -> KyokuResult {
         KyokuResult {
             kyoku: self.board.kyoku,
-            honba: self.board.honba,
+            // honba: self.board.honba,
             can_renchan: self.can_renchan,
             has_hora: self.has_hora,
             has_abortive_ryukyoku: self.has_abortive_ryukyoku,
