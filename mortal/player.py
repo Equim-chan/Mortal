@@ -16,7 +16,7 @@ class TestPlayer:
         baseline_cfg = config['baseline']['test']
         device = torch.device(baseline_cfg['device'])
 
-        state = torch.load(baseline_cfg['state_file'], map_location=torch.device('cpu'))
+        state = torch.load(baseline_cfg['state_file'], weights_only=True, map_location=torch.device('cpu'))
         cfg = state['config']
         version = cfg['control'].get('version', 1)
         conv_channels = cfg['resnet']['conv_channels']
@@ -77,7 +77,7 @@ class TrainPlayer:
         baseline_cfg = config['baseline']['train']
         device = torch.device(baseline_cfg['device'])
 
-        state = torch.load(baseline_cfg['state_file'], map_location=torch.device('cpu'))
+        state = torch.load(baseline_cfg['state_file'], weights_only=True, map_location=torch.device('cpu'))
         cfg = state['config']
         version = cfg['control'].get('version', 1)
         conv_channels = cfg['resnet']['conv_channels']

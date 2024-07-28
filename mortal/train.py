@@ -104,7 +104,7 @@ def train():
     state_file = config['control']['state_file']
     best_state_file = config['control']['best_state_file']
     if path.exists(state_file):
-        state = torch.load(state_file, map_location=device)
+        state = torch.load(state_file, weights_only=True, map_location=device)
         timestamp = datetime.fromtimestamp(state['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
         logging.info(f'loaded: {timestamp}')
         mortal.load_state_dict(state['mortal'])
@@ -159,7 +159,7 @@ def train():
 
             file_index = config['dataset']['file_index']
             if path.exists(file_index):
-                index = torch.load(file_index)
+                index = torch.load(file_index, weights_only=True)
                 file_list = index['file_list']
             else:
                 logging.info('building file index...')

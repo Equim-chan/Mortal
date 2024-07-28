@@ -39,7 +39,7 @@ class FileDatasetsIter(IterableDataset):
     def build_iter(self):
         # do not put it in __init__, it won't work on Windows
         self.grp = GRP(**config['grp']['network'])
-        grp_state = torch.load(config['grp']['state_file'], map_location=torch.device('cpu'))
+        grp_state = torch.load(config['grp']['state_file'], weights_only=True, map_location=torch.device('cpu'))
         self.grp.load_state_dict(grp_state['model'])
         self.reward_calc = RewardCalculator(self.grp, self.pts)
 

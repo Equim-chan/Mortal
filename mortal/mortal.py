@@ -27,7 +27,7 @@ def main():
     review_mode = os.environ.get('MORTAL_REVIEW_MODE', '0') == '1'
 
     device = torch.device('cpu')
-    state = torch.load(config['control']['state_file'], map_location=torch.device('cpu'))
+    state = torch.load(config['control']['state_file'], weights_only=True, map_location=torch.device('cpu'))
     cfg = state['config']
     version = cfg['control'].get('version', 1)
     num_blocks = cfg['resnet']['num_blocks']
@@ -66,7 +66,7 @@ def main():
 
     if review_mode:
         grp = GRP(**config['grp']['network'])
-        grp_state = torch.load(config['grp']['state_file'], map_location=torch.device('cpu'))
+        grp_state = torch.load(config['grp']['state_file'], weights_only=True, map_location=torch.device('cpu'))
         grp.load_state_dict(grp_state['model'])
 
         ins = Grp.load_log('\n'.join(logs))

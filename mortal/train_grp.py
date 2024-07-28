@@ -98,7 +98,7 @@ def train():
 
     state_file = cfg['state_file']
     if path.exists(state_file):
-        state = torch.load(state_file, map_location=device)
+        state = torch.load(state_file, weights_only=True, map_location=device)
         timestamp = datetime.fromtimestamp(state['timestamp']).strftime('%Y-%m-%d %H:%M:%S')
         logging.info(f'loaded: {timestamp}')
         grp.load_state_dict(state['model'])
@@ -114,7 +114,7 @@ def train():
     train_globs = cfg['dataset']['train_globs']
     val_globs = cfg['dataset']['val_globs']
     if path.exists(file_index):
-        index = torch.load(file_index)
+        index = torch.load(file_index, weights_only=True)
         train_file_list = index['train_file_list']
         val_file_list = index['val_file_list']
     else:
