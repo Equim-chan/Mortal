@@ -1,4 +1,4 @@
-import numpy as np
+import math
 from torch.optim.lr_scheduler import LambdaLR
 
 class LinearWarmUpCosineAnnealingLR(LambdaLR):
@@ -25,5 +25,5 @@ class LinearWarmUpCosineAnnealingLR(LambdaLR):
         if steps < self.max_steps:
             cos_steps = steps - self.warm_up_steps
             cos_max_steps = self.max_steps - self.warm_up_steps
-            return self.final + 0.5 * (self.peak - self.final) * (1 + np.cos(cos_steps / cos_max_steps * np.pi))
+            return self.final + 0.5 * (self.peak - self.final) * (1 + math.cos(cos_steps / cos_max_steps * math.pi))
         return self.final
