@@ -181,7 +181,7 @@ def train():
         loss.backward()
         optimizer.step()
 
-        with torch.no_grad():
+        with torch.inference_mode():
             stats['train_loss'] += loss
             stats['train_acc'] += (logits.argmax(-1) == labels).to(torch.float64).mean()
 
@@ -191,7 +191,7 @@ def train():
         if steps % save_every == 0:
             pb.close()
 
-            with torch.no_grad():
+            with torch.inference_mode():
                 grp.eval()
                 pb = tqdm(total=val_steps, desc='VAL')
                 for idx, (inputs, rank_by_players) in enumerate(val_data_loader):

@@ -15,7 +15,7 @@ def train():
     from datetime import datetime
     from itertools import chain
     from torch import optim, nn
-    from torch.cuda.amp import GradScaler
+    from torch.amp import GradScaler
     from torch.nn.utils import clip_grad_norm_
     from torch.utils.data import DataLoader
     from torch.utils.tensorboard import SummaryWriter
@@ -93,7 +93,7 @@ def train():
     ]
     optimizer = optim.AdamW(param_groups, lr=1, weight_decay=0, betas=betas, eps=eps)
     scheduler = LinearWarmUpCosineAnnealingLR(optimizer, **config['optim']['scheduler'])
-    scaler = GradScaler(enabled=enable_amp)
+    scaler = GradScaler(device.type, enabled=enable_amp)
     test_player = TestPlayer()
     best_perf = {
         'avg_rank': 4.,
@@ -127,7 +127,7 @@ def train():
         logging.info(f'device: {device}')
 
     if online:
-        submit_param(None, mortal, dqn, is_idle=True)
+        submit_param(mortal, dqn, is_idle=True)
         logging.info('param has been submitted')
 
     writer = SummaryWriter(config['control']['tensorboard_dir'])
@@ -197,14 +197,26 @@ def train():
         data_loader = iter(DataLoader(
             dataset = file_data,
             batch_size = batch_size,
-            drop_last = True,
+            drop_last = False,
             num_workers = num_workers,
             pin_memory = True,
             worker_init_fn = worker_init_fn,
         ))
 
+        remaining_obs = []
+        remaining_actions = []
+        remaining_masks = []
+        remaining_steps_to_done = []
+        remaining_kyoku_rewards = []
+        remaining_player_ranks = []
+        remaining_bs = 0
         pb = tqdm(total=save_every, desc='TRAIN', initial=steps % save_every)
-        for obs, actions, masks, steps_to_done, kyoku_rewards, player_ranks in data_loader:
+
+        def train_batch(obs, actions, masks, steps_to_done, kyoku_rewards, player_ranks):
+            nonlocal steps
+            nonlocal idx
+            nonlocal pb
+
             obs = obs.to(dtype=torch.float32, device=device)
             actions = actions.to(dtype=torch.int64, device=device)
             masks = masks.to(dtype=torch.bool, device=device)
@@ -235,7 +247,7 @@ def train():
                 ))
             scaler.scale(loss / opt_step_every).backward()
 
-            with torch.no_grad():
+            with torch.inference_mode():
                 stats['dqn_loss'] += dqn_loss
                 if not online:
                     stats['cql_loss'] += cql_loss
@@ -257,7 +269,7 @@ def train():
             pb.update(1)
 
             if online and steps % submit_every == 0:
-                submit_param(None, mortal, dqn, is_idle=False)
+                submit_param(mortal, dqn, is_idle=False)
                 logging.info('param has been submitted')
 
             if steps % save_every == 0:
@@ -298,7 +310,7 @@ def train():
                 torch.save(state, state_file)
 
                 if online and steps % submit_every != 0:
-                    submit_param(None, mortal, dqn, is_idle=False)
+                    submit_param(mortal, dqn, is_idle=False)
                     logging.info('param has been submitted')
 
                 if steps % test_every == 0:
@@ -372,19 +384,53 @@ def train():
                         # is the reason why `main` spawns a sub process to train
                         # in online mode instead of going for training directly.
                         sys.exit(0)
-
                 pb = tqdm(total=save_every, desc='TRAIN')
+
+        for obs, actions, masks, steps_to_done, kyoku_rewards, player_ranks in data_loader:
+            bs = obs.shape[0]
+            if bs != batch_size:
+                remaining_obs.append(obs)
+                remaining_actions.append(actions)
+                remaining_masks.append(masks)
+                remaining_steps_to_done.append(steps_to_done)
+                remaining_kyoku_rewards.append(kyoku_rewards)
+                remaining_player_ranks.append(player_ranks)
+                remaining_bs += bs
+                continue
+            train_batch(obs, actions, masks, steps_to_done, kyoku_rewards, player_ranks)
+
+        remaining_batches = remaining_bs // batch_size
+        if remaining_batches > 0:
+            obs = torch.cat(remaining_obs, dim=0)
+            actions = torch.cat(remaining_actions, dim=0)
+            masks = torch.cat(remaining_masks, dim=0)
+            steps_to_done = torch.cat(remaining_steps_to_done, dim=0)
+            kyoku_rewards = torch.cat(remaining_kyoku_rewards, dim=0)
+            player_ranks = torch.cat(remaining_player_ranks, dim=0)
+            start = 0
+            end = batch_size
+            while end <= remaining_bs:
+                train_batch(
+                    obs[start:end],
+                    actions[start:end],
+                    masks[start:end],
+                    steps_to_done[start:end],
+                    kyoku_rewards[start:end],
+                    player_ranks[start:end],
+                )
+                start = end
+                end += batch_size
         pb.close()
 
         if online:
-            submit_param(None, mortal, dqn, is_idle=True)
+            submit_param(mortal, dqn, is_idle=True)
             logging.info('param has been submitted')
 
     while True:
         train_epoch()
         gc.collect()
-        torch.cuda.empty_cache()
-        torch.cuda.synchronize()
+        # torch.cuda.empty_cache()
+        # torch.cuda.synchronize()
         if not online:
             # only run one epoch for offline for easier control
             break

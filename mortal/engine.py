@@ -1,4 +1,5 @@
 import json
+import traceback
 import torch
 import numpy as np
 from torch.distributions import Normal, Categorical
@@ -40,17 +41,19 @@ class MortalEngine:
         self.top_p = top_p
 
     def react_batch(self, obs, masks, invisible_obs):
-        with (
-            torch.autocast(self.device.type, enabled=self.enable_amp),
-            torch.no_grad(),
-        ):
-            return self._react_batch(obs, masks, invisible_obs)
+        try:
+            with (
+                torch.autocast(self.device.type, enabled=self.enable_amp),
+                torch.inference_mode(),
+            ):
+                return self._react_batch(obs, masks, invisible_obs)
+        except Exception as ex:
+            raise Exception(f'{ex}\n{traceback.format_exc()}')
 
     def _react_batch(self, obs, masks, invisible_obs):
         obs = torch.as_tensor(np.stack(obs, axis=0), device=self.device)
         masks = torch.as_tensor(np.stack(masks, axis=0), device=self.device)
-        invisible_obs = None
-        if self.is_oracle:
+        if invisible_obs is not None:
             invisible_obs = torch.as_tensor(np.stack(invisible_obs, axis=0), device=self.device)
         batch_size = obs.shape[0]
 

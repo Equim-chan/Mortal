@@ -19,17 +19,18 @@ from config import config
 class State:
     buffer_dir: str
     drain_dir: str
+    capacity: int
+    force_sequential: bool
     dir_lock: Lock
     param_lock: Lock
+    # fields below are protected by dir_lock
     buffer_size: int
     submission_id: int
-    oracle_param: Optional[OrderedDict]
+    # fields below are protected by param_lock
     mortal_param: Optional[OrderedDict]
     dqn_param: Optional[OrderedDict]
     param_version: int
     idle_param_version: int
-    capacity: int
-    force_sequential: bool
 S = None
 
 class Handler(BaseRequestHandler):
@@ -38,16 +39,16 @@ class Handler(BaseRequestHandler):
         match msg['type']:
             # called by workers
             case 'get_param':
-                self.get_param(msg)
+                self.handle_get_param(msg)
             case 'submit_replay':
-                self.submit_replay(msg)
+                self.handle_submit_replay(msg)
             # called by trainer
             case 'submit_param':
-                self.submit_param(msg)
+                self.handle_submit_param(msg)
             case 'drain':
-                self.drain()
+                self.handle_drain()
 
-    def get_param(self, msg):
+    def handle_get_param(self, msg):
         with S.dir_lock:
             overflow = S.buffer_size >= S.capacity
             with S.param_lock:
@@ -74,7 +75,7 @@ class Handler(BaseRequestHandler):
             torch.save(res, buf)
         self.send_msg(buf.getbuffer(), packed=True)
 
-    def submit_replay(self, msg):
+    def handle_submit_replay(self, msg):
         with S.dir_lock:
             for filename, content in msg['logs'].items():
                 filepath = path.join(S.buffer_dir, f'{S.submission_id}_{filename}')
@@ -84,16 +85,15 @@ class Handler(BaseRequestHandler):
             S.submission_id += 1
             logging.info(f'total buffer size: {S.buffer_size}')
 
-    def submit_param(self, msg):
+    def handle_submit_param(self, msg):
         with S.param_lock:
-            S.oracle_param = msg['oracle']
             S.mortal_param = msg['mortal']
             S.dqn_param = msg['dqn']
             S.param_version += 1
             if msg['is_idle']:
                 S.idle_param_version = S.param_version
 
-    def drain(self):
+    def handle_drain(self):
         drained_size = 0
         with S.dir_lock:
             buffer_list = os.listdir(S.buffer_dir)
@@ -136,17 +136,16 @@ def main():
     S = State(
         buffer_dir = path.abspath(cfg['buffer_dir']),
         drain_dir = path.abspath(cfg['drain_dir']),
-        dir_lock = Lock(),
-        param_lock = Lock(),
-        buffer_size = 0, # protected by dir_lock
-        submission_id = 0, # protected by dir_lock
-        oracle_param = None, # protected by param_lock
-        mortal_param = None, # protected by param_lock
-        dqn_param = None, # protected by param_lock
-        param_version = 0, # protected by param_lock
-        idle_param_version = 0, # protected by param_lock
         capacity = cfg['capacity'],
         force_sequential = cfg['force_sequential'],
+        dir_lock = Lock(),
+        param_lock = Lock(),
+        buffer_size = 0,
+        submission_id = 0,
+        mortal_param = None,
+        dqn_param = None,
+        param_version = 0,
+        idle_param_version = 0,
     )
 
     bind_addr = (config['online']['remote']['host'], config['online']['remote']['port'])

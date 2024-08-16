@@ -39,13 +39,12 @@ def drain():
             continue
         return msg['drain_dir']
 
-def submit_param(oracle, mortal, dqn, is_idle=False):
+def submit_param(mortal, dqn, is_idle=False):
     remote = (config['online']['remote']['host'], config['online']['remote']['port'])
     with socket.socket() as conn:
         conn.connect(remote)
         send_msg(conn, {
             'type': 'submit_param',
-            'oracle': None if oracle is None else oracle.state_dict(),
             'mortal': mortal.state_dict(),
             'dqn': dqn.state_dict(),
             'is_idle': is_idle,
@@ -65,7 +64,7 @@ def recv_msg(conn: socket.socket, map_location=torch.device('cpu')):
     rx = recv_binary(conn, 8)
     (size,) = struct.unpack('<Q', rx)
     rx = recv_binary(conn, size)
-    return torch.load(BytesIO(rx), weights_only=True, map_location=map_location)
+    return torch.load(BytesIO(rx), weights_only=False, map_location=map_location) # TODO: weights_only=True
 
 def recv_binary(conn: socket.socket, size):
     assert size > 0

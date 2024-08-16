@@ -16,7 +16,7 @@ class RewardCalculator:
             range(len(grp_feature)),
         ))
 
-        with torch.no_grad():
+        with torch.inference_mode():
             logits = self.grp(seq)
         matrix = self.grp.calc_matrix(logits)
         return matrix

@@ -81,10 +81,10 @@ class FileDatasetsIter(IterableDataset):
         data = self.loader.load_gz_log_files(file_list)
         for file in data:
             for game in file:
+                # per move
                 obs = game.take_obs()
                 if self.oracle:
                     invisible_obs = game.take_invisible_obs()
-                # per move
                 actions = game.take_actions()
                 masks = game.take_masks()
                 at_kyoku = game.take_at_kyoku()

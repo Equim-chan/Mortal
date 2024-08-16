@@ -219,9 +219,9 @@ impl Invisible {
             encode_tile(idx, tile);
             idx += 2;
         }
-        // In real life case `self.yama[yama_idx..]` is at most 69 (`yama_idx`
-        // is always >= 1), because the dealer always unconditionally deals the
-        // first tile from yama. Therefore we do the minus one here.
+        // In real life case `self.yama[yama_idx..].len()` is at most 69 since
+        // `yama_idx` >= 1 always holds, as the dealer always unconditionally
+        // deals the first tile from yama. Therefore we do the minus one here.
         idx += (yama_idx - 1) * 2;
 
         for &tile in &self.rinshan[rinshan_idx..] {

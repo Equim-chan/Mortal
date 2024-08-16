@@ -66,23 +66,24 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use ndarray::arr2;
 
     #[test]
     fn mutate() {
         let mut arr = Simple2DArray::<2, i32>::new(4);
         arr.fill(1, 3);
-        assert_eq!(&arr.arr, &[0, 0, 3, 3, 0, 0, 0, 0]);
+        assert_eq!(arr.build(), arr2(&[[0, 0], [3, 3], [0, 0], [0, 0]]));
 
         let mut arr = Simple2DArray::<2, i32>::new(4);
         arr.fill_rows(1, 2, 3);
-        assert_eq!(&arr.arr, &[0, 0, 3, 3, 3, 3, 0, 0]);
+        assert_eq!(arr.build(), arr2(&[[0, 0], [3, 3], [3, 3], [0, 0]]));
 
         let mut arr = Simple2DArray::<2, i32>::new(4);
         arr.assign(1, 1, 3);
-        assert_eq!(&arr.arr, &[0, 0, 0, 3, 0, 0, 0, 0]);
+        assert_eq!(arr.build(), arr2(&[[0, 0], [0, 3], [0, 0], [0, 0]]));
 
         let mut arr = Simple2DArray::<2, i32>::new(4);
         arr.assign_rows(1, 1, 2, 3);
-        assert_eq!(&arr.arr, &[0, 0, 0, 3, 0, 3, 0, 0]);
+        assert_eq!(arr.build(), arr2(&[[0, 0], [0, 3], [0, 3], [0, 0]]));
     }
 }

@@ -76,7 +76,7 @@ def main():
             range(len(feature)),
         ))
 
-        with torch.no_grad():
+        with torch.inference_mode():
             logits = grp(seq)
         matrix = grp.calc_matrix(logits)
         extra_data = {

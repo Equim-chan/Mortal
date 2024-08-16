@@ -113,19 +113,17 @@ class TrainPlayer:
         self.boltzmann_epsilon = cfg['boltzmann_epsilon']
         self.boltzmann_temp = cfg['boltzmann_temp']
         self.top_p = cfg['top_p']
-        self.stochastic_latent = cfg.get('stochastic_latent', True)
 
         self.repeats = cfg['repeats']
         self.repeat_counter = 0
 
-    def train_play(self, oracle, mortal, dqn, device):
+    def train_play(self, mortal, dqn, device):
         torch.backends.cudnn.benchmark = False
         engine_chal = MortalEngine(
             mortal,
             dqn,
             is_oracle = False,
             version = self.chal_version,
-            stochastic_latent = self.stochastic_latent,
             boltzmann_epsilon = self.boltzmann_epsilon,
             boltzmann_temp = self.boltzmann_temp,
             top_p = self.top_p,

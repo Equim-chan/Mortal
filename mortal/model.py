@@ -20,7 +20,7 @@ class ChannelAttention(nn.Module):
                 if isinstance(mod, nn.Linear):
                     nn.init.constant_(mod.bias, 0)
 
-    def forward(self, x):
+    def forward(self, x: Tensor):
         avg_out = self.shared_mlp(x.mean(-1))
         max_out = self.shared_mlp(x.amax(-1))
         weight = (avg_out + max_out).sigmoid()
@@ -149,7 +149,7 @@ class Brain(nn.Module):
         # always use EMA or CMA when True
         self._freeze_bn = False
 
-    def forward(self, obs, invisible_obs: Optional[Tensor] = None) -> Union[Tuple[Tensor, Tensor], Tensor]:
+    def forward(self, obs: Tensor, invisible_obs: Optional[Tensor] = None) -> Union[Tuple[Tensor, Tensor], Tensor]:
         if self.is_oracle:
             assert invisible_obs is not None
             obs = torch.cat((obs, invisible_obs), dim=1)
@@ -252,7 +252,7 @@ class GRP(nn.Module):
     # grand_kyoku: E1 = 0, S4 = 7, W4 = 11
     # s is 2.5 at E1
     # s[0] is score of player id 0
-    def forward(self, inputs):
+    def forward(self, inputs: List[Tensor]):
         lengths = torch.tensor([t.shape[0] for t in inputs], dtype=torch.int64)
         inputs = pad_sequence(inputs, batch_first=True)
         packed_inputs = pack_padded_sequence(inputs, lengths, batch_first=True, enforce_sorted=False)
@@ -265,7 +265,7 @@ class GRP(nn.Module):
         return logits
 
     # (N, 24) -> (N, player, rank_prob)
-    def calc_matrix(self, logits):
+    def calc_matrix(self, logits: Tensor):
         batch_size = logits.shape[0]
         probs = logits.softmax(-1)
         matrix = torch.zeros(batch_size, 4, 4, dtype=probs.dtype)
@@ -276,7 +276,7 @@ class GRP(nn.Module):
         return matrix
 
     # (N, 4) -> (N)
-    def get_label(self, rank_by_player):
+    def get_label(self, rank_by_player: Tensor):
         batch_size = rank_by_player.shape[0]
         perms = self.perms.expand(batch_size, -1, -1).transpose(0, 1)
         mappings = (perms == rank_by_player).all(-1).nonzero()
