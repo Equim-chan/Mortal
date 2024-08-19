@@ -126,7 +126,7 @@ impl TwoVsTwo {
         }
 
         log::info!(
-            "seed: [{}, {}) w/ {:#x}, start {} groups, {} hanchans",
+            "seed: [{}, {}) w/ {:#x}, start {} sets, {} hanchans",
             seed_start.0,
             seed_start.0 + seed_count,
             seed_start.1,

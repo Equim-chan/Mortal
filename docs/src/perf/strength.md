@@ -1,34 +1,24 @@
 # Strength
-## Simulation environment
-The simulation uses a 1v3 duplicate mahjong setting as follows
+## Simulation setup
+The simulation employs a 1v3 duplicate mahjong setup, which is organized as follows:
 
-| Table | East start | South start | West start | North start |
+| Game in Set | East at Game Start | South at Game Start | West at Game Start | North at Game Start |
 |:---:|:---:|:---:|:---:|:---:|
 | 1 | Challenger | Champion | Champion | Champion |
 | 2 | Champion | Challenger | Champion | Champion |
 | 3 | Champion | Champion | Challenger | Champion |
 | 4 | Champion | Champion | Champion | Challenger |
 
-In this setting, every 4 games are initialized with same random seed. The emulator guarantees that with the same (seed, kyoku, honba) tuple, the yama, haipai, dora/ura indicators and rinshan tiles are deterministic and reproducible.
+In this configuration, each set of 4 games initialize with the same random seed. The emulator ensures that given the same `(seed, kyoku, honba)` combination, the walls, initial hands, dora/ura indicators, and rinshan tiles are deterministic and reproducible.
 
 The emulator is implemented in [`libriichi::arena`](https://github.com/Equim-chan/Mortal/tree/main/libriichi/src/arena).
 
-The "rank pt" in all the tables are calculated using a distribution of [90, 45, 0, -135].
+The "rank pt" in all the tables are calculated using the distribution [90, 45, 0, -135].
 
-The name of the <span class="best-model">current best model</span> is highlighted.
+The name of the current <span class="best-model">best model</span> will be highlighted.
 
-### Seed
-The seed often used in the following experiments, 0xd5dfaa4cef265cd7, is derived from the first 8 bytes of the SHA-256 hash of `Mortal the mahjong AI`.
-
-## Aliases
-| Model tag | Alias |
-|---|---|
-| mortal1-b40c192-t22040618 | "1.0" |
-| mortal2-b75c256-t22100115 | "2.0" |
-| mortal2-b75c256-t22092920 | "2.1" |
-| mortal3-b24c512-t22121413 | "3.0" |
-| mortal3-b24c512-t22122709 | "3.1" |
-| mortal4-b24c512-t23102603 | <span class="best-model">"4.0"</span> |
+### Random seed
+The random seed often used in the following experiments, 0xd5dfaa4cef265cd7, is derived from the first 8 bytes of the SHA-256 hash of the string `Mortal the mahjong AI`.
 
 ## Mortal vs akochan (jun_pt = [90, 45, 0, -135])
 Challenger is akochan and Champion is Mortal.
