@@ -112,7 +112,7 @@ impl MortalBatchAgent {
     }
 
     fn evaluate(&mut self) -> Result<()> {
-        // Wait for all feature encodings to be completed.
+        // Wait for all feature encodings to complete.
         mem::take(&mut self.wg).wait();
         let mut sync_fields = self.sync_fields.lock();
 
@@ -256,9 +256,9 @@ impl BatchAgent for MortalBatchAgent {
         rayon::spawn(move || {
             let _wg = wg;
 
-            // Do feature encoding in parallel in the game batch to utilize
-            // multiple cores, as it can be very CPU intensive when using the sp
-            // feature (since v4).
+            // Encode features in parallel within the game batch to utilize
+            // multiple cores, as this can be very CPU-intensive, especially for
+            // the sp feature (since v4).
             let kan = need_kan_select.then(|| state.encode_obs(version, true));
             let (feature, mask) = state.encode_obs(version, false);
 
