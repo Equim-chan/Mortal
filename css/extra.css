@@ -1,0 +1,12 @@
+p.caption {
+  font-size: .9em;
+  font-weight: 600;
+  text-align: center;
+}
+
+.coal .best-model, .navy .best-model, .ayu .best-model {
+  color: lightgreen;
+}
+.light .best-model, .rust .best-model {
+  color: deeppink;
+}
