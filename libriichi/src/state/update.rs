@@ -1,6 +1,6 @@
+use super::PlayerState;
 use super::action::ActionCandidate;
 use super::item::{ChiPon, KawaItem, Sutehai};
-use super::PlayerState;
 use crate::algo::agari::{self, AgariCalculator};
 use crate::algo::shanten;
 use crate::mjai::Event;
@@ -10,7 +10,7 @@ use crate::{must_tile, tu8, tuz};
 use std::cmp::Ordering;
 use std::{iter, mem};
 
-use anyhow::{ensure, Context, Result};
+use anyhow::{Context, Result, ensure};
 
 #[derive(Clone, Copy)]
 pub(super) enum MoveType {
@@ -287,7 +287,7 @@ impl PlayerState {
             self.tehai
                 .iter()
                 .enumerate()
-                .filter(|(_, &count)| count > 0)
+                .filter(|&(_, &count)| count > 0)
                 .for_each(|(tid, &count)| {
                     let tile = must_tile!(tid);
                     if count == 4 {

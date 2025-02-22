@@ -4,7 +4,7 @@ use std::fmt;
 
 use derivative::Derivative;
 use serde::{Deserialize, Serialize};
-use serde_with::{serde_as, skip_serializing_none, TryFromInto};
+use serde_with::{TryFromInto, serde_as, skip_serializing_none};
 
 /// Describes an event in mjai format.
 ///
@@ -255,7 +255,7 @@ impl From<Event> for EventExt {
 mod test {
     use super::*;
 
-    use serde_json::{self as json, json, Map, Number, Value};
+    use serde_json::{self as json, Map, Number, Value, json};
 
     #[test]
     fn json_consistency() {

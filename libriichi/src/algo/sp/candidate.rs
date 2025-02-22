@@ -1,5 +1,5 @@
-use super::tile::RequiredTile;
 use super::MAX_TSUMOS_LEFT;
+use super::tile::RequiredTile;
 use crate::tile::Tile;
 use std::cmp::Ordering;
 

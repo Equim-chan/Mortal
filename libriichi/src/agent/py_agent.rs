@@ -1,7 +1,7 @@
 use super::{BatchAgent, MjaiLogBatchAgent, MortalBatchAgent};
 use std::str::FromStr;
 
-use anyhow::{bail, Error, Result};
+use anyhow::{Error, Result, bail};
 use pyo3::prelude::*;
 
 enum EngineType {

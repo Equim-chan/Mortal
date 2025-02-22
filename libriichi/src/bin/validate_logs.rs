@@ -9,7 +9,7 @@ use std::panic::catch_unwind;
 use std::path::Path;
 use std::time::Duration;
 
-use anyhow::{anyhow, ensure, Context, Result};
+use anyhow::{Context, Result, anyhow, ensure};
 use flate2::read::GzDecoder;
 use glob::glob;
 use indicatif::{ProgressBar, ProgressStyle};

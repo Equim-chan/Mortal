@@ -1,9 +1,9 @@
 use std::env;
 use std::ffi::OsString;
 use std::path::Path;
-use std::process::{exit, Command, Stdio};
+use std::process::{Command, Stdio, exit};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 
 // All relative to $EXE_DIR
 const CONDA_ENV: &str = "env";

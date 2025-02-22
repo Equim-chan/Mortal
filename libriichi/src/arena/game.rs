@@ -5,7 +5,7 @@ use crate::mjai::EventExt;
 use std::time::Duration;
 use std::{array, mem};
 
-use anyhow::{ensure, Result};
+use anyhow::{Result, ensure};
 use indicatif::{ProgressBar, ProgressStyle};
 use ndarray::prelude::*;
 

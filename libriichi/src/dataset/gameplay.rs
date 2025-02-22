@@ -8,7 +8,7 @@ use std::io;
 use std::mem;
 
 use ahash::AHashSet;
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use derivative::Derivative;
 use flate2::read::GzDecoder;
 use ndarray::prelude::*;
@@ -169,12 +169,12 @@ impl GameplayLoader {
         names
             .iter()
             .enumerate()
-            .filter(|(_, name)| {
+            .filter(|&(_, name)| {
                 if !self.player_names_set.is_empty() {
-                    return self.player_names_set.contains(*name);
+                    return self.player_names_set.contains(name);
                 }
                 if !self.excludes_set.is_empty() {
-                    return !self.excludes_set.contains(*name);
+                    return !self.excludes_set.contains(name);
                 }
                 true
             })
@@ -193,13 +193,13 @@ impl Gameplay {
     fn take_obs<'py>(&mut self, py: Python<'py>) -> Vec<Bound<'py, PyArray2<f32>>> {
         mem::take(&mut self.obs)
             .into_iter()
-            .map(|v| PyArray2::from_owned_array_bound(py, v))
+            .map(|v| PyArray2::from_owned_array(py, v))
             .collect()
     }
     fn take_invisible_obs<'py>(&mut self, py: Python<'py>) -> Vec<Bound<'py, PyArray2<f32>>> {
         mem::take(&mut self.invisible_obs)
             .into_iter()
-            .map(|v| PyArray2::from_owned_array_bound(py, v))
+            .map(|v| PyArray2::from_owned_array(py, v))
             .collect()
     }
     fn take_actions(&mut self) -> Vec<i64> {
@@ -208,7 +208,7 @@ impl Gameplay {
     fn take_masks<'py>(&mut self, py: Python<'py>) -> Vec<Bound<'py, PyArray1<bool>>> {
         mem::take(&mut self.masks)
             .into_iter()
-            .map(|v| PyArray1::from_owned_array_bound(py, v))
+            .map(|v| PyArray1::from_owned_array(py, v))
             .collect()
     }
     fn take_at_kyoku(&mut self) -> Vec<u8> {

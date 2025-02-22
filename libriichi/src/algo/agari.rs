@@ -416,11 +416,7 @@ impl<'a> DivWorker<'a> {
             return if !self.sup.is_menzen {
                 30
             } else if has_pinfu {
-                if self.sup.is_ron {
-                    30
-                } else {
-                    20
-                }
+                if self.sup.is_ron { 30 } else { 20 }
             } else if self.sup.is_ron {
                 40
             } else {
@@ -813,7 +809,7 @@ fn get_tile14_and_key(tiles: &[u8; 34]) -> ([u8; 14], u32) {
         .iter()
         .enumerate()
         .skip(3 * 9)
-        .filter(|(_, &c)| c > 0)
+        .filter(|&(_, &c)| c > 0)
         .for_each(|(tile_id, &c)| {
             *tile14_iter.next().unwrap() = tile_id as u8;
             bit_idx += 1;

@@ -10,6 +10,7 @@ use std::mem;
 
 use ndarray::prelude::*;
 use rand::prelude::*;
+use rand::rng;
 
 /// All fields are sorted early -> late.
 #[derive(Default)]
@@ -117,7 +118,7 @@ impl Invisible {
                         .filter(|&(_, count)| count > 0)
                         .flat_map(|(tid, count)| iter::repeat(must_tile!(tid)).take(count as usize))
                         .collect();
-                    filler.shuffle(&mut thread_rng());
+                    filler.shuffle(&mut rng());
 
                     while cur.yama.len() < 70 {
                         cur.yama.push(filler.pop().unwrap());
@@ -164,7 +165,7 @@ impl Invisible {
                 .tehai()
                 .iter()
                 .enumerate()
-                .filter(|(_, &count)| count > 0)
+                .filter(|&(_, &count)| count > 0)
                 .for_each(|(tile_id, &count)| arr.assign_rows(idx, tile_id, count as usize, 1.));
             idx += 4;
 
@@ -172,7 +173,7 @@ impl Invisible {
                 .akas_in_hand()
                 .iter()
                 .enumerate()
-                .filter(|(_, &has_it)| has_it)
+                .filter(|&(_, &has_it)| has_it)
                 .for_each(|(i, _)| arr.fill(idx + i, 1.));
             idx += 3;
 
@@ -197,7 +198,7 @@ impl Invisible {
                 .waits()
                 .iter()
                 .enumerate()
-                .filter(|(_, &c)| c)
+                .filter(|&(_, &c)| c)
                 .for_each(|(t, _)| arr.assign(idx, t, 1.));
             idx += 1;
 

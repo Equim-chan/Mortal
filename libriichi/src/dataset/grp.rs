@@ -46,7 +46,7 @@ impl Grp {
 
     /// Returns List[List[np.ndarray]]
     pub fn take_feature<'py>(&mut self, py: Python<'py>) -> Bound<'py, PyArray2<f64>> {
-        PyArray2::from_owned_array_bound(py, mem::take(&mut self.feature))
+        PyArray2::from_owned_array(py, mem::take(&mut self.feature))
     }
     pub const fn take_rank_by_player(&self) -> [u8; 4] {
         self.rank_by_player
@@ -153,7 +153,8 @@ impl Grp {
         let rank_by_player =
             rank_by_player_opt.context("invalid log: no Hora or Ryukyoku after a StartKyoku")?;
         let shape = (game_info.len(), GRP_SIZE);
-        let feature = Array::from_iter(game_info.into_iter().flatten()).into_shape(shape)?;
+        let feature =
+            Array::from_iter(game_info.into_iter().flatten()).into_shape_with_order(shape)?;
 
         Ok(Self {
             feature,

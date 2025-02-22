@@ -8,7 +8,7 @@ use crate::tile::Tile;
 use crate::vec_ops::vec_add_assign;
 use crate::{must_tile, tuz};
 
-use anyhow::{bail, ensure, Result};
+use anyhow::{Result, bail, ensure};
 
 /// Spaces are allowed.
 pub fn hand_with_aka(s: &str) -> Result<[u8; 37]> {
@@ -69,7 +69,7 @@ pub fn tile37_to_vec(tiles: &[u8; 37]) -> Vec<Tile> {
     tiles
         .iter()
         .enumerate()
-        .filter(|(_, &count)| count > 0)
+        .filter(|&(_, &count)| count > 0)
         .for_each(|(tid, &count)| {
             if tid < 34 {
                 ret.resize(ret.len() + count as usize, must_tile!(tid));
@@ -86,7 +86,7 @@ pub fn tile34_to_vec(tiles: &[u8; 34]) -> Vec<Tile> {
     tiles
         .iter()
         .enumerate()
-        .filter(|(_, &count)| count > 0)
+        .filter(|&(_, &count)| count > 0)
         .for_each(|(tid, &count)| {
             ret.resize(ret.len() + count as usize, must_tile!(tid));
         });
@@ -104,7 +104,7 @@ pub fn tiles_to_string(tiles: &[u8; 34], aka: [bool; 3]) -> String {
             chunk
                 .iter()
                 .enumerate()
-                .filter(|(_, &count)| count > 0)
+                .filter(|&(_, &count)| count > 0)
                 .for_each(|(num, &count)| {
                     let literal_num = num + 1;
                     if literal_num == 5 && aka[kind] {
@@ -134,7 +134,7 @@ pub fn tiles_to_string(tiles: &[u8; 34], aka: [bool; 3]) -> String {
     let jihai: String = tiles[3 * 9..]
         .iter()
         .enumerate()
-        .filter(|(_, &count)| count > 0)
+        .filter(|&(_, &count)| count > 0)
         .map(|(num, &count)| (num + 1).to_string().repeat(count as usize))
         .collect();
 

@@ -16,7 +16,7 @@ pub(crate) fn register_module(
     prefix: &str,
     super_mod: &Bound<'_, PyModule>,
 ) -> PyResult<()> {
-    let m = PyModule::new_bound(py, "dataset")?;
+    let m = PyModule::new(py, "dataset")?;
     m.add_class::<Gameplay>()?;
     m.add_class::<GameplayLoader>()?;
     m.add_class::<Grp>()?;

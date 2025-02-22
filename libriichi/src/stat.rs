@@ -8,7 +8,7 @@ use std::fs::File;
 use std::io;
 use std::time::Duration;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use derive_more::{Add, AddAssign, Sum};
 use flate2::read::GzDecoder;
 use glob::glob;
@@ -482,7 +482,7 @@ impl Stat {
                         let log_stat = names
                             .iter()
                             .enumerate()
-                            .filter(|(_, name)| name == &player_name)
+                            .filter(|&(_, name)| name == player_name)
                             .map(|(i, _)| Self::from_game(&events, i as u8))
                             .sum();
                         Ok(log_stat)
@@ -797,7 +797,7 @@ pub(crate) fn register_module(
     prefix: &str,
     super_mod: &Bound<'_, PyModule>,
 ) -> PyResult<()> {
-    let m = PyModule::new_bound(py, "stat")?;
+    let m = PyModule::new(py, "stat")?;
     m.add_class::<Stat>()?;
     add_submodule(py, prefix, super_mod, &m)
 }

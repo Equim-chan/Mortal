@@ -7,7 +7,7 @@ use std::mem;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use anyhow::{ensure, Context, Result};
+use anyhow::{Context, Result, ensure};
 use crossbeam::sync::WaitGroup;
 use ndarray::prelude::*;
 use numpy::{PyArray1, PyArray2};
@@ -127,18 +127,18 @@ impl MortalBatchAgent {
             let states: Vec<_> = sync_fields
                 .states
                 .drain(..)
-                .map(|v| PyArray2::from_owned_array_bound(py, v))
+                .map(|v| PyArray2::from_owned_array(py, v))
                 .collect();
             let masks: Vec<_> = sync_fields
                 .masks
                 .drain(..)
-                .map(|v| PyArray1::from_owned_array_bound(py, v))
+                .map(|v| PyArray1::from_owned_array(py, v))
                 .collect();
             let invisible_states: Option<Vec<_>> = self.is_oracle.then(|| {
                 sync_fields
                     .invisible_states
                     .drain(..)
-                    .map(|v| PyArray2::from_owned_array_bound(py, v))
+                    .map(|v| PyArray2::from_owned_array(py, v))
                     .collect()
             });
 
@@ -168,7 +168,7 @@ impl MortalBatchAgent {
             .into_iter()
             .zip(masks)
             .enumerate()
-            .filter(|(_, (_, m))| *m)
+            .filter(|&(_, (_, m))| m)
             .map(|(i, (q, _))| {
                 mask_bits |= 0b1 << i;
                 q

@@ -22,7 +22,7 @@ pub(crate) fn register_module(
     prefix: &str,
     super_mod: &Bound<'_, PyModule>,
 ) -> PyResult<()> {
-    let m = PyModule::new_bound(py, "state")?;
+    let m = PyModule::new(py, "state")?;
     m.add_class::<ActionCandidate>()?;
     m.add_class::<PlayerState>()?;
     add_submodule(py, prefix, super_mod, &m)

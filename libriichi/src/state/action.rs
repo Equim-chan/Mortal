@@ -4,7 +4,7 @@ use crate::mjai::Event;
 use crate::tile::Tile;
 use crate::tuz;
 
-use anyhow::{bail, ensure, Result};
+use anyhow::{Result, bail, ensure};
 use pyo3::prelude::*;
 use serde::Serialize;
 

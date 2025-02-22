@@ -3,7 +3,7 @@ use crate::arena::GameResult;
 use crate::mjai::EventExt;
 use crate::state::PlayerState;
 
-use anyhow::{ensure, Context, Result};
+use anyhow::{Context, Result, ensure};
 use ndarray::prelude::*;
 
 pub struct BatchifiedAgent<A>

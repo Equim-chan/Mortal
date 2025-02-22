@@ -12,7 +12,7 @@ pub const ACTION_SPACE: usize = 37 // discard | kan (choice)
                               + 1  // agari
                               + 1  // ryukyoku
                               + 1; // pass
-                                   // = 46
+// = 46
 pub const GRP_SIZE: usize = 7;
 
 #[pyfunction]
@@ -42,7 +42,7 @@ pub(crate) fn register_module(
     prefix: &str,
     super_mod: &Bound<'_, PyModule>,
 ) -> PyResult<()> {
-    let m = PyModule::new_bound(py, "consts")?;
+    let m = PyModule::new(py, "consts")?;
     m.add_function(wrap_pyfunction!(obs_shape, &m)?)?;
     m.add_function(wrap_pyfunction!(oracle_obs_shape, &m)?)?;
     m.add("MAX_VERSION", MAX_VERSION)?;

@@ -175,7 +175,7 @@ impl PlayerState {
             .waits
             .iter()
             .enumerate()
-            .filter(|(_, &b)| b)
+            .filter(|&(_, &b)| b)
             .map(|(i, _)| must_tile!(i))
             .collect::<Vec<_>>();
 

@@ -18,7 +18,7 @@ pub(crate) fn register_module(
     prefix: &str,
     super_mod: &Bound<'_, PyModule>,
 ) -> PyResult<()> {
-    let m = PyModule::new_bound(py, "arena")?;
+    let m = PyModule::new(py, "arena")?;
     m.add_class::<OneVsThree>()?;
     m.add_class::<TwoVsTwo>()?;
     add_submodule(py, prefix, super_mod, &m)

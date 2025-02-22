@@ -13,7 +13,7 @@ pub(crate) fn register_module(
     prefix: &str,
     super_mod: &Bound<'_, PyModule>,
 ) -> PyResult<()> {
-    let m = PyModule::new_bound(py, "mjai")?;
+    let m = PyModule::new(py, "mjai")?;
     m.add_class::<Bot>()?;
     add_submodule(py, prefix, super_mod, &m)
 }

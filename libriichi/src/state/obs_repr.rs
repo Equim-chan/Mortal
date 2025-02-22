@@ -2,7 +2,7 @@ use super::item::KawaItem;
 use super::{PlayerState, SinglePlayerTables};
 use crate::algo::sp::{Candidate, CandidateColumn};
 use crate::array::Simple2DArray;
-use crate::consts::{obs_shape, ACTION_SPACE, MAX_VERSION};
+use crate::consts::{ACTION_SPACE, MAX_VERSION, obs_shape};
 use crate::tile::Tile;
 use crate::{tu8, tuz};
 use std::num::NonZeroUsize;
@@ -131,7 +131,7 @@ impl<'a> ObsEncoderContext<'a> {
             .tehai
             .iter()
             .enumerate()
-            .filter(|(_, &count)| count > 0)
+            .filter(|&(_, &count)| count > 0)
             .for_each(|(tile_id, &count)| {
                 let n = count as usize;
                 self.arr.assign_rows(self.idx, tile_id, n, 1.);
@@ -369,13 +369,13 @@ impl<'a> ObsEncoderContext<'a> {
         state.riichi_declared[1..]
             .iter()
             .enumerate()
-            .filter(|(_, &b)| b)
+            .filter(|&(_, &b)| b)
             .for_each(|(i, _)| self.arr.fill(self.idx + i, 1.));
         self.idx += 3;
         state.riichi_accepted[1..]
             .iter()
             .enumerate()
-            .filter(|(_, &b)| b)
+            .filter(|&(_, &b)| b)
             .for_each(|(i, _)| self.arr.fill(self.idx + i, 1.));
         self.idx += 3;
 
@@ -383,7 +383,7 @@ impl<'a> ObsEncoderContext<'a> {
             .waits
             .iter()
             .enumerate()
-            .filter(|(_, &c)| c)
+            .filter(|&(_, &c)| c)
             .for_each(|(t, _)| self.arr.assign(self.idx, t, 1.));
         self.idx += 1;
 
@@ -433,7 +433,7 @@ impl<'a> ObsEncoderContext<'a> {
                 .discard_candidates_aka()
                 .iter()
                 .enumerate()
-                .filter(|(_, &c)| c)
+                .filter(|&(_, &c)| c)
                 .for_each(|(t, _)| {
                     let deaka_t = match t as u8 {
                         tu8!(5mr) => tuz!(5m),
@@ -451,13 +451,13 @@ impl<'a> ObsEncoderContext<'a> {
                 .keep_shanten_discards
                 .iter()
                 .enumerate()
-                .filter(|(_, &c)| c)
+                .filter(|&(_, &c)| c)
                 .for_each(|(t, _)| self.arr.assign(self.idx + 1, t, 1.));
             state
                 .next_shanten_discards
                 .iter()
                 .enumerate()
-                .filter(|(_, &c)| c)
+                .filter(|&(_, &c)| c)
                 .for_each(|(t, _)| self.arr.assign(self.idx + 2, t, 1.));
 
             if state.shanten <= 1 {
@@ -465,7 +465,7 @@ impl<'a> ObsEncoderContext<'a> {
                     .discard_candidates_with_unconditional_tenpai()
                     .iter()
                     .enumerate()
-                    .filter(|(_, &c)| c)
+                    .filter(|&(_, &c)| c)
                     .for_each(|(t, _)| self.arr.assign(self.idx + 3, t, 1.));
             }
 
@@ -784,8 +784,8 @@ impl PlayerState {
         py: Python<'py>,
     ) -> (Bound<'py, PyArray2<f32>>, Bound<'py, PyArray1<bool>>) {
         let (obs, mask) = self.encode_obs(version, at_kan_select);
-        let obs = PyArray2::from_owned_array_bound(py, obs);
-        let mask = PyArray1::from_owned_array_bound(py, mask);
+        let obs = PyArray2::from_owned_array(py, obs);
+        let mask = PyArray1::from_owned_array(py, mask);
         (obs, mask)
     }
 }

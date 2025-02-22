@@ -6,7 +6,7 @@ use riichi::state::PlayerState;
 use riichi::{t, tu8};
 use std::hint::black_box;
 
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn shanten(c: &mut Criterion) {
     shanten::ensure_init();

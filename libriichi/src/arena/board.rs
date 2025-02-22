@@ -9,7 +9,7 @@ use crate::{matches_tu8, must_tile, t, tu8};
 use std::convert::TryInto;
 use std::{array, mem};
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use derivative::Derivative;
 use ndarray::prelude::*;
 use rand::prelude::*;
@@ -267,7 +267,7 @@ impl BoardState {
                 .player_states
                 .iter()
                 .enumerate()
-                .filter(|(_, s)| s.shanten() == 0)
+                .filter(|&(_, s)| s.shanten() == 0)
                 .map(|(i, _)| i)
                 .collect();
 
@@ -692,7 +692,7 @@ impl BoardState {
                     .tehai()
                     .iter()
                     .enumerate()
-                    .filter(|(_, &count)| count > 0)
+                    .filter(|&(_, &count)| count > 0)
                     .for_each(|(tile_id, &count)| {
                         arr.assign_rows(idx, tile_id, count as usize, 1.);
                     });
@@ -702,7 +702,7 @@ impl BoardState {
                     .akas_in_hand()
                     .iter()
                     .enumerate()
-                    .filter(|(_, &has_it)| has_it)
+                    .filter(|&(_, &has_it)| has_it)
                     .for_each(|(i, _)| arr.fill(idx + i, 1.));
                 idx += 3;
 
@@ -727,7 +727,7 @@ impl BoardState {
                     .waits()
                     .iter()
                     .enumerate()
-                    .filter(|(_, &c)| c)
+                    .filter(|&(_, &c)| c)
                     .for_each(|(t, _)| arr.assign(idx, t, 1.));
                 idx += 1;
 

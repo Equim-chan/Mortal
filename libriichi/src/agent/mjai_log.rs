@@ -4,7 +4,7 @@ use crate::mjai::EventExt;
 use crate::state::PlayerState;
 use std::mem;
 
-use anyhow::{ensure, Context, Result};
+use anyhow::{Context, Result, ensure};
 use pyo3::intern;
 use pyo3::prelude::*;
 use serde_json as json;

@@ -7,7 +7,7 @@ use crate::tile::Tile;
 use crate::vec_ops::vec_add_assign;
 use crate::{must_tile, t, tu8, tuz};
 
-use anyhow::{ensure, Context, Result};
+use anyhow::{Context, Result, ensure};
 use tinyvec::array_vec;
 
 impl PlayerState {

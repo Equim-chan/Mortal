@@ -8,7 +8,7 @@ use crate::{must_tile, t, tu8};
 use std::rc::Rc;
 
 use ahash::AHashMap;
-use anyhow::{ensure, Result};
+use anyhow::{Result, ensure};
 
 const SHANTEN_THRES: i8 = 3;
 const MAX_TILES_LEFT: usize = 34 * 4 - 1 - 13;

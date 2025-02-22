@@ -1,6 +1,6 @@
 use super::game::{BatchGame, Index};
 use super::result::GameResult;
-use crate::agent::{new_py_agent, AkochanAgent, BatchAgent};
+use crate::agent::{AkochanAgent, BatchAgent, new_py_agent};
 use std::fs::{self, File};
 use std::io;
 use std::iter;
@@ -8,8 +8,8 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::Result;
-use flate2::read::GzEncoder;
 use flate2::Compression;
+use flate2::read::GzEncoder;
 use indicatif::{ParallelProgressIterator, ProgressBar, ProgressStyle};
 use pyo3::prelude::*;
 use rayon::prelude::*;
