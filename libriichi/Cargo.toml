@@ -17,7 +17,7 @@ boomphf = "0.6"
 byteorder = "1"
 rayon = "1"
 ndarray = "0.16"
-numpy = "0.23"
+numpy = "0.25"
 serde_with = "3"
 rand = "0.9"
 rand_chacha = "0.9"
@@ -28,7 +28,7 @@ derivative = "2"
 ahash = "0.8"
 parking_lot = "0.12"
 crossbeam = "0.8"
-pyo3 = { version = "0.23", features = ["auto-initialize", "multiple-pymethods", "anyhow"] }
+pyo3 = { version = "0.25", features = ["auto-initialize", "multiple-pymethods", "anyhow"] }
 indicatif = { version = "0.17", features = ["rayon"] }
 tinyvec = { version = "1", features = ["alloc", "serde", "rustc_1_57"] }
 serde = { version = "1", features = ["derive"] }
@@ -36,10 +36,10 @@ derive_more = { version = "2", features = ["add", "add_assign", "sum"] }
 mimalloc = { version = "0.1", default-features = false, optional = true }
 
 [build-dependencies]
-pyo3-build-config = "0.23"
+pyo3-build-config = "0.25"
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = "0.6"
 
 [[bench]]
 name = "bench"
