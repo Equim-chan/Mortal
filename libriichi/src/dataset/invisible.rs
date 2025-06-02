@@ -116,7 +116,7 @@ impl Invisible {
                         .into_iter()
                         .enumerate()
                         .filter(|&(_, count)| count > 0)
-                        .flat_map(|(tid, count)| iter::repeat(must_tile!(tid)).take(count as usize))
+                        .flat_map(|(tid, count)| iter::repeat_n(must_tile!(tid), count as usize))
                         .collect();
                     filler.shuffle(&mut rng());
 

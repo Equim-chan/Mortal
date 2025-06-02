@@ -135,7 +135,7 @@ impl TwoVsTwo {
         );
 
         let seeds: Vec<_> = (seed_start.0..seed_start.0 + seed_count)
-            .flat_map(|seed| iter::repeat((seed, seed_start.1)).take(2))
+            .flat_map(|seed| iter::repeat_n((seed, seed_start.1), 2))
             .collect();
 
         let challenger_player_ids_per_seed = [

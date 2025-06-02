@@ -138,7 +138,7 @@ impl OneVsThree {
         );
 
         let seeds: Vec<_> = (seed_start.0..seed_start.0 + seed_count)
-            .flat_map(|seed| iter::repeat((seed, seed_start.1)).take(4))
+            .flat_map(|seed| iter::repeat_n((seed, seed_start.1), 4))
             .collect();
 
         let challenger_player_ids: Vec<_> = (0..4).cycle().take(seed_count as usize * 4).collect();

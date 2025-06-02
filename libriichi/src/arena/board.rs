@@ -293,7 +293,7 @@ impl BoardState {
         // no need to broadcast
     }
 
-    fn update_nagashi_mangan_and_four_wind(&mut self, ev: &Event) {
+    const fn update_nagashi_mangan_and_four_wind(&mut self, ev: &Event) {
         match *ev {
             Event::Dahai { actor, pai, .. } if !pai.is_yaokyuu() => {
                 self.can_nagashi_mangan[actor as usize] = false;

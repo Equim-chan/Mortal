@@ -18,7 +18,7 @@ where
     }
 
     #[inline]
-    pub fn rows(&self) -> usize {
+    pub const fn rows(&self) -> usize {
         self.arr.len() / COLS
     }
 

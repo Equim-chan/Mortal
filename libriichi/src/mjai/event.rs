@@ -185,7 +185,7 @@ impl Event {
     }
 
     pub fn augment(&mut self) {
-        fn swap_tile(t: &mut Tile) {
+        const fn swap_tile(t: &mut Tile) {
             *t = t.augment();
         }
 

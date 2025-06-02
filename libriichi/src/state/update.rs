@@ -662,7 +662,7 @@ impl PlayerState {
         Ok(())
     }
 
-    fn reach(&mut self, actor: u8) {
+    const fn reach(&mut self, actor: u8) {
         let actor_rel = self.rel(actor);
         self.riichi_declared[actor_rel] = true;
         if actor_rel == 0 {
@@ -952,7 +952,7 @@ impl PlayerState {
         }
     }
 
-    pub(super) fn update_doras_owned(&mut self, actor_rel: usize, tile: Tile) {
+    pub(super) const fn update_doras_owned(&mut self, actor_rel: usize, tile: Tile) {
         self.doras_owned[actor_rel] += self.dora_factor[tile.deaka().as_usize()];
         if tile.is_aka() {
             self.doras_owned[actor_rel] += 1;

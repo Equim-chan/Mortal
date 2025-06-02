@@ -379,7 +379,7 @@ impl Gameplay {
                     // Check if the POV is one of those who made Hora.
                     for ev in &wnd[1..] {
                         match *ev {
-                            Event::EndKyoku { .. } => break,
+                            Event::EndKyoku => break,
                             Event::Hora { actor, .. } if actor == self.player_id => {
                                 ret = Some(43);
                                 break;
