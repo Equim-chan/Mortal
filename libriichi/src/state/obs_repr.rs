@@ -279,7 +279,7 @@ impl<'a> ObsEncoderContext<'a> {
             }
         }
 
-        let v = state.tiles_left as f32 / 69.;
+        let v = state.tiles_left as f32 / 70.;
         self.arr.fill(self.idx, v);
         self.idx += 1;
 
